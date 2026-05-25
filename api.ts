@@ -1,12 +1,15 @@
 'use strict';
 
 import type { GuardSettings, Mode } from './lib/types';
+import { SUGGESTED_AUDIO_URLS, SUGGESTED_VIDEO_URLS } from './lib/types';
 
 interface AppRef {
   getSettings(): GuardSettings;
   saveSettings(settings: Partial<GuardSettings>): GuardSettings;
   setMode(mode: Mode): Promise<void>;
   triggerPanic(): Promise<void>;
+  testDeterrence(zoneId: string): Promise<void>;
+  stopAlarm(): Promise<void>;
   homeyApi: any;
   stateMachine: { getMode(): Mode; getModeChangedAt(): number };
   deterrence: { getActiveZone(): string | null; getActiveMotionZone(): string | null };
@@ -47,7 +50,11 @@ module.exports = {
   },
 
   async getSettings({ homey }: Ctx) {
-    return homey.app.getSettings();
+    return {
+      ...homey.app.getSettings(),
+      _suggested_audio_urls: SUGGESTED_AUDIO_URLS,
+      _suggested_video_urls: SUGGESTED_VIDEO_URLS,
+    };
   },
 
   async setSettings({ homey, body }: BodyCtx<Partial<GuardSettings>>) {
@@ -61,6 +68,16 @@ module.exports = {
 
   async triggerPanic({ homey }: Ctx) {
     await homey.app.triggerPanic();
+    return { success: true };
+  },
+
+  async testDeterrence({ homey, body }: BodyCtx<{ zoneId: string }>) {
+    await homey.app.testDeterrence(body.zoneId);
+    return { success: true };
+  },
+
+  async stopAlarm({ homey }: Ctx) {
+    await homey.app.stopAlarm();
     return { success: true };
   },
 

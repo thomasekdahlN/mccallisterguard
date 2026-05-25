@@ -94,6 +94,20 @@ class McCallisterGuardApp extends Homey.App {
     await this.media.startSiren('__all__', settings.custom_audio_url);
   }
 
+  async testDeterrence(zoneId: string): Promise<void> {
+    this.eventLog.add('info', `Test: simulerer bevegelse i sone ${zoneId}.`, zoneId);
+    await this.deterrence.handleMotion(zoneId);
+  }
+
+  async stopAlarm(): Promise<void> {
+    this.eventLog.add('info', 'Bruker stoppet alarm manuelt.');
+    this.stateMachine.cancelEntryDelay();
+    this.escalation.cancel();
+    this.falseAlarm.reset();
+    this.cameras.stopAll();
+    await this.deterrence.abort('Bruker stoppet alarmen.');
+  }
+
   private handleModeChange(next: Mode, previous: Mode): void {
     if (next === 'armed_away') {
       this.simulation.start();

@@ -245,6 +245,118 @@
       margin-bottom: 12px;
       color: #555;
     }
+
+    .stop-btn {
+      width: 100%;
+      padding: 14px;
+      margin-bottom: 12px;
+      background: #34495e;
+      color: #fff;
+      border: 0;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .stop-btn.active {
+      background: #c0392b;
+      animation: blink 0.8s linear infinite;
+    }
+
+    .zone-block {
+      border: 1px solid #e1e4e8;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .zone-block summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f4f4f6;
+      font-weight: 600;
+    }
+
+    .zone-block summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .zone-block summary .status-pill {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background: #ddd;
+      color: #444;
+      font-weight: 500;
+    }
+
+    .zone-block summary .status-pill.motion {
+      background: #e74c3c;
+      color: #fff;
+    }
+
+    .zone-block summary .status-pill.deter {
+      background: #3498db;
+      color: #fff;
+    }
+
+    .zone-body {
+      padding: 12px;
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 10px 12px;
+      align-items: center;
+    }
+
+    .zone-body input[type=text],
+    .zone-body input[type=url],
+    .zone-body select {
+      width: 100%;
+      padding: 6px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    .zone-body .test-btn {
+      grid-column: 1 / -1;
+      padding: 8px 14px;
+      background: #16a085;
+      color: #fff;
+      border: 0;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      justify-self: start;
+    }
+
+    .docs {
+      font-size: 14px;
+      line-height: 1.55;
+      color: #333;
+    }
+
+    .docs h3 {
+      margin-top: 20px;
+      color: #1f3a5f;
+    }
+
+    .docs code {
+      background: #f4f4f6;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 12px;
+    }
+
+    .docs ul {
+      padding-left: 22px;
+    }
   </style>
 </head>
 
@@ -256,10 +368,12 @@
     <button class="tab-btn" data-tab="zones">Soneoversikt</button>
     <button class="tab-btn" data-tab="settings">Innstillinger</button>
     <button class="tab-btn" data-tab="log">Hendelseslogg</button>
+    <button class="tab-btn" data-tab="docs">Dokumentasjon</button>
   </div>
 
   <section class="tab-panel active" id="tab-dashboard">
     <div id="status" class="status-line">Laster status…</div>
+    <button class="stop-btn" id="btn-stop">🛑 Stopp alarm</button>
     <div class="row" style="margin-bottom:12px;">
       <button class="mode-btn disarmed" data-mode="disarmed">Deaktivert</button>
       <button class="mode-btn armed_away" data-mode="armed_away">Borte</button>
@@ -267,19 +381,26 @@
       <button class="mode-btn panic" id="btn-panic">🚨 PANIKK</button>
     </div>
     <div class="info-banner">Alarmen aktiveres kun via knappene over eller en flow. Som standard antas det at du er
-      hjemme (deaktivert).</div>
+      hjemme (deaktivert). Bruk «Stopp alarm» for å avbryte eskalering, sirener og avskrekking uten å endre modus.
+    </div>
   </section>
 
   <section class="tab-panel" id="tab-zones">
+    <div class="info-banner">Klikk på en sone for å sette reaksjonssone (sone-matrise), Kevin-modus, lyd/video for
+      avskrekking, og for å teste oppsettet.</div>
     <div id="zones"></div>
+    <datalist id="audio-suggestions"></datalist>
+    <datalist id="video-suggestions"></datalist>
+    <div style="margin-top:16px;">
+      <button class="save-btn" id="btn-save-zones">Lagre sone-innstillinger</button>
+      <span class="saved-toast" id="saved-toast-zones">✓ Lagret</span>
+    </div>
   </section>
 
   <section class="tab-panel" id="tab-settings">
+    <div class="info-banner">Globale innstillinger for hele systemet. Sone-spesifikke innstillinger finner du under
+      «Soneoversikt».</div>
     <div class="settings-grid" id="settings-grid"></div>
-    <h3>Kevin-modus soner (whitelist)</h3>
-    <div class="zone-list-cfg" id="kevin-zones"></div>
-    <h3>Sone-matrise (deteksjon → reaksjon)</h3>
-    <div id="zone-matrix"></div>
     <div style="margin-top:16px;">
       <button class="save-btn" id="btn-save">Lagre innstillinger</button>
       <span class="saved-toast" id="saved-toast">✓ Lagret</span>
@@ -288,6 +409,74 @@
 
   <section class="tab-panel" id="tab-log">
     <div id="log" style="max-height: 480px; overflow-y: auto; border:1px solid #eee; border-radius:6px;"></div>
+  </section>
+
+  <section class="tab-panel" id="tab-docs">
+    <div class="docs">
+      <h3>Hva er McCallister Guard?</h3>
+      <p>Et sikkerhetssystem inspirert av <em>Alene Hjemme</em>: i stedet for å bare utløse en alarm, prøver appen
+        å <strong>avskrekke</strong> tyver med psykologiske triks — blålys i naborommet, sirener, bjeffende hunder,
+        eller videoklipp av en stor person i vinduet. Målet er at tyven snur før noe skjer.</p>
+
+      <h3>Modi</h3>
+      <ul>
+        <li><strong>Deaktivert (hjemme)</strong> — Default. Ingen overvåking, ingen avskrekking. Lys styres
+          normalt.</li>
+        <li><strong>Borte</strong> — Full overvåking. Kevin-simulering (lys av/på) starter automatisk for å late
+          som noen er hjemme. Bevegelse i en sone trigger avskrekking i reaksjonssonen.</li>
+        <li><strong>Natt</strong> — Du sover. Bevegelse innendørs ignoreres, men kontakt-sensorer (dør/vindu) eskalerer
+          umiddelbart.</li>
+      </ul>
+
+      <h3>Avskrekking (sone-matrise)</h3>
+      <p>Når bevegelse oppdages i en sone, slår appen opp <strong>reaksjonssonen</strong> i sone-matrisen. F.eks.: tyv
+        oppdaget i <code>Gang</code> → blålys + lyd i <code>Stue</code>. Tyven tror noen er i stua. Hvis tyven beveger
+        seg <em>mot</em> reaksjonssonen, mørklegges den umiddelbart og en ny reaksjonssone aktiveres.</p>
+      <p>Konfigurer reaksjonssone og lyd/video per sone under «Soneoversikt».</p>
+
+      <h3>Kevin-modus (lys-simulering)</h3>
+      <p>I Borte-modus aktiveres soner som er markert som <strong>Kevin-soner</strong> automatisk med naturlige
+        lys-mønstre fra <code>solnedgang − offset</code> til <code>bedtime</code>. Lysene slås av/på i tilfeldige
+        intervaller mellom <code>random_min</code> og <code>random_max</code> minutter.</p>
+
+      <h3>Falsk-alarm-filter</h3>
+      <p>Alarmen eskalerer <strong>kun</strong> ved (kontakt-sensor + bevegelse) eller bevegelse i to forskjellige
+        soner innen 90 sekunder. Enkeltbevegelse uten kontakt utløser <em>ikke</em> eskalering. Dette hindrer at
+        f.eks. katten din eller solinnstråling utløser sirenen.</p>
+
+      <h3>Eskalering</h3>
+      <p>Når kriterier er oppfylt: timer på <code>escalation_minutes</code> starter. Hvis du ikke deaktiverer
+        innen tiden, går systemet i <strong>KRISE</strong>: full sirene, push-varsler, kamera-snapshots, og
+        flow-trigger <code>alarm_escalated</code>.</p>
+
+      <h3>Lys-vakt (LightAuthGuard)</h3>
+      <p>Under aktiv avskrekking holder appen kontroll over lysene i reaksjonssonen. Hvis noen (f.eks. en tyv) prøver
+        å slå på et lys utenfor appens egne kommandoer, slås det umiddelbart av igjen. Vakta er <strong>helt
+          inaktiv</strong> når ingen avskrekking pågår, så normal lys-styring fungerer som vanlig.</p>
+
+      <h3>Panikk</h3>
+      <p>«PANIKK»-knappen på Dashboard utløser umiddelbart krise-tilstand uten nedtelling. Alle høyttalere spiller
+        sirene, push-varsler sendes, og flow-trigger <code>alarm_escalated</code> kjører.</p>
+
+      <h3>Stopp alarm</h3>
+      <p>«Stopp alarm»-knappen avbryter pågående eskalering, sirener og avskrekking — uten å endre modus. Bruk den
+        ved falsk alarm når du fortsatt vil at systemet skal være armert.</p>
+
+      <h3>Aktivering</h3>
+      <p>Alarmen aktiveres <strong>kun</strong> manuelt via knappene på Dashboard, eller via flow-kort
+        <code>set_mode</code>. Systemet starter <em>aldri</em> automatisk i armert modus etter installasjon eller
+        omstart.
+      </p>
+
+      <h3>Tilgjengelige flow-kort</h3>
+      <ul>
+        <li><strong>Trigger:</strong> <code>deterrence_started</code>, <code>alarm_escalated</code>,
+          <code>health_check_failed</code>
+        </li>
+        <li><strong>Condition:</strong> <code>is_armed</code>, <code>deterrence_active</code></li>
+        <li><strong>Action:</strong> <code>set_mode</code>, <code>trigger_panic</code></li>
+      </ul>
+    </div>
   </section>
 
   <script>
@@ -303,7 +492,11 @@
 
       let zones = [];
       let settings = null;
-      let settingsRendered = false;
+      let suggestedAudio = [];
+      let suggestedVideo = [];
+      let lastStatus = { activeMotionZone: null, activeDeterrenceZone: null };
+
+      const esc = (v) => String(v ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 
       document.querySelectorAll('.tab-btn').forEach((btn) => {
         btn.addEventListener('click', () => {
@@ -321,9 +514,14 @@
             Homey.api('GET', '/settings'),
           ]);
           zones = z;
+          suggestedAudio = s._suggested_audio_urls || [];
+          suggestedVideo = s._suggested_video_urls || [];
+          delete s._suggested_audio_urls;
+          delete s._suggested_video_urls;
           settings = s;
-          renderSettings();
-          settingsRendered = true;
+          renderDatalists();
+          renderGlobalSettings();
+          renderZoneBlocks();
         } catch (err) {
           $('status').textContent = 'Feil ved lasting: ' + (err.message || err);
         }
@@ -335,8 +533,9 @@
             Homey.api('GET', '/status'),
             Homey.api('GET', '/events'),
           ]);
+          lastStatus = status;
           renderStatus(status);
-          renderZones(status);
+          updateZoneStatusPills(status);
           renderLog(log);
         } catch (err) {
           $('status').textContent = 'Feil: ' + (err.message || err);
@@ -356,32 +555,83 @@
         if (s.escalationPending) extras.push('⏳ Eskalering venter');
         if (s.inCrisis) extras.push('🚨 KRISE');
         if (s.simulationRunning) extras.push('Kevin aktiv');
+        if (s.activeDeterrenceZone) extras.push('Avskrekking aktiv');
         el.innerHTML = `<div class="mode-label">Modus: ${modeLabel(s.mode)}</div>`
           + `<div class="meta">Sist endret: ${fmtTs(s.modeChangedAt)}</div>`
           + (extras.length ? `<div class="meta">${extras.join(' · ')}</div>` : '');
         document.querySelectorAll('.mode-btn[data-mode]').forEach((b) => {
           b.classList.toggle('inactive', b.dataset.mode !== s.mode);
         });
+        const alarmActive = s.inCrisis || s.escalationPending || s.activeDeterrenceZone || s.activeMotionZone;
+        $('btn-stop').classList.toggle('active', !!alarmActive);
       }
 
-      function renderZones(s) {
-        const html = zones.map((z) => {
-          const cls = (z.id === s.activeMotionZone) ? 'motion'
-            : (z.id === s.activeDeterrenceZone) ? 'deter' : '';
-          const tag = (z.id === s.activeMotionZone) ? 'BEVEGELSE'
-            : (z.id === s.activeDeterrenceZone) ? 'AVSKREKKING' : '–';
-          return `<div class="zone-card ${cls}"><span>${z.name}</span><span>${tag}</span></div>`;
+      function renderDatalists() {
+        $('audio-suggestions').innerHTML = suggestedAudio
+          .map((o) => `<option value="${esc(o.url)}">${esc(o.label)}</option>`).join('');
+        $('video-suggestions').innerHTML = suggestedVideo
+          .map((o) => `<option value="${esc(o.url)}">${esc(o.label)}</option>`).join('');
+      }
+
+      function zoneStatusPill(zoneId) {
+        if (zoneId === lastStatus.activeMotionZone) return '<span class="status-pill motion">BEVEGELSE</span>';
+        if (zoneId === lastStatus.activeDeterrenceZone) return '<span class="status-pill deter">AVSKREKKING</span>';
+        return '<span class="status-pill">–</span>';
+      }
+
+      function renderZoneBlocks() {
+        if (!zones.length) { $('zones').innerHTML = '<em>Ingen soner funnet.</em>'; return; }
+        $('zones').innerHTML = zones.map((z) => {
+          const opts = zones.map((r) => `<option value="${esc(r.id)}" ${settings.zone_matrix[z.id] === r.id ? 'selected' : ''}>${esc(r.name)}</option>`).join('');
+          const audio = settings.zone_audio_urls[z.id] || '';
+          const video = settings.zone_video_urls[z.id] || '';
+          return `<details class="zone-block" data-zone="${esc(z.id)}">`
+            + `<summary><span>${esc(z.name)}</span>${zoneStatusPill(z.id)}</summary>`
+            + `<div class="zone-body">`
+            + `<label>Reaksjonssone</label>`
+            + `<select data-matrix="${esc(z.id)}"><option value="">— ingen —</option>${opts}</select>`
+            + `<label>Kevin-modus</label>`
+            + `<label style="justify-self:start;"><input type="checkbox" data-kevin="${esc(z.id)}" ${settings.kevin_zones[z.id] ? 'checked' : ''}> Inkluder i lys-simulering</label>`
+            + `<label>Lyd-URL</label>`
+            + `<input type="text" list="audio-suggestions" data-audio="${esc(z.id)}" value="${esc(audio)}" placeholder="standard sirene">`
+            + `<label>Video-URL</label>`
+            + `<input type="text" list="video-suggestions" data-video="${esc(z.id)}" value="${esc(video)}" placeholder="standard blålys">`
+            + `<button class="test-btn" data-test="${esc(z.id)}">▶ Test avskrekking fra denne sonen</button>`
+            + `</div></details>`;
         }).join('');
-        $('zones').innerHTML = html || '<em>Ingen soner funnet.</em>';
+        document.querySelectorAll('[data-test]').forEach((btn) => {
+          btn.addEventListener('click', async (ev) => {
+            ev.preventDefault();
+            const zoneId = btn.dataset.test;
+            btn.disabled = true;
+            try {
+              await Homey.api('POST', '/test-deterrence', { zoneId });
+            } finally {
+              setTimeout(() => { btn.disabled = false; }, 2000);
+            }
+          });
+        });
+      }
+
+      function updateZoneStatusPills(s) {
+        document.querySelectorAll('.zone-block').forEach((el) => {
+          const id = el.dataset.zone;
+          const pill = el.querySelector('summary .status-pill');
+          if (!pill) return;
+          pill.className = 'status-pill';
+          pill.textContent = '–';
+          if (id === s.activeMotionZone) { pill.classList.add('motion'); pill.textContent = 'BEVEGELSE'; }
+          else if (id === s.activeDeterrenceZone) { pill.classList.add('deter'); pill.textContent = 'AVSKREKKING'; }
+        });
       }
 
       function renderLog(entries) {
         $('log').innerHTML = entries.map((e) => `<div class="log-entry">`
           + `<span class="lvl ${e.level}">${e.level.toUpperCase()}</span> `
-          + `<span>${fmtTs(e.ts)}</span> — ${e.message}</div>`).join('') || '<em>Tom logg.</em>';
+          + `<span>${fmtTs(e.ts)}</span> — ${esc(e.message)}</div>`).join('') || '<em>Tom logg.</em>';
       }
 
-      function renderSettings() {
+      function renderGlobalSettings() {
         const fields = [
           ['bedtime', 'Bedtime (HH:MM)', 'time'],
           ['sunset_offset', 'Sunset offset (min)', 'number'],
@@ -391,19 +641,30 @@
           ['exit_delay', 'Exit delay (s)', 'number'],
           ['entry_delay', 'Entry delay (s)', 'number'],
           ['escalation_minutes', 'Escalation time (min)', 'number'],
-          ['custom_audio_url', 'Custom audio URL', 'url'],
+          ['custom_audio_url', 'Standard lyd-URL', 'url'],
         ];
         $('settings-grid').innerHTML = fields.map(([k, label, t]) => `<label for="set_${k}">${label}</label>`
-          + `<input id="set_${k}" type="${t}" value="${settings[k] ?? ''}">`).join('');
+          + `<input id="set_${k}" type="${t}" value="${esc(settings[k] ?? '')}">`).join('');
+      }
 
-        $('kevin-zones').innerHTML = zones.map((z) => `<label>`
-          + `<input type="checkbox" data-kevin="${z.id}" ${settings.kevin_zones[z.id] ? 'checked' : ''}> ${z.name}</label>`).join('');
+      function flashToast(toastId) {
+        const toast = $(toastId);
+        if (!toast) return;
+        toast.classList.add('visible');
+        setTimeout(() => toast.classList.remove('visible'), 1800);
+      }
 
-        $('zone-matrix').innerHTML = zones.map((z) => {
-          const opts = zones.map((r) => `<option value="${r.id}" ${settings.zone_matrix[z.id] === r.id ? 'selected' : ''}>${r.name}</option>`).join('');
-          return `<div class="matrix-row"><span>${z.name}</span>`
-            + `<select data-matrix="${z.id}"><option value="">— ingen —</option>${opts}</select></div>`;
-        }).join('');
+      async function saveSettings(payload, btn, toastId) {
+        btn.disabled = true;
+        try {
+          const updated = await Homey.api('PUT', '/settings', payload);
+          delete updated._suggested_audio_urls;
+          delete updated._suggested_video_urls;
+          settings = updated;
+          flashToast(toastId);
+        } finally {
+          btn.disabled = false;
+        }
       }
 
       document.querySelectorAll('.mode-btn[data-mode]').forEach((b) => {
@@ -417,22 +678,28 @@
         await Homey.api('POST', '/panic', {});
         refreshLive();
       });
+      $('btn-stop').addEventListener('click', async () => {
+        $('btn-stop').disabled = true;
+        try {
+          await Homey.api('POST', '/stop-alarm', {});
+        } finally {
+          $('btn-stop').disabled = false;
+        }
+        refreshLive();
+      });
       $('btn-save').addEventListener('click', async () => {
-        const btn = $('btn-save');
-        btn.disabled = true;
-        const payload = { kevin_zones: {}, zone_matrix: {} };
+        const payload = {};
         ['bedtime', 'sunset_offset', 'random_min', 'random_max', 'deterrence_delay', 'exit_delay', 'entry_delay', 'escalation_minutes', 'custom_audio_url']
           .forEach((k) => { const v = $('set_' + k).value; payload[k] = (k === 'bedtime' || k === 'custom_audio_url') ? v : Number(v); });
+        await saveSettings(payload, $('btn-save'), 'saved-toast');
+      });
+      $('btn-save-zones').addEventListener('click', async () => {
+        const payload = { kevin_zones: {}, zone_matrix: {}, zone_audio_urls: {}, zone_video_urls: {} };
         document.querySelectorAll('[data-kevin]').forEach((c) => { payload.kevin_zones[c.dataset.kevin] = c.checked; });
         document.querySelectorAll('[data-matrix]').forEach((s) => { if (s.value) payload.zone_matrix[s.dataset.matrix] = s.value; });
-        try {
-          settings = await Homey.api('PUT', '/settings', payload);
-          const toast = $('saved-toast');
-          toast.classList.add('visible');
-          setTimeout(() => toast.classList.remove('visible'), 1800);
-        } finally {
-          btn.disabled = false;
-        }
+        document.querySelectorAll('[data-audio]').forEach((i) => { if (i.value.trim()) payload.zone_audio_urls[i.dataset.audio] = i.value.trim(); });
+        document.querySelectorAll('[data-video]').forEach((i) => { if (i.value.trim()) payload.zone_video_urls[i.dataset.video] = i.value.trim(); });
+        await saveSettings(payload, $('btn-save-zones'), 'saved-toast-zones');
       });
 
       (async () => {

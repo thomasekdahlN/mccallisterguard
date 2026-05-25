@@ -19,7 +19,7 @@ export default class DeterrenceEngine {
     private readonly log: EventLog,
     private readonly media: MediaCaster,
     private readonly getSettings: () => GuardSettings,
-  ) {}
+  ) { }
 
   onDeterrenceStarted(listener: DeterrenceListener): void {
     this.listeners.push(listener);
@@ -78,8 +78,10 @@ export default class DeterrenceEngine {
     this.log.add('alarm', `Avskrekking startet i sone ${reactionZoneId} (tyv i ${motionZoneId}).`, reactionZoneId);
 
     const settings = this.getSettings();
-    await this.media.startBlueLights(reactionZoneId);
-    await this.media.startSiren(reactionZoneId, settings.custom_audio_url);
+    const videoUrl = settings.zone_video_urls[reactionZoneId] ?? null;
+    const audioUrl = settings.zone_audio_urls[reactionZoneId] ?? settings.custom_audio_url;
+    await this.media.startBlueLights(reactionZoneId, videoUrl);
+    await this.media.startSiren(reactionZoneId, audioUrl);
 
     for (const listener of this.listeners) {
       try { listener(reactionZoneId, motionZoneId); } catch { /* best-effort */ }

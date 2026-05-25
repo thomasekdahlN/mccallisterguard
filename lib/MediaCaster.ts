@@ -21,9 +21,9 @@ export default class MediaCaster {
     private readonly homeyApi: any,
     private readonly log: EventLog,
     private readonly lightAuth: LightAuthGuard,
-  ) {}
+  ) { }
 
-  async startBlueLights(zoneId: string): Promise<void> {
+  async startBlueLights(zoneId: string, videoUrl?: string | null): Promise<void> {
     await this.stopZone(zoneId);
     const devices = await this.zoneDevices(zoneId);
 
@@ -31,10 +31,11 @@ export default class MediaCaster {
       && (d.capabilities.includes('speaker_playing') || d.capabilities.includes('cast_url')));
 
     if (screen && screen.capabilities.includes('cast_url')) {
+      const url = videoUrl ?? '/assets/media/blue-lights.mp4';
       try {
-        await screen.setCapabilityValue({ capabilityId: 'cast_url', value: '/assets/media/blue-lights.mp4' });
+        await screen.setCapabilityValue({ capabilityId: 'cast_url', value: url });
         this.active.set(zoneId, { stop: async () => this.stopScreen(screen) });
-        this.log.add('info', `Caster blålys-animasjon til skjerm i sone ${zoneId}.`, zoneId);
+        this.log.add('info', `Caster video (${url}) til skjerm i sone ${zoneId}.`, zoneId);
         return;
       } catch (err) {
         this.log.add('warning', `Cast feilet: ${(err as Error).message}. Faller tilbake til lys.`, zoneId);

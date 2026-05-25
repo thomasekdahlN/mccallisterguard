@@ -60,6 +60,14 @@
     "triggerPanic": {
       "method": "POST",
       "path": "/panic"
+    },
+    "testDeterrence": {
+      "method": "POST",
+      "path": "/test-deterrence"
+    },
+    "stopAlarm": {
+      "method": "POST",
+      "path": "/stop-alarm"
     }
   }
 }

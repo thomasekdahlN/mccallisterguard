@@ -16,6 +16,8 @@ export type ZoneMatrix = Record<string, string>;
 
 export type KevinZones = Record<string, boolean>;
 
+export type ZoneUrlMap = Record<string, string>;
+
 export interface GuardSettings {
   bedtime: string;
   sunset_offset: number;
@@ -28,6 +30,8 @@ export interface GuardSettings {
   custom_audio_url: string | null;
   zone_matrix: ZoneMatrix;
   kevin_zones: KevinZones;
+  zone_audio_urls: ZoneUrlMap;
+  zone_video_urls: ZoneUrlMap;
 }
 
 export const DEFAULT_SETTINGS: GuardSettings = {
@@ -42,7 +46,28 @@ export const DEFAULT_SETTINGS: GuardSettings = {
   custom_audio_url: null,
   zone_matrix: {},
   kevin_zones: {},
+  zone_audio_urls: {},
+  zone_video_urls: {},
 };
+
+export interface UrlSuggestion {
+  label: string;
+  url: string;
+}
+
+export const SUGGESTED_AUDIO_URLS: UrlSuggestion[] = [
+  { label: 'Politi-sirene (innebygd)', url: '/assets/media/police-siren.mp3' },
+  { label: 'Brann-alarm (innebygd)', url: '/assets/media/fire-alarm.mp3' },
+  { label: 'Bjeffende vakthund (innebygd)', url: '/assets/media/guard-dog.mp3' },
+  { label: 'Truende stemme (innebygd)', url: '/assets/media/intruder-voice.mp3' },
+  { label: 'Knust glass (innebygd)', url: '/assets/media/glass-break.mp3' },
+];
+
+export const SUGGESTED_VIDEO_URLS: UrlSuggestion[] = [
+  { label: 'Blålys-animasjon (innebygd)', url: '/assets/media/blue-lights.mp4' },
+  { label: 'Politi i vinduet (innebygd)', url: '/assets/media/cop-silhouette.mp4' },
+  { label: 'Stor hund (innebygd)', url: '/assets/media/large-dog.mp4' },
+];
 
 export const SETTINGS_KEYS = {
   MODE: 'mode',
