@@ -280,15 +280,15 @@ class McCallisterGuardApp extends Homey.App {
 
     if (mode === 'armed_stay') return;
 
-    await this.fireAlarmTriggered(zoneId, deviceId, 'motion');
-
     if (!this.stateMachine.isEntryDelayActive()) {
       const settings = this.getSettings();
+      this.eventLog.add('info', `Inngangsforsinkelse startet (${settings.entry_delay}s) — deaktiver for å avbryte.`, zoneId);
       this.stateMachine.startEntryDelay(settings.entry_delay, () => {
-        this.handleConfirmedMotion(zoneId).catch(() => { /* best-effort */ });
+        if (this.stateMachine.getMode() === 'disarmed') return;
+        this.handleConfirmedMotion(zoneId, deviceId, 'motion').catch(() => { /* best-effort */ });
       });
     } else {
-      await this.handleConfirmedMotion(zoneId);
+      await this.handleConfirmedMotion(zoneId, deviceId, 'motion');
     }
   }
 
@@ -297,17 +297,18 @@ class McCallisterGuardApp extends Homey.App {
     if (mode === 'disarmed') return;
     this.eventLog.add('warning', `Dør/vindu åpnet i sone ${zoneId}.`, zoneId, deviceId);
 
-    await this.fireAlarmTriggered(zoneId, deviceId, 'contact');
-
     if (mode === 'armed_stay') {
+      await this.fireAlarmTriggered(zoneId, deviceId, 'contact');
       this.escalation.start(0);
       return;
     }
     this.falseAlarm.registerContactOpen();
-    await this.handleConfirmedMotion(zoneId);
+    await this.handleConfirmedMotion(zoneId, deviceId, 'contact');
   }
 
-  private async handleConfirmedMotion(zoneId: string): Promise<void> {
+  private async handleConfirmedMotion(zoneId: string, deviceId: string, sensorType: 'motion' | 'contact'): Promise<void> {
+    if (this.stateMachine.getMode() === 'disarmed') return;
+    await this.fireAlarmTriggered(zoneId, deviceId, sensorType);
     await this.deterrence.handleMotion(zoneId);
     const confirmed = this.falseAlarm.registerMotion(zoneId);
     if (confirmed && !this.escalation.isPending() && !this.escalation.isInCrisis()) {
