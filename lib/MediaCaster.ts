@@ -3,6 +3,7 @@
 import type Homey from 'homey/lib/Homey';
 import type EventLog from './EventLog';
 import type LightAuthGuard from './LightAuthGuard';
+import { isCastableScreen, isAudioDevice } from './Capabilities';
 
 const BLUE_HUE = 0.66;
 const RED_HUE = 0.0;
@@ -27,18 +28,22 @@ export default class MediaCaster {
     await this.stopZone(zoneId);
     const devices = await this.zoneDevices(zoneId);
 
-    const screen = devices.find((d: any) => Array.isArray(d.capabilities) && d.capabilities.includes('cast_url'));
+    const directScreen = devices.find((d: any) => Array.isArray(d.capabilities) && d.capabilities.includes('cast_url'));
+    const softScreen = directScreen ? null : devices.find((d: any) => isCastableScreen(d));
 
-    if (screen) {
+    if (directScreen) {
       const url = await this.resolveAssetUrl(videoUrl ?? '/assets/media/blue-lights.mp4');
       try {
-        await screen.setCapabilityValue({ capabilityId: 'cast_url', value: url });
-        this.active.set(zoneId, { stop: async () => this.stopScreen(screen) });
-        this.log.add('info', `Caster video (${url}) til ${screen.name ?? 'skjerm'} i sone ${zoneId}.`, zoneId);
+        await directScreen.setCapabilityValue({ capabilityId: 'cast_url', value: url });
+        this.active.set(zoneId, { stop: async () => this.stopScreen(directScreen) });
+        this.log.add('info', `Caster video (${url}) til ${directScreen.name ?? 'skjerm'} i sone ${zoneId}.`, zoneId);
         return;
       } catch (err) {
-        this.log.add('warning', `Video-cast til ${screen.name ?? 'skjerm'} feilet: ${(err as Error).message}. Faller tilbake til lys.`, zoneId);
+        this.log.add('warning', `Video-cast til ${directScreen.name ?? 'skjerm'} feilet: ${(err as Error).message}. Faller tilbake til lys.`, zoneId);
       }
+    } else if (softScreen) {
+      const name = softScreen.name ?? 'ukjent';
+      this.log.add('warning', `Cast-skjerm «${name}» i sone ${zoneId} mangler cast_url. Bruk Homey-flow med Chromecast-appen, eller lys-fallback.`, zoneId);
     } else {
       this.log.add('info', `Ingen cast-skjerm funnet i sone ${zoneId}, bruker blinkende lys.`, zoneId);
     }
@@ -64,8 +69,7 @@ export default class MediaCaster {
       }
     }
 
-    const speaker = devices.find((d: any) => Array.isArray(d.capabilities)
-      && (d.capabilities.includes('speaker_playing') || d.capabilities.includes('volume_set')));
+    const speaker = devices.find((d: any) => isAudioDevice(d));
     if (!speaker) {
       this.log.add('warning', `Ingen høyttaler funnet i sone ${zoneId}.`, zoneId);
       return;

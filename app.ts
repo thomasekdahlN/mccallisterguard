@@ -278,6 +278,12 @@ class McCallisterGuardApp extends Homey.App {
     }
   }
 
+  private isPerimeterSensor(deviceId: string): boolean {
+    const list = this.getSettings().perimeter_sensors ?? [];
+    if (list.length === 0) return true;
+    return list.includes(deviceId);
+  }
+
   private async onMotion(zoneId: string, deviceId: string): Promise<void> {
     this.motionLastSeen.set(zoneId, Date.now());
     const mode = this.stateMachine.getMode();
@@ -285,7 +291,13 @@ class McCallisterGuardApp extends Homey.App {
     if (this.stateMachine.isExitDelayActive()) return;
     this.eventLog.add('info', `Bevegelse i sone ${zoneId}.`, zoneId, deviceId);
 
-    if (mode === 'armed_stay') return;
+    if (mode === 'armed_stay') {
+      if (!this.isPerimeterSensor(deviceId)) return;
+      await this.fireAlarmTriggered(zoneId, deviceId, 'motion');
+      await this.deterrence.handleMotion(zoneId);
+      this.escalation.start(0);
+      return;
+    }
 
     if (!this.stateMachine.isEntryDelayActive()) {
       const settings = this.getSettings();
@@ -305,6 +317,7 @@ class McCallisterGuardApp extends Homey.App {
     this.eventLog.add('warning', `Dør/vindu åpnet i sone ${zoneId}.`, zoneId, deviceId);
 
     if (mode === 'armed_stay') {
+      if (!this.isPerimeterSensor(deviceId)) return;
       await this.fireAlarmTriggered(zoneId, deviceId, 'contact');
       this.escalation.start(0);
       return;

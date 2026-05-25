@@ -335,6 +335,31 @@
       box-sizing: border-box;
     }
 
+    .zone-body .sensor-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .zone-body .sensor-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      padding: 4px 6px;
+      border-radius: 4px;
+    }
+
+    .zone-body .sensor-row:hover {
+      background: #f5f7fa;
+    }
+
+    .zone-body .sensor-row .sensor-type {
+      color: #888;
+      font-style: normal;
+      font-size: 11px;
+    }
+
     .zone-body .test-btn {
       grid-column: 1 / -1;
       padding: 8px 14px;
@@ -434,9 +459,16 @@
         <li><strong>Hjemme</strong> — Default. Ingen overvåking, ingen avskrekking. Lys styres normalt.</li>
         <li><strong>Borte</strong> — Full overvåking. Kevin-simulering (lys av/på) starter automatisk for å late
           som noen er hjemme. Bevegelse i en sone trigger avskrekking i reaksjonssonen.</li>
-        <li><strong>Skallsikring</strong> — Du sover. Bevegelse innendørs ignoreres, men kontakt-sensorer (dør/vindu)
-          eskalerer umiddelbart.</li>
+        <li><strong>Skallsikring</strong> — Du sover. Kun sensorer du selv har valgt som <em>skallsikring</em>
+          (typisk ytterdører, vinduer og uteområder) kan utløse alarmen. Bevegelse innendørs ignoreres så du
+          kan gå på badet uten å sette i gang sirenen. Velg sensorer under «Soneoversikt».</li>
       </ul>
+
+      <h3>Skallsikring — velg sensorer per sone</h3>
+      <p>Under hver sone i Soneoversikten listes alle dør-/vindu- og bevegelses-sensorer som er plassert i sonen.
+        Hak av de sensorene som skal være aktive i Skallsikring-modus. Når Skallsikring er aktiv, ignoreres alle
+        andre sensorer — kun de avhakede kan trigge alarm. Hvis ingen sensorer er valgt globalt brukes alle som
+        før (bakoverkompatibelt).</p>
 
       <h3>Avskrekking (sone-matrise)</h3>
       <p>Når bevegelse oppdages i en sone, slår appen opp <strong>reaksjonssonen</strong> i sone-matrisen. F.eks.: tyv
@@ -480,12 +512,31 @@
 
       <h3>Tilgjengelige flow-kort</h3>
       <ul>
-        <li><strong>Trigger:</strong> <code>deterrence_started</code>, <code>alarm_escalated</code>,
-          <code>health_check_failed</code>
+        <li><strong>Trigger:</strong>
+          <code>alarm_triggered</code> (tokens: <em>zone, sensor, sensor_type, mode, timestamp</em>),
+          <code>alarm_stopped</code> (tokens: <em>zone, sensor, reason</em>),
+          <code>mode_changed</code> (tokens: <em>mode_new, mode_previous</em>),
+          <code>deterrence_started</code> (token: <em>zone</em>),
+          <code>alarm_escalated</code>,
+          <code>health_check_failed</code> (token: <em>offline_count</em>)
         </li>
-        <li><strong>Condition:</strong> <code>is_armed</code>, <code>deterrence_active</code></li>
+        <li><strong>Condition:</strong> <code>alarm_active</code>, <code>is_armed</code>,
+          <code>deterrence_active</code>
+        </li>
         <li><strong>Action:</strong> <code>set_mode</code>, <code>trigger_panic</code></li>
       </ul>
+
+      <p><strong>Tips:</strong> Bruk <code>mode_changed</code> til å bygge automatikker rundt modus-bytter
+        (f.eks. send push når noen setter til Borte, tenn utelys ved Skallsikring, eller logg modus-historikk
+        til Google Sheet). <code>timestamp</code>-token på <code>alarm_triggered</code> gir presis ISO-tid
+        som kan inkluderes i SMS og push.</p>
+
+      <h3>Cast-skjermer og høyttalere</h3>
+      <p>Appen oppdager både direkte cast-bare enheter (<code>cast_url</code>-capability) og «soft cast»-enheter
+        som Chromecast, Google Cast, Nest Hub, Sonos og AirPlay-mottakere. For sistnevnte har Homey ofte ikke
+        direkte URL-cast — bruk i så fall en Homey-flow: <em>«Når McCallister Guard utløser alarm → Cast URL
+          til [enhet]»</em> med <code>zone</code>-token for å velge riktig enhet. Hvis ingen skjerm er
+        tilgjengelig brukes blå/rød strobing på lysene som fallback.</p>
 
       <h3>Lyd-/video-kilder og lisenser</h3>
       <p>Innebygde lyd-klipp under <code>/assets/media/</code>:</p>
@@ -637,9 +688,15 @@
 
       function capBadges(z) {
         const parts = [];
-        if (z.hasAudio) parts.push('<span title="Kan spille lyd">🔊</span>');
-        if (z.hasVideo) parts.push('<span title="Kan spille video">📺</span>');
-        if (z.hasLights) parts.push('<span title="Har lys (blink-fallback)">💡</span>');
+        const audioList = (z.audioDevices || []).join(', ') || 'ingen';
+        const videoList = (z.videoDevices || []).join(', ') || 'ingen';
+        const lightList = (z.lightDevices || []).join(', ') || 'ingen';
+        if (z.hasAudio) parts.push(`<span title="Lyd-enheter: ${esc(audioList)}">🔊</span>`);
+        if (z.hasVideo) {
+          const suffix = z.canCastUrl ? '' : ' (krever Homey-flow for direkte cast)';
+          parts.push(`<span title="Skjerm/cast-enheter: ${esc(videoList)}${suffix}">📺</span>`);
+        }
+        if (z.hasLights) parts.push(`<span title="Lys: ${esc(lightList)}">💡</span>`);
         return parts.length ? `<span class="cap-badges">${parts.join('')}</span>` : '';
       }
 
@@ -663,6 +720,10 @@
           if (z.hasVideo) {
             mediaFields += `<label>Video-URL</label>`
               + `<input type="text" list="video-suggestions" data-video="${esc(z.id)}" value="${esc(video)}" placeholder="standard blålys">`;
+            if (!z.canCastUrl) {
+              const names = (z.videoDevices || []).join(', ');
+              mediaFields += `<div class="info-banner hint">Skjerm(er) oppdaget: ${esc(names)}. Disse eksponerer ikke <code>cast_url</code> som capability, så McCallister Guard kan ikke pushe video direkte. Bruk en Homey-flow med Chromecast-appens «Cast URL»-action på <em>alarm_triggered</em>-triggeren, eller la blink-fallback ta over.</div>`;
+            }
           }
           if (!z.hasAudio && !z.hasVideo) {
             const msg = z.hasLights
@@ -683,6 +744,23 @@
             testBtn = `<button class="test-btn" data-test="${esc(z.id)}">▶ Test blink-avskrekking (kun lys, siste utvei)</button>`;
           }
 
+          const perimeterSet = new Set(settings.perimeter_sensors || []);
+          const sensors = z.sensors || [];
+          let sensorBlock = '';
+          if (sensors.length > 0) {
+            const sensorRows = sensors.map((s) => {
+              const icon = s.type === 'contact' ? '🚪' : '👁️';
+              const typeLabel = s.type === 'contact' ? 'dør/vindu' : 'bevegelse';
+              const checked = perimeterSet.has(s.id) ? 'checked' : '';
+              return `<label class="sensor-row"><input type="checkbox" data-perimeter="${esc(s.id)}" ${checked}>`
+                + `<span>${icon} ${esc(s.name)} <em class="sensor-type">(${typeLabel})</em></span></label>`;
+            }).join('');
+            sensorBlock = `<label>Sensorer</label><div class="sensor-list">${sensorRows}`
+              + `<div class="info-banner hint">Hak av sensorene som skal være aktive i <strong>Skallsikring</strong>. Hvis ingen er valgt globalt, brukes alle (bakoverkompatibelt).</div></div>`;
+          } else {
+            sensorBlock = `<label>Sensorer</label><div class="info-banner hint">Ingen dør/vindu- eller bevegelses-sensorer i denne sonen.</div>`;
+          }
+
           return `<details class="zone-block" data-zone="${esc(z.id)}">`
             + `<summary><span>${esc(z.name)}${capBadges(z)}</span>${zoneStatusPill(z.id)}</summary>`
             + `<div class="zone-body">`
@@ -690,6 +768,7 @@
             + `<select data-matrix="${esc(z.id)}"><option value="">— ingen —</option>${opts}</select>`
             + `<label>Kevin-modus</label>`
             + `<label style="justify-self:start;"><input type="checkbox" data-kevin="${esc(z.id)}" ${settings.kevin_zones[z.id] ? 'checked' : ''}> Lys-simulering</label>`
+            + sensorBlock
             + mediaFields
             + testBtn
             + `</div></details>`;
@@ -791,11 +870,14 @@
         await saveSettings(payload, $('btn-save'), 'saved-toast');
       });
       $('btn-save-zones').addEventListener('click', async () => {
-        const payload = { kevin_zones: {}, zone_matrix: {}, zone_audio_urls: {}, zone_video_urls: {} };
+        const payload = {
+          kevin_zones: {}, zone_matrix: {}, zone_audio_urls: {}, zone_video_urls: {}, perimeter_sensors: [],
+        };
         document.querySelectorAll('[data-kevin]').forEach((c) => { payload.kevin_zones[c.dataset.kevin] = c.checked; });
         document.querySelectorAll('[data-matrix]').forEach((s) => { if (s.value) payload.zone_matrix[s.dataset.matrix] = s.value; });
         document.querySelectorAll('[data-audio]').forEach((i) => { if (i.value.trim()) payload.zone_audio_urls[i.dataset.audio] = i.value.trim(); });
         document.querySelectorAll('[data-video]').forEach((i) => { if (i.value.trim()) payload.zone_video_urls[i.dataset.video] = i.value.trim(); });
+        document.querySelectorAll('[data-perimeter]:checked').forEach((c) => { payload.perimeter_sensors.push(c.dataset.perimeter); });
         await saveSettings(payload, $('btn-save-zones'), 'saved-toast-zones');
         renderZoneBlocks();
       });

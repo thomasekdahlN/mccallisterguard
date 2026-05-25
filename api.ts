@@ -2,6 +2,8 @@
 
 import type { GuardSettings, Mode } from './lib/types';
 import { SUGGESTED_AUDIO_URLS, SUGGESTED_VIDEO_URLS } from './lib/types';
+import { classify, sensorType } from './lib/Capabilities';
+import type { SensorType } from './lib/Capabilities';
 
 interface AppRef {
   getSettings(): GuardSettings;
@@ -51,24 +53,50 @@ module.exports = {
       homey.app.homeyApi.zones.getZones(),
       homey.app.homeyApi.devices.getDevices(),
     ]);
-    const caps: Record<string, { hasAudio: boolean; hasVideo: boolean; hasLights: boolean }> = {};
+    type ZoneSensor = { id: string; name: string; type: SensorType };
+    type ZoneCaps = {
+      hasAudio: boolean; hasVideo: boolean; hasLights: boolean; canCastUrl: boolean;
+      audioDevices: string[]; videoDevices: string[]; lightDevices: string[];
+      sensors: ZoneSensor[];
+    };
+    const caps: Record<string, ZoneCaps> = {};
     for (const d of Object.values(devices) as any[]) {
-      if (!d.zone || !Array.isArray(d.capabilities)) continue;
-      const c = caps[d.zone] ?? (caps[d.zone] = { hasAudio: false, hasVideo: false, hasLights: false });
-      if (d.capabilities.includes('speaker_playing') || d.capabilities.includes('volume_set')) c.hasAudio = true;
-      if (d.capabilities.includes('cast_url')) c.hasVideo = true;
-      if (d.capabilities.includes('onoff')
-        && !d.capabilities.includes('alarm_motion')
-        && !d.capabilities.includes('alarm_contact')) c.hasLights = true;
+      if (!d.zone) continue;
+      const c = caps[d.zone] ?? (caps[d.zone] = {
+        hasAudio: false,
+        hasVideo: false,
+        hasLights: false,
+        canCastUrl: false,
+        audioDevices: [],
+        videoDevices: [],
+        lightDevices: [],
+        sensors: [],
+      });
+      const k = classify(d);
+      const name = String(d.name ?? d.id ?? '');
+      if (k.isAudio) { c.hasAudio = true; c.audioDevices.push(name); }
+      if (k.isVideo) { c.hasVideo = true; c.videoDevices.push(name); }
+      if (k.isLight) { c.hasLights = true; c.lightDevices.push(name); }
+      if (k.canCastUrl) c.canCastUrl = true;
+      const st = sensorType(d);
+      if (st) c.sensors.push({ id: String(d.id), name, type: st });
     }
-    return Object.values(zones).map((z: any) => ({
-      id: z.id,
-      name: z.name,
-      parent: z.parent ?? null,
-      hasAudio: caps[z.id]?.hasAudio ?? false,
-      hasVideo: caps[z.id]?.hasVideo ?? false,
-      hasLights: caps[z.id]?.hasLights ?? false,
-    }));
+    return Object.values(zones).map((z: any) => {
+      const c = caps[z.id];
+      return {
+        id: z.id,
+        name: z.name,
+        parent: z.parent ?? null,
+        hasAudio: c?.hasAudio ?? false,
+        hasVideo: c?.hasVideo ?? false,
+        hasLights: c?.hasLights ?? false,
+        canCastUrl: c?.canCastUrl ?? false,
+        audioDevices: c?.audioDevices ?? [],
+        videoDevices: c?.videoDevices ?? [],
+        lightDevices: c?.lightDevices ?? [],
+        sensors: c?.sensors ?? [],
+      };
+    });
   },
 
   async getSettings({ homey }: Ctx) {

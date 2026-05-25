@@ -32,6 +32,7 @@ export interface GuardSettings {
   kevin_zones: KevinZones;
   zone_audio_urls: ZoneUrlMap;
   zone_video_urls: ZoneUrlMap;
+  perimeter_sensors: string[];
 }
 
 export const DEFAULT_SETTINGS: GuardSettings = {
@@ -48,6 +49,7 @@ export const DEFAULT_SETTINGS: GuardSettings = {
   kevin_zones: {},
   zone_audio_urls: {},
   zone_video_urls: {},
+  perimeter_sensors: [],
 };
 
 export interface UrlSuggestion {

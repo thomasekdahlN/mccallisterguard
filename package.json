@@ -1,6 +1,6 @@
 {
   "name": "com.mccallister.guard",
-  "version": "1.0.0",
+  "version": "0.5.0",
   "scripts": {
     "build": "tsc",
     "lint": "eslint --ext .js,.ts --ignore-path .gitignore .",

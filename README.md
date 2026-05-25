@@ -8,14 +8,15 @@ McCallister Guard er ikke enda et passivt alarmsystem. I stedet for å bare tute
 
 ## Funksjoner
 
-- **Tre moduser** — `Hjemme` (deaktivert), `Borte` (full overvåking + Kevin-simulering), `Skallsikring` (perimeter armert mens du sover)
+- **Tre moduser** — `Hjemme` (deaktivert), `Borte` (full overvåking + Kevin-simulering), `Skallsikring` (kun valgte perimeter-sensorer aktive — typisk når du sover)
+- **Skallsikring med sensorvalg** — pek ut nøyaktig hvilke sensorer (ytterdører, vinduer, uteområder) som skal kunne utløse alarm ved Skallsikring; bevegelse innendørs ignoreres
 - **Sone-basert avskrekking** — bevegelse i én sone trigger media i en annen «reaksjonssone» (matrise konfigurerbar per sone), så tyven aldri møter responsen sin der hen er
-- **Adaptiv media** — Chromecast/cast-skjermer får full URL til bundlede assets, lys faller tilbake til blå/rød strobing hvis ingen skjerm finnes
+- **Adaptiv media** — direkte cast til skjermer med `cast_url`, og «soft cast»-deteksjon (Chromecast, Google Cast, Nest Hub, Sonos, AirPlay) som kan styres via Homey-flow; lys faller tilbake til blå/rød strobing hvis ingen skjerm finnes
 - **Kevin-modus** — automatisk tilstedeværelses-simulering i Borte-modus (lys av/på i sannsynlig sekvens)
 - **Lys-autorisering** — manuell lysbruk under armert tilstand kan tolkes som «noen er hjemme» og deaktivere alarm
 - **Eskalering** — om avskrekking ikke får tyven til å snu, eskalerer alarmen til krise-nivå (full sirene, strobe på alle lys)
 - **Falsk-alarm-filter** — flere uavhengige sensor-treff kreves før eskalering starter
-- **Flow-kort** — actions, conditions og triggers for full integrasjon med Homey-flows (push, SMS, kamera, naboalarmer)
+- **Flow-kort** — actions, conditions og triggers (inkl. `mode_changed` og `timestamp`-token) for full integrasjon med Homey-flows (push, SMS, kamera, naboalarmer)
 - **Norsk-først UI** — settings-panelet på norsk med engelsk fallback
 
 ## Skjermbilder
@@ -122,6 +123,7 @@ sequenceDiagram
 | `SimulationEngine` | Kevin-modus: lys-mønstre i Borte-modus |
 | `CameraManager` | Starter opptak fra sone-kameraer ved alarm |
 | `EventLog` | Strukturert hendelseslogg (vises i settings-UI) |
+| `Capabilities` | Klassifiserer enheter (audio/video/light/sensor) inkl. «soft cast»-deteksjon |
 
 ## Flow-kort
 
@@ -172,9 +174,17 @@ homey app install
 ### Konfigurasjon
 
 1. Åpne **Innstillinger → Apper → McCallister Guard → Konfigurer app**.
-2. Under **Sone-konfigurasjon**, marker hvilke soner som inneholder sensorer, høyttalere/skjermer, og lys.
-3. Definer **reaksjonssone-matrise** — f.eks. «bevegelse på loft → spill avskrekking i stua».
-4. Sett **Borte-modus** når du forlater huset, eller bruk `set_mode`-actionen fra en flow (geofence, bryter, stemme).
+2. Under **Soneoversikt**, utvid hver sone og se hvilke kapabiliteter (🔊 lyd, 📺 skjerm, 💡 lys) og sensorer
+   (🚪 dør/vindu, 👁️ bevegelse) som er oppdaget.
+3. Definer **reaksjonssone-matrise** per sone — f.eks. «bevegelse på loft → spill avskrekking i stua».
+4. Sett **lyd-/video-URL** per sone hvis du vil overstyre defaults (forslag fra `assets/media/` er forhåndsutfylt).
+5. **Skallsikring:** hak av sensorene som skal være aktive i Skallsikring-modus (typisk ytterdører, vinduer,
+   uteområder). Andre sensorer ignoreres når Skallsikring er aktiv.
+6. **Cast-skjermer uten `cast_url`:** for Chromecast/Nest Hub/Sonos som ikke eksponerer direkte URL-cast, bygg
+   en Homey-flow på `alarm_triggered`-trigger og bruk `Cast en URL`-actionen i den respektive cast-appen
+   (bruk `zone`-token for å velge riktig enhet).
+7. Sett **Borte-modus** når du forlater huset, eller bruk `set_mode`-actionen fra en flow (geofence, bryter,
+   stemme). Bruk `mode_changed`-trigger til logging eller automatikk rundt modus-bytter.
 
 ## Utvikling
 
