@@ -186,6 +186,18 @@
               "en": "armed_away",
               "no": "armed_away"
             }
+          },
+          {
+            "name": "timestamp",
+            "type": "string",
+            "title": {
+              "en": "Timestamp (ISO 8601)",
+              "no": "Tidsstempel (ISO 8601)"
+            },
+            "example": {
+              "en": "2026-05-25T19:05:42.123Z",
+              "no": "2026-05-25T19:05:42.123Z"
+            }
           }
         ],
         "id": "alarm_triggered"
@@ -232,6 +244,43 @@
           }
         ],
         "id": "health_check_failed"
+      },
+      {
+        "title": {
+          "en": "Mode changed",
+          "no": "Modus endret"
+        },
+        "hint": {
+          "en": "Fires whenever the system mode changes (Hjemme / Borte / Skallsikring). Independent of alarm state.",
+          "no": "Utløses hver gang systemmodus endres (Hjemme / Borte / Skallsikring). Uavhengig av alarmtilstand."
+        },
+        "tokens": [
+          {
+            "name": "mode_new",
+            "type": "string",
+            "title": {
+              "en": "New mode",
+              "no": "Ny modus"
+            },
+            "example": {
+              "en": "armed_away",
+              "no": "armed_away"
+            }
+          },
+          {
+            "name": "mode_previous",
+            "type": "string",
+            "title": {
+              "en": "Previous mode",
+              "no": "Forrige modus"
+            },
+            "example": {
+              "en": "disarmed",
+              "no": "disarmed"
+            }
+          }
+        ],
+        "id": "mode_changed"
       }
     ],
     "conditions": [

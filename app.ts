@@ -157,6 +157,7 @@ class McCallisterGuardApp extends Homey.App {
         sensor: deviceName,
         sensor_type: sensorType,
         mode: this.stateMachine.getMode(),
+        timestamp: new Date().toISOString(),
       });
     } catch { /* best-effort */ }
   }
@@ -205,6 +206,12 @@ class McCallisterGuardApp extends Homey.App {
     if (next !== 'disarmed' && previous === 'disarmed') {
       this.runHealthCheck().catch(() => { /* best-effort */ });
     }
+    try {
+      this.homey.flow.getTriggerCard('mode_changed').trigger({
+        mode_new: next,
+        mode_previous: previous,
+      }).catch(() => { /* best-effort */ });
+    } catch { /* best-effort */ }
   }
 
   private async runHealthCheck(): Promise<void> {

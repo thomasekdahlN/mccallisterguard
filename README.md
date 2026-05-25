@@ -129,8 +129,9 @@ sequenceDiagram
 
 | Kort | Tokens | Når |
 |---|---|---|
-| `alarm_triggered` | `zone`, `sensor`, `sensor_type`, `mode` | Når sensor bekrefter innbrudd (etter evt. entry delay) |
+| `alarm_triggered` | `zone`, `sensor`, `sensor_type`, `mode`, `timestamp` | Når sensor bekrefter innbrudd (etter evt. entry delay) |
 | `alarm_stopped` | `zone`, `sensor`, `reason` | Når en aktiv alarm avsluttes |
+| `mode_changed` | `mode_new`, `mode_previous` | Når systemet bytter modus (uavhengig av alarm) |
 | `deterrence_started` | `zone` | Når avskrekking starter i en sone |
 | `alarm_escalated` | — | Når eskalering når krise-nivå |
 | `health_check_failed` | `offline_count` | Når sensorer er offline ved aktivering |

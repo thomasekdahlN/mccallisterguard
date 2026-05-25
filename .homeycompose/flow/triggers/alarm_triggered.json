@@ -11,26 +11,62 @@
     {
       "name": "zone",
       "type": "string",
-      "title": { "en": "Zone", "no": "Sone" },
-      "example": { "en": "Living room", "no": "Stua" }
+      "title": {
+        "en": "Zone",
+        "no": "Sone"
+      },
+      "example": {
+        "en": "Living room",
+        "no": "Stua"
+      }
     },
     {
       "name": "sensor",
       "type": "string",
-      "title": { "en": "Sensor", "no": "Sensor" },
-      "example": { "en": "Motion sensor (hallway)", "no": "Bevegelsessensor (gang)" }
+      "title": {
+        "en": "Sensor",
+        "no": "Sensor"
+      },
+      "example": {
+        "en": "Motion sensor (hallway)",
+        "no": "Bevegelsessensor (gang)"
+      }
     },
     {
       "name": "sensor_type",
       "type": "string",
-      "title": { "en": "Sensor type", "no": "Sensortype" },
-      "example": { "en": "motion", "no": "bevegelse" }
+      "title": {
+        "en": "Sensor type",
+        "no": "Sensortype"
+      },
+      "example": {
+        "en": "motion",
+        "no": "bevegelse"
+      }
     },
     {
       "name": "mode",
       "type": "string",
-      "title": { "en": "Current mode", "no": "Aktiv modus" },
-      "example": { "en": "armed_away", "no": "armed_away" }
+      "title": {
+        "en": "Current mode",
+        "no": "Aktiv modus"
+      },
+      "example": {
+        "en": "armed_away",
+        "no": "armed_away"
+      }
+    },
+    {
+      "name": "timestamp",
+      "type": "string",
+      "title": {
+        "en": "Timestamp (ISO 8601)",
+        "no": "Tidsstempel (ISO 8601)"
+      },
+      "example": {
+        "en": "2026-05-25T19:05:42.123Z",
+        "no": "2026-05-25T19:05:42.123Z"
+      }
     }
   ]
 }
