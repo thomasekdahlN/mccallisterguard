@@ -1,0 +1,30 @@
+{
+  "title": {
+    "en": "Alarm stopped",
+    "no": "Alarm avsluttet"
+  },
+  "hint": {
+    "en": "Fires when an active alarm is stopped (by the user, by disarming, or by deterrence completing).",
+    "no": "Utløses når en aktiv alarm stoppes (av bruker, ved deaktivering, eller når avskrekking er ferdig)."
+  },
+  "tokens": [
+    {
+      "name": "zone",
+      "type": "string",
+      "title": { "en": "Zone (that triggered)", "no": "Sone (som utløste)" },
+      "example": { "en": "Living room", "no": "Stua" }
+    },
+    {
+      "name": "sensor",
+      "type": "string",
+      "title": { "en": "Sensor (that triggered)", "no": "Sensor (som utløste)" },
+      "example": { "en": "Motion sensor (hallway)", "no": "Bevegelsessensor (gang)" }
+    },
+    {
+      "name": "reason",
+      "type": "string",
+      "title": { "en": "Reason", "no": "Årsak" },
+      "example": { "en": "User stopped alarm", "no": "Bruker stoppet alarm" }
+    }
+  ]
+}

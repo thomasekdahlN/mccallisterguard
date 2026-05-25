@@ -82,6 +82,116 @@
       },
       {
         "title": {
+          "en": "Alarm stopped",
+          "no": "Alarm avsluttet"
+        },
+        "hint": {
+          "en": "Fires when an active alarm is stopped (by the user, by disarming, or by deterrence completing).",
+          "no": "Utløses når en aktiv alarm stoppes (av bruker, ved deaktivering, eller når avskrekking er ferdig)."
+        },
+        "tokens": [
+          {
+            "name": "zone",
+            "type": "string",
+            "title": {
+              "en": "Zone (that triggered)",
+              "no": "Sone (som utløste)"
+            },
+            "example": {
+              "en": "Living room",
+              "no": "Stua"
+            }
+          },
+          {
+            "name": "sensor",
+            "type": "string",
+            "title": {
+              "en": "Sensor (that triggered)",
+              "no": "Sensor (som utløste)"
+            },
+            "example": {
+              "en": "Motion sensor (hallway)",
+              "no": "Bevegelsessensor (gang)"
+            }
+          },
+          {
+            "name": "reason",
+            "type": "string",
+            "title": {
+              "en": "Reason",
+              "no": "Årsak"
+            },
+            "example": {
+              "en": "User stopped alarm",
+              "no": "Bruker stoppet alarm"
+            }
+          }
+        ],
+        "id": "alarm_stopped"
+      },
+      {
+        "title": {
+          "en": "Alarm triggered",
+          "no": "Alarm utløst"
+        },
+        "hint": {
+          "en": "Fires when a sensor trips the alarm while the system is armed. Use this to send notifications.",
+          "no": "Utløses når en sensor aktiverer alarmen mens systemet er armert. Bruk denne til å sende varslinger."
+        },
+        "tokens": [
+          {
+            "name": "zone",
+            "type": "string",
+            "title": {
+              "en": "Zone",
+              "no": "Sone"
+            },
+            "example": {
+              "en": "Living room",
+              "no": "Stua"
+            }
+          },
+          {
+            "name": "sensor",
+            "type": "string",
+            "title": {
+              "en": "Sensor",
+              "no": "Sensor"
+            },
+            "example": {
+              "en": "Motion sensor (hallway)",
+              "no": "Bevegelsessensor (gang)"
+            }
+          },
+          {
+            "name": "sensor_type",
+            "type": "string",
+            "title": {
+              "en": "Sensor type",
+              "no": "Sensortype"
+            },
+            "example": {
+              "en": "motion",
+              "no": "bevegelse"
+            }
+          },
+          {
+            "name": "mode",
+            "type": "string",
+            "title": {
+              "en": "Current mode",
+              "no": "Aktiv modus"
+            },
+            "example": {
+              "en": "armed_away",
+              "no": "armed_away"
+            }
+          }
+        ],
+        "id": "alarm_triggered"
+      },
+      {
+        "title": {
           "en": "Deterrence started in zone",
           "no": "Avskrekking startet i sone"
         },
@@ -125,6 +235,17 @@
       }
     ],
     "conditions": [
+      {
+        "title": {
+          "en": "Alarm !{{is|is not}} active",
+          "no": "Alarm !{{er|er ikke}} aktiv"
+        },
+        "hint": {
+          "en": "True when an alarm is currently triggered (independent of mode).",
+          "no": "Sann når en alarm er utløst akkurat nå (uavhengig av modus)."
+        },
+        "id": "alarm_active"
+      },
       {
         "title": {
           "en": "Deterrence !{{is|is not}} currently active",

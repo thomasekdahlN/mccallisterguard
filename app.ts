@@ -30,6 +30,8 @@ class McCallisterGuardApp extends Homey.App {
 
   private testStopTimer: NodeJS.Timeout | null = null;
   private motionLastSeen = new Map<string, number>();
+  private alarmActive = false;
+  private alarmContext: { zoneId: string; zoneName: string; deviceId: string; deviceName: string; sensorType: string } | null = null;
   private static readonly TEST_DURATION_MS = 15_000;
   private static readonly MOTION_RECENT_MS = 60_000;
 
@@ -89,6 +91,7 @@ class McCallisterGuardApp extends Homey.App {
       this.simulation.stop();
       this.cameras.stopAll();
       await this.deterrence.abort('Bruker deaktiverte systemet.');
+      this.fireAlarmStopped('System deaktivert.');
     }
     await this.stateMachine.setMode(mode, mode === 'armed_away' ? settings.exit_delay : 0);
   }
@@ -96,6 +99,7 @@ class McCallisterGuardApp extends Homey.App {
   async triggerPanic(): Promise<void> {
     this.eventLog.add('critical', 'PANIKK utløst manuelt.');
     const settings = this.getSettings();
+    await this.fireAlarmTriggered('__all__', '__panic__', 'panic');
     this.escalation.start(0);
     await this.media.startSiren('__all__', settings.custom_audio_url);
   }
@@ -115,6 +119,10 @@ class McCallisterGuardApp extends Homey.App {
     return this.testStopTimer !== null;
   }
 
+  isAlarmActive(): boolean {
+    return this.alarmActive;
+  }
+
   getRecentMotionZones(): string[] {
     const cutoff = Date.now() - McCallisterGuardApp.MOTION_RECENT_MS;
     const result: string[] = [];
@@ -132,6 +140,53 @@ class McCallisterGuardApp extends Homey.App {
     this.falseAlarm.reset();
     this.cameras.stopAll();
     await this.deterrence.abort('Bruker stoppet alarmen.');
+    this.fireAlarmStopped('Bruker stoppet alarm.');
+  }
+
+  private async fireAlarmTriggered(zoneId: string, deviceId: string, sensorType: 'motion' | 'contact' | 'panic'): Promise<void> {
+    if (this.alarmActive) return;
+    const { zoneName, deviceName } = await this.resolveNames(zoneId, deviceId);
+    this.alarmActive = true;
+    this.alarmContext = {
+      zoneId, zoneName, deviceId, deviceName, sensorType,
+    };
+    this.eventLog.add('alarm', `ALARM utløst i ${zoneName} (sensor: ${deviceName}, type: ${sensorType}).`, zoneId, deviceId);
+    try {
+      await this.homey.flow.getTriggerCard('alarm_triggered').trigger({
+        zone: zoneName,
+        sensor: deviceName,
+        sensor_type: sensorType,
+        mode: this.stateMachine.getMode(),
+      });
+    } catch { /* best-effort */ }
+  }
+
+  private fireAlarmStopped(reason: string): void {
+    if (!this.alarmActive) return;
+    const ctx = this.alarmContext;
+    this.alarmActive = false;
+    this.alarmContext = null;
+    try {
+      this.homey.flow.getTriggerCard('alarm_stopped').trigger({
+        zone: ctx?.zoneName ?? '',
+        sensor: ctx?.deviceName ?? '',
+        reason,
+      }).catch(() => { /* best-effort */ });
+    } catch { /* best-effort */ }
+  }
+
+  private async resolveNames(zoneId: string, deviceId: string): Promise<{ zoneName: string; deviceName: string }> {
+    let zoneName = zoneId;
+    let deviceName = deviceId;
+    try {
+      const zones = await this.homeyApi.zones.getZones();
+      zoneName = (zones as any)[zoneId]?.name ?? zoneId;
+    } catch { /* best-effort */ }
+    try {
+      const device = await this.homeyApi.devices.getDevice({ id: deviceId });
+      deviceName = (device as any)?.name ?? deviceId;
+    } catch { /* best-effort */ }
+    return { zoneName, deviceName };
   }
 
   private clearTestStopTimer(): void {
@@ -188,6 +243,8 @@ class McCallisterGuardApp extends Homey.App {
       .registerRunListener(async (args: { mode: Mode }) => this.stateMachine.getMode() === args.mode);
     this.homey.flow.getConditionCard('deterrence_active')
       .registerRunListener(async () => this.deterrence.getActiveZone() !== null);
+    this.homey.flow.getConditionCard('alarm_active')
+      .registerRunListener(async () => this.alarmActive);
   }
 
   private async initListeners(): Promise<void> {
@@ -223,6 +280,8 @@ class McCallisterGuardApp extends Homey.App {
 
     if (mode === 'armed_stay') return;
 
+    await this.fireAlarmTriggered(zoneId, deviceId, 'motion');
+
     if (!this.stateMachine.isEntryDelayActive()) {
       const settings = this.getSettings();
       this.stateMachine.startEntryDelay(settings.entry_delay, () => {
@@ -237,6 +296,8 @@ class McCallisterGuardApp extends Homey.App {
     const mode = this.stateMachine.getMode();
     if (mode === 'disarmed') return;
     this.eventLog.add('warning', `Dør/vindu åpnet i sone ${zoneId}.`, zoneId, deviceId);
+
+    await this.fireAlarmTriggered(zoneId, deviceId, 'contact');
 
     if (mode === 'armed_stay') {
       this.escalation.start(0);

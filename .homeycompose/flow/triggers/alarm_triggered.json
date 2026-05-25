@@ -1,0 +1,36 @@
+{
+  "title": {
+    "en": "Alarm triggered",
+    "no": "Alarm utløst"
+  },
+  "hint": {
+    "en": "Fires when a sensor trips the alarm while the system is armed. Use this to send notifications.",
+    "no": "Utløses når en sensor aktiverer alarmen mens systemet er armert. Bruk denne til å sende varslinger."
+  },
+  "tokens": [
+    {
+      "name": "zone",
+      "type": "string",
+      "title": { "en": "Zone", "no": "Sone" },
+      "example": { "en": "Living room", "no": "Stua" }
+    },
+    {
+      "name": "sensor",
+      "type": "string",
+      "title": { "en": "Sensor", "no": "Sensor" },
+      "example": { "en": "Motion sensor (hallway)", "no": "Bevegelsessensor (gang)" }
+    },
+    {
+      "name": "sensor_type",
+      "type": "string",
+      "title": { "en": "Sensor type", "no": "Sensortype" },
+      "example": { "en": "motion", "no": "bevegelse" }
+    },
+    {
+      "name": "mode",
+      "type": "string",
+      "title": { "en": "Current mode", "no": "Aktiv modus" },
+      "example": { "en": "armed_away", "no": "armed_away" }
+    }
+  ]
+}

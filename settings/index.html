@@ -605,6 +605,7 @@
         const el = $('status');
         el.classList.toggle('crisis', s.inCrisis);
         const extras = [];
+        if (s.alarmActive) extras.push('🚨 ALARM utløst');
         if (s.escalationPending) extras.push('⏳ Eskalering venter');
         if (s.inCrisis) extras.push('🚨 KRISE');
         if (s.simulationRunning) extras.push('Kevin aktiv');
@@ -615,10 +616,10 @@
         document.querySelectorAll('.mode-btn[data-mode]').forEach((b) => {
           b.classList.toggle('inactive', b.dataset.mode !== s.mode);
         });
-        const alarmActive = !!(s.inCrisis || s.escalationPending || s.activeDeterrenceZone || s.activeMotionZone);
+        const showStop = !!(s.alarmActive || s.inCrisis || s.escalationPending || s.activeDeterrenceZone);
         const stopBtn = $('btn-stop');
-        stopBtn.style.display = alarmActive ? '' : 'none';
-        stopBtn.classList.toggle('alarm-active', alarmActive);
+        stopBtn.style.display = showStop ? '' : 'none';
+        stopBtn.classList.toggle('alarm-active', showStop);
       }
 
       function renderDatalists() {
@@ -688,7 +689,7 @@
             + `<label>Reaksjonssone</label>`
             + `<select data-matrix="${esc(z.id)}"><option value="">— ingen —</option>${opts}</select>`
             + `<label>Kevin-modus</label>`
-            + `<label style="justify-self:start;"><input type="checkbox" data-kevin="${esc(z.id)}" ${settings.kevin_zones[z.id] ? 'checked' : ''}> Inkluder i lys-simulering</label>`
+            + `<label style="justify-self:start;"><input type="checkbox" data-kevin="${esc(z.id)}" ${settings.kevin_zones[z.id] ? 'checked' : ''}> Lys-simulering</label>`
             + mediaFields
             + testBtn
             + `</div></details>`;

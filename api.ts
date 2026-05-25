@@ -11,6 +11,7 @@ interface AppRef {
   testDeterrence(zoneId: string): Promise<void>;
   stopAlarm(): Promise<void>;
   isTestActive(): boolean;
+  isAlarmActive(): boolean;
   getRecentMotionZones(): string[];
   homeyApi: any;
   stateMachine: { getMode(): Mode; getModeChangedAt(): number };
@@ -36,6 +37,7 @@ module.exports = {
       escalationPending: app.escalation.isPending(),
       inCrisis: app.escalation.isInCrisis(),
       testActive: app.isTestActive(),
+      alarmActive: app.isAlarmActive(),
       recentMotionZones: app.getRecentMotionZones(),
     };
   },
