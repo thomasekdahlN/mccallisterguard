@@ -608,7 +608,7 @@
         if (s.escalationPending) extras.push('⏳ Eskalering venter');
         if (s.inCrisis) extras.push('🚨 KRISE');
         if (s.simulationRunning) extras.push('Kevin aktiv');
-        if (s.activeDeterrenceZone) extras.push('Avskrekking aktiv');
+        if (s.activeDeterrenceZone) extras.push(s.testActive ? 'Avskrekking aktiv (TEST)' : 'Avskrekking aktiv');
         el.innerHTML = `<div class="mode-label">Modus: ${modeLabel(s.mode)}</div>`
           + `<div class="meta">Sist endret: ${fmtTs(s.modeChangedAt)}</div>`
           + (extras.length ? `<div class="meta">${extras.join(' · ')}</div>` : '');

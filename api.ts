@@ -10,6 +10,7 @@ interface AppRef {
   triggerPanic(): Promise<void>;
   testDeterrence(zoneId: string): Promise<void>;
   stopAlarm(): Promise<void>;
+  isTestActive(): boolean;
   homeyApi: any;
   stateMachine: { getMode(): Mode; getModeChangedAt(): number };
   deterrence: { getActiveZone(): string | null; getActiveMotionZone(): string | null };
@@ -33,6 +34,7 @@ module.exports = {
       simulationRunning: app.simulation.isRunning(),
       escalationPending: app.escalation.isPending(),
       inCrisis: app.escalation.isInCrisis(),
+      testActive: app.isTestActive(),
     };
   },
 

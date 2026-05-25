@@ -28,6 +28,9 @@ class McCallisterGuardApp extends Homey.App {
   public simulation!: SimulationEngine;
   public cameras!: CameraManager;
 
+  private testStopTimer: NodeJS.Timeout | null = null;
+  private static readonly TEST_DURATION_MS = 15_000;
+
   async onInit(): Promise<void> {
     this.log('McCallister Guard starter opp…');
 
@@ -77,6 +80,7 @@ class McCallisterGuardApp extends Homey.App {
   async setMode(mode: Mode): Promise<void> {
     const settings = this.getSettings();
     if (mode === 'disarmed') {
+      this.clearTestStopTimer();
       this.stateMachine.cancelEntryDelay();
       this.falseAlarm.reset();
       this.escalation.cancel();
@@ -95,17 +99,35 @@ class McCallisterGuardApp extends Homey.App {
   }
 
   async testDeterrence(zoneId: string): Promise<void> {
-    this.eventLog.add('info', `Test: simulerer bevegelse i sone ${zoneId}.`, zoneId);
+    this.clearTestStopTimer();
+    const seconds = Math.round(McCallisterGuardApp.TEST_DURATION_MS / 1000);
+    this.eventLog.add('info', `Test: simulerer bevegelse i sone ${zoneId} (auto-stopp om ${seconds}s).`, zoneId);
     await this.deterrence.handleMotion(zoneId);
+    this.testStopTimer = this.homey.setTimeout(() => {
+      this.testStopTimer = null;
+      this.deterrence.abort('Test ferdig (auto-stopp).').catch(() => { /* best-effort */ });
+    }, McCallisterGuardApp.TEST_DURATION_MS);
+  }
+
+  isTestActive(): boolean {
+    return this.testStopTimer !== null;
   }
 
   async stopAlarm(): Promise<void> {
     this.eventLog.add('info', 'Bruker stoppet alarm manuelt.');
+    this.clearTestStopTimer();
     this.stateMachine.cancelEntryDelay();
     this.escalation.cancel();
     this.falseAlarm.reset();
     this.cameras.stopAll();
     await this.deterrence.abort('Bruker stoppet alarmen.');
+  }
+
+  private clearTestStopTimer(): void {
+    if (this.testStopTimer) {
+      this.homey.clearTimeout(this.testStopTimer);
+      this.testStopTimer = null;
+    }
   }
 
   private handleModeChange(next: Mode, previous: Mode): void {
