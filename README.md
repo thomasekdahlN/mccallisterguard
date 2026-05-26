@@ -286,10 +286,17 @@ homey app install
 2. Under **Soneoversikt**, utvid hver sone og se hvilke kapabiliteter (🔊 lyd, 📺 skjerm, 💡 lys) og sensorer
    (🚪 dør/vindu, 👁️ bevegelse) som er oppdaget.
 3. Definer **reaksjonssone-matrise** per sone — f.eks. «bevegelse på loft → spill avskrekking i stua».
-4. **Skallsikring:** i hver sone vises et **Skallsikring**-felt med alle dør-/vindu- og bevegelses-sensorer
-   i sonen. Hak av de sensorene som skal være aktive i Skallsikring-modus (typisk ytterdører, vinduer,
-   uteområder). Andre sensorer ignoreres når Skallsikring er aktiv.
-5. **Lys-avskrekking pr. sone:** appen blinker lys i reaksjonssonen med en sakte PÅ/AV-syklus (default
+4. **Skallsikring:** i hver sone listes alle dør-/vindu- og bevegelses-sensorer. Den første avkrysningsboksen
+   markerer sensoren som aktiv i Skallsikring-modus (typisk ytterdører, vinduer, uteområder). Andre sensorer
+   ignoreres når Skallsikring er aktiv.
+5. **Inngangsforsinkelse (⏱):** for dør-/vindu-sensorer kan du krysse av **⏱** for å gi sensoren en
+   inngangsforsinkelse. Når en slik dør åpnes (i Borte eller Skallsikring), starter en nedtelling på
+   `entry_delay` sekunder (default 30) før alarmen utløses — slik at en autorisert bruker som kommer inn med
+   kodelås/smart-lås rekker å deaktivere systemet uten å sette i gang sirenen. Anbefales for hoveddør og
+   bakdør med kodelås. Kombiner gjerne med en flow som automatisk setter modus til Hjemme når smartlåsen
+   rapporterer autorisert opplåsing — da utløses ingen alarm i det hele tatt, og inngangsforsinkelsen er
+   fallback hvis flowen feiler.
+6. **Lys-avskrekking pr. sone:** appen blinker lys i reaksjonssonen med en sakte PÅ/AV-syklus (default
    15 sek hver vei, justerbart pr. sone under «Lys på (sek)» / «Lys av (sek)»). Vil du i tillegg spille av
    lyd/video på Chromecast, Sonos, Nest Hub e.l., bygger du selv en Homey-flow i Flow-editoren som lytter på
    `Avskrekking startet i en sone` (`deterrence_started`-triggeren) med filter på riktig `zone`. Triggeren
@@ -297,7 +304,7 @@ homey app install
    bundlede lyd-/videofiler — dra dem rett inn i `Cast a URL`/`Cast a video`-actions, så slipper du å hoste
    mediene selv. Lys-vakta (`LightAuthGuard`) er deaktivert mens avskrekking pågår, så en ekstern flow kan
    trygt styre lys i sonen samtidig.
-6. Sett **Borte-modus** når du forlater huset, eller bruk `set_mode`-actionen fra en flow (geofence, bryter,
+7. Sett **Borte-modus** når du forlater huset, eller bruk `set_mode`-actionen fra en flow (geofence, bryter,
    stemme). Bruk `mode_changed`-trigger til logging eller automatikk rundt modus-bytter.
 
 ## Utvikling

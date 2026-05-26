@@ -369,6 +369,11 @@ class McCallisterGuardApp extends Homey.App {
     return list.includes(deviceId);
   }
 
+  private isEntryDelaySensor(deviceId: string): boolean {
+    const list = this.getSettings().entry_delay_sensors ?? [];
+    return list.includes(deviceId);
+  }
+
   private async onMotion(zoneId: string, deviceId: string): Promise<void> {
     this.motionLastSeen.set(zoneId, Date.now());
     const mode = this.stateMachine.getMode();
@@ -399,15 +404,40 @@ class McCallisterGuardApp extends Homey.App {
   private async onContact(zoneId: string, deviceId: string): Promise<void> {
     const mode = this.stateMachine.getMode();
     if (mode === 'disarmed') return;
+    if (this.stateMachine.isExitDelayActive()) return;
     this.eventLog.add('warning', `Dør/vindu åpnet i sone ${zoneId}.`, zoneId, deviceId);
 
+    if (mode === 'armed_stay' && !this.isPerimeterSensor(deviceId)) return;
+
+    if (this.isEntryDelaySensor(deviceId)) {
+      this.falseAlarm.registerContactOpen();
+      if (this.stateMachine.isEntryDelayActive()) return;
+      const settings = this.getSettings();
+      this.eventLog.add('info', `Inngangsforsinkelse startet (${settings.entry_delay}s) — deaktiver for å avbryte.`, zoneId, deviceId);
+      this.stateMachine.startEntryDelay(settings.entry_delay, () => {
+        if (this.stateMachine.getMode() === 'disarmed') return;
+        this.handleConfirmedContact(zoneId, deviceId, mode).catch(() => { /* best-effort */ });
+      });
+      return;
+    }
+
     if (mode === 'armed_stay') {
-      if (!this.isPerimeterSensor(deviceId)) return;
       await this.fireAlarmTriggered(zoneId, deviceId, 'contact');
       this.escalation.start(0);
       return;
     }
     this.falseAlarm.registerContactOpen();
+    await this.handleConfirmedMotion(zoneId, deviceId, 'contact');
+  }
+
+  private async handleConfirmedContact(zoneId: string, deviceId: string, mode: Mode): Promise<void> {
+    if (this.stateMachine.getMode() === 'disarmed') return;
+    await this.fireAlarmTriggered(zoneId, deviceId, 'contact');
+    if (mode === 'armed_stay') {
+      await this.deterrence.handleMotion(zoneId);
+      this.escalation.start(0);
+      return;
+    }
     await this.handleConfirmedMotion(zoneId, deviceId, 'contact');
   }
 

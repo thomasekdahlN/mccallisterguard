@@ -360,10 +360,22 @@
       background: #f5f7fa;
     }
 
+    .zone-body .sensor-row .sensor-name {
+      flex: 1;
+    }
+
     .zone-body .sensor-row .sensor-type {
       color: #888;
       font-style: normal;
       font-size: 11px;
+    }
+
+    .zone-body .sensor-flag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      user-select: none;
     }
 
     .zone-body .sensor-empty {
@@ -475,10 +487,22 @@
       </ul>
 
       <h3>Skallsikring — velg sensorer per sone</h3>
-      <p>Under hver sone i Soneoversikten har du et <strong>Skallsikring</strong>-felt som lister alle
-        dør-/vindu- og bevegelses-sensorer i sonen. Hak av de sensorene som skal være aktive i
-        Skallsikring-modus. Når Skallsikring er aktiv, ignoreres alle andre sensorer — kun de avhakede kan
-        trigge alarm. Hvis ingen sensorer er valgt globalt brukes alle som før (bakoverkompatibelt).</p>
+      <p>Under hver sone i Soneoversikten lister appen alle dør-/vindu- og bevegelses-sensorer i sonen. Den
+        første avkrysningsboksen (uten ikon) markerer sensoren som <strong>aktiv i Skallsikring</strong> —
+        typisk ytterdører, vinduer og uteområder. Når Skallsikring er aktiv, ignoreres alle andre sensorer.
+        Hvis ingen sensorer er valgt globalt brukes alle som før (bakoverkompatibelt).</p>
+
+      <h3>Inngangsforsinkelse (⏱) — autorisert inngang</h3>
+      <p>For dør-/vindu-sensorer kan du krysse av <strong>⏱</strong> for å gi den sensoren en
+        <em>inngangsforsinkelse</em>. Når en slik dør åpnes (i Borte eller Skallsikring), starter en
+        nedtelling på <code>entry_delay</code> sekunder (default 30) før alarmen utløses — slik at en
+        autorisert bruker som kommer inn med kodelås eller smart-lås rekker å deaktivere systemet uten å
+        sette i gang sirenen. Anbefales for hoveddør og bakdør med kodelås.
+      </p>
+      <p>Tips: kombiner med en flow som <em>automatisk</em> deaktiverer systemet når smartlåsen din rapporterer
+        en autorisert opplåsing (NÅR «smart-låsen ble låst opp med kode X» → SÅ «sett McCallister Guard til
+        Hjemme»). Da rekker systemet å gå i Hjemme-modus før døren åpnes, og ingen alarm utløses i det hele
+        tatt. Inngangsforsinkelsen er fallback hvis flowen feiler eller låsen ikke rapporterer riktig.</p>
 
       <h3>Avskrekking (sone-matrise)</h3>
       <p>Når bevegelse oppdages i en sone, slår appen opp <strong>reaksjonssonen</strong> i sone-matrisen. F.eks.: tyv
@@ -770,19 +794,27 @@
           }
 
           const perimeterSet = new Set(settings.perimeter_sensors || []);
+          const entryDelaySet = new Set(settings.entry_delay_sensors || []);
           const sensors = z.sensors || [];
           let sensorBlock = '';
           if (sensors.length > 0) {
             const sensorRows = sensors.map((s) => {
               const icon = s.type === 'contact' ? '🚪' : '👁️';
               const typeLabel = s.type === 'contact' ? 'dør/vindu' : 'bevegelse';
-              const checked = perimeterSet.has(s.id) ? 'checked' : '';
-              return `<label class="sensor-row"><input type="checkbox" data-perimeter="${esc(s.id)}" ${checked}>`
-                + `<span>${icon} ${esc(s.name)} <em class="sensor-type">(${typeLabel})</em></span></label>`;
+              const perim = perimeterSet.has(s.id) ? 'checked' : '';
+              const entry = entryDelaySet.has(s.id) ? 'checked' : '';
+              const entryBox = s.type === 'contact'
+                ? `<label class="sensor-flag" title="Inngangsforsinkelse — gi tid til å deaktivere før alarm utløses (f.eks. hoveddør med kodelås)."><input type="checkbox" data-entry-delay="${esc(s.id)}" ${entry}> ⏱</label>`
+                : '';
+              return `<div class="sensor-row">`
+                + `<label class="sensor-flag" title="Aktiv i Skallsikring"><input type="checkbox" data-perimeter="${esc(s.id)}" ${perim}></label>`
+                + `<span class="sensor-name">${icon} ${esc(s.name)} <em class="sensor-type">(${typeLabel})</em></span>`
+                + entryBox
+                + `</div>`;
             }).join('');
-            sensorBlock = `<label>Skallsikring</label><div class="sensor-list">${sensorRows}</div>`;
+            sensorBlock = `<label>Sensorer</label><div class="sensor-list">${sensorRows}</div>`;
           } else {
-            sensorBlock = `<label>Skallsikring</label><div class="sensor-empty">Ingen dør/vindu- eller bevegelses-sensorer i denne sonen.</div>`;
+            sensorBlock = `<label>Sensorer</label><div class="sensor-empty">Ingen dør/vindu- eller bevegelses-sensorer i denne sonen.</div>`;
           }
 
           const onSec = Number.isFinite(blinkOn[z.id]) ? blinkOn[z.id] : 15;
@@ -899,11 +931,12 @@
       });
       $('btn-save-zones').addEventListener('click', async () => {
         const payload = {
-          kevin_zones: {}, zone_matrix: {}, perimeter_sensors: [], blink_on: {}, blink_off: {},
+          kevin_zones: {}, zone_matrix: {}, perimeter_sensors: [], entry_delay_sensors: [], blink_on: {}, blink_off: {},
         };
         document.querySelectorAll('[data-kevin]').forEach((c) => { payload.kevin_zones[c.dataset.kevin] = c.checked; });
         document.querySelectorAll('[data-matrix]').forEach((s) => { if (s.value) payload.zone_matrix[s.dataset.matrix] = s.value; });
         document.querySelectorAll('[data-perimeter]:checked').forEach((c) => { payload.perimeter_sensors.push(c.dataset.perimeter); });
+        document.querySelectorAll('[data-entry-delay]:checked').forEach((c) => { payload.entry_delay_sensors.push(c.dataset.entryDelay); });
         document.querySelectorAll('[data-blink-on]').forEach((i) => {
           const v = Math.max(1, Number(i.value) || 15);
           payload.blink_on[i.dataset.blinkOn] = v;

@@ -31,6 +31,7 @@ export interface GuardSettings {
   zone_matrix: ZoneMatrix;
   kevin_zones: KevinZones;
   perimeter_sensors: string[];
+  entry_delay_sensors: string[];
   blink_on: ZoneSeconds;
   blink_off: ZoneSeconds;
 }
@@ -49,6 +50,7 @@ export const DEFAULT_SETTINGS: GuardSettings = {
   zone_matrix: {},
   kevin_zones: {},
   perimeter_sensors: [],
+  entry_delay_sensors: [],
   blink_on: {},
   blink_off: {},
 };
