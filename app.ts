@@ -80,7 +80,6 @@ class McCallisterGuardApp extends Homey.App {
 
     this.stateMachine.onModeChange((next, previous) => this.handleModeChange(next, previous));
     this.deterrence.onDeterrenceStarted((reactionZoneId, motionZoneId) => {
-      this.cameras.startForZone(motionZoneId).catch(() => { /* best-effort */ });
       const reactionName = this.zoneNameCache.get(reactionZoneId) ?? reactionZoneId;
       const motionName = this.zoneNameCache.get(motionZoneId) ?? motionZoneId;
       this.pushTimeline(`🔔 Avskrekking startet i ${reactionName} (bevegelse i ${motionName}).`);
@@ -168,7 +167,6 @@ class McCallisterGuardApp extends Homey.App {
       this.falseAlarm.reset();
       this.escalation.cancel();
       this.simulation.stop();
-      this.cameras.stopAll();
       await this.deterrence.abort('Bruker deaktiverte systemet.');
       this.fireAlarmStopped('System deaktivert.');
     }
@@ -215,7 +213,6 @@ class McCallisterGuardApp extends Homey.App {
     this.stateMachine.cancelEntryDelay();
     this.escalation.cancel();
     this.falseAlarm.reset();
-    this.cameras.stopAll();
     await this.deterrence.abort('Bruker stoppet alarmen.');
     this.fireAlarmStopped('Bruker stoppet alarm.');
   }
@@ -437,7 +434,8 @@ class McCallisterGuardApp extends Homey.App {
   private async onMotion(zoneId: string, deviceId: string): Promise<void> {
     this.motionLastSeen.set(zoneId, Date.now());
     // Motion burst runs regardless of arm state — captures who moves through the house.
-    this.cameras.captureMotionBurst(zoneId).catch(() => { /* best-effort */ });
+    // isAlarm=true uses camera_alarm_count (default 10); false uses camera_motion_count (default 1).
+    this.cameras.captureMotionBurst(zoneId, this.alarmActive).catch(() => { /* best-effort */ });
     const mode = this.stateMachine.getMode();
     if (mode === 'disarmed') return;
     if (this.stateMachine.isExitDelayActive()) return;

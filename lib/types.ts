@@ -21,9 +21,6 @@ export type KevinZones = Record<string, boolean>;
 
 export type ZoneSeconds = Record<string, number>;
 
-/** Per-camera snapshot mode: alarm_only = only during alarm/deterrence, motion = also on every motion event. */
-export type CameraMode = 'alarm_only' | 'motion';
-
 export interface GuardSettings {
   bedtime: string;
   sunset_offset: number;
@@ -41,16 +38,21 @@ export interface GuardSettings {
   blink_off: ZoneSeconds;
   alarm_blink_on: number;
   alarm_blink_off: number;
-  camera_mode: Record<string, CameraMode>;
+  /** Per-camera: how many snapshots to take when motion is detected while alarm is active. Default: 10. */
+  camera_alarm_count: Record<string, number>;
+  /** Per-camera: how many snapshots to take when motion is detected while no alarm. Default: 1. 0 = disabled. */
+  camera_motion_count: Record<string, number>;
 }
 
 export const DEFAULT_BLINK_SECONDS = 15;
 export const DEFAULT_ALARM_BLINK_ON = 1;
 export const DEFAULT_ALARM_BLINK_OFF = 1;
-/** Max snapshots per alarm/deterrence loop before auto-stopping. */
-export const ALARM_SNAPSHOT_MAX = 10;
-/** Number of snapshots to take on a motion-triggered burst (non-alarm). */
-export const MOTION_BURST_COUNT = 3;
+/** Default number of snapshots per camera when alarm is active and motion is detected. */
+export const CAMERA_ALARM_DEFAULT_COUNT = 10;
+/** Default number of snapshots per camera when motion is detected without an active alarm. */
+export const CAMERA_MOTION_DEFAULT_COUNT = 1;
+/** Interval in ms between snapshots in a burst. */
+export const SNAPSHOT_BURST_INTERVAL_MS = 1_000;
 
 export const DEFAULT_SETTINGS: GuardSettings = {
   bedtime: '23:30',
@@ -69,7 +71,8 @@ export const DEFAULT_SETTINGS: GuardSettings = {
   blink_off: {},
   alarm_blink_on: DEFAULT_ALARM_BLINK_ON,
   alarm_blink_off: DEFAULT_ALARM_BLINK_OFF,
-  camera_mode: {},
+  camera_alarm_count: {},
+  camera_motion_count: {},
 };
 
 export const SETTINGS_KEYS = {
@@ -82,5 +85,4 @@ export const SETTINGS_KEYS = {
 export const EVENT_LOG_MAX = 150;
 export const CMD_BUFFER_TTL_MS = 2_000;
 export const FALSE_ALARM_WINDOW_MS = 90_000;
-export const SNAPSHOT_INTERVAL_MS = 5_000;
 export const MAX_PUSH_PER_EVENT = 3;

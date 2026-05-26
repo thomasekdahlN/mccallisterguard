@@ -860,18 +860,20 @@
             + `<label>Lys av (sek)</label>`
             + `<input type="number" min="1" step="1" data-blink-off="${esc(z.id)}" value="${offSec}" style="width:120px;">`;
 
-          const cameraModeMap = settings.camera_mode || {};
+          const cameraAlarmMap = settings.camera_alarm_count || {};
+          const cameraMotionMap = settings.camera_motion_count || {};
           const cameras = z.cameras || [];
           let cameraBlock = '';
           if (cameras.length > 0) {
             const cameraRows = cameras.map((cam) => {
-              const mode = cameraModeMap[cam.id] || 'alarm_only';
+              const alarmVal = Number.isFinite(cameraAlarmMap[cam.id]) ? cameraAlarmMap[cam.id] : 10;
+              const motionVal = Number.isFinite(cameraMotionMap[cam.id]) ? cameraMotionMap[cam.id] : 1;
               return `<div class="sensor-row">`
                 + `<span class="sensor-name">📷 ${esc(cam.name)}</span>`
-                + `<select data-camera-mode="${esc(cam.id)}" style="justify-self:end;">`
-                + `<option value="alarm_only" ${mode === 'alarm_only' ? 'selected' : ''}>Bare ved alarm</option>`
-                + `<option value="motion" ${mode === 'motion' ? 'selected' : ''}>Ved bevegelse</option>`
-                + `</select>`
+                + `<label class="sensor-flag" title="Antall bilder ved alarm (1 sekunds intervall)">🔴</label>`
+                + `<input type="number" min="0" step="1" data-camera-alarm="${esc(cam.id)}" value="${alarmVal}" style="width:60px;" title="Bilder ved alarm">`
+                + `<label class="sensor-flag" title="Antall bilder ved bevegelse uten alarm (0 = deaktivert)">🟢</label>`
+                + `<input type="number" min="0" step="1" data-camera-motion="${esc(cam.id)}" value="${motionVal}" style="width:60px;" title="Bilder uten alarm">`
                 + `</div>`;
             }).join('');
             cameraBlock = `<label>Kameraer</label><div class="sensor-list">${cameraRows}</div>`;
@@ -987,7 +989,7 @@
       });
       $('btn-save-zones').addEventListener('click', async () => {
         const payload = {
-          kevin_zones: {}, zone_matrix: {}, perimeter_sensors: [], entry_delay_sensors: [], blink_on: {}, blink_off: {}, camera_mode: {},
+          kevin_zones: {}, zone_matrix: {}, perimeter_sensors: [], entry_delay_sensors: [], blink_on: {}, blink_off: {}, camera_alarm_count: {}, camera_motion_count: {},
         };
         document.querySelectorAll('[data-kevin]').forEach((c) => { payload.kevin_zones[c.dataset.kevin] = c.checked; });
         document.querySelectorAll('[data-matrix]').forEach((s) => { if (s.value) payload.zone_matrix[s.dataset.matrix] = s.value; });
@@ -1001,8 +1003,11 @@
           const v = Math.max(1, Number(i.value) || 15);
           payload.blink_off[i.dataset.blinkOff] = v;
         });
-        document.querySelectorAll('[data-camera-mode]').forEach((s) => {
-          payload.camera_mode[s.dataset.cameraMode] = s.value;
+        document.querySelectorAll('[data-camera-alarm]').forEach((i) => {
+          payload.camera_alarm_count[i.dataset.cameraAlarm] = Math.max(0, Number(i.value) || 10);
+        });
+        document.querySelectorAll('[data-camera-motion]').forEach((i) => {
+          payload.camera_motion_count[i.dataset.cameraMotion] = Math.max(0, Number(i.value) || 1);
         });
         await saveSettings(payload, $('btn-save-zones'), 'saved-toast-zones');
         renderZoneBlocks();
