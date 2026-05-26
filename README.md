@@ -197,7 +197,7 @@ homey app install
 npm test              # Vitest unit-tests (29 tester)
 npx tsc --noEmit      # TypeScript type-check
 npm run lint          # ESLint (Athom config)
-npm run build:images  # Regenerer App Images (75/500/1000) fra design/appartwork.png
+npm run build:images  # Regenerer App Images (250×175 / 500×350 / 1000×700) fra design/appartwork.png
 homey app validate --level publish  # Athom App Store validation
 homey app run         # Kjør lokalt mot Homey for live testing
 ```
@@ -209,7 +209,7 @@ Athom skiller mellom to typer app-grafikk; vi følger samme terminologi.
 | Type | Master (`design/`) | Distribusjon (`assets/`) | Krav |
 |---|---|---|---|
 | **App Icon** (lite, rundt monokromt badge) | `design/appicon.svg` (og `appicon.png` for forhåndsvisning) | `assets/icon.svg` | Vektor, viewBox 0 0 1024 1024 |
-| **App Images** (fargerikt App Store-artwork) | `design/appartwork.png` | `assets/images/small.png` (75×75), `large.png` (500×350), `xlarge.png` (1000×700) | PNG, eksakte dimensjoner |
+| **App Images** (fargerikt App Store-artwork) | `design/appartwork.png` | `assets/images/small.png` (250×175), `large.png` (500×350), `xlarge.png` (1000×700) | PNG, eksakte dimensjoner (10:7) |
 
 App-ikonet kopieres direkte (samme SVG som master). App Images regenereres fra `design/appartwork.png` med `npm run build:images` — skriptet bruker macOS-native `sips` og fit-cover + center-crop for å bevare aspekt-forhold uten distorsjon.
 

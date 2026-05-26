@@ -2,10 +2,11 @@
 # Generates Homey App Images (small/large/xlarge PNGs) from design/appartwork.png
 # using macOS-native `sips` (no external dependencies).
 #
-# Homey App Store requires three exact sizes:
-#   - assets/images/small.png   ->  75 x  75  (1:1)
-#   - assets/images/large.png   -> 500 x 350  (10:7)
-#   - assets/images/xlarge.png  -> 1000 x 700 (10:7)
+# Homey App Store requires three exact sizes for App Images (10:7 ratio):
+#   - assets/images/small.png   ->  250 x 175  (10:7)
+#   - assets/images/large.png   ->  500 x 350  (10:7)
+#   - assets/images/xlarge.png  -> 1000 x 700  (10:7)
+# NB: Driver Images use different sizes (75/500/1000 square) — not handled here.
 #
 # Strategy: fit cover (scale shortest edge to target, center-crop to exact size).
 # This preserves aspect ratio without distortion and produces clean PNGs.
@@ -51,7 +52,7 @@ generate() {
 }
 
 echo "Generating App Images..."
-generate "$OUT_DIR/small.png"  75   75
+generate "$OUT_DIR/small.png"  250  175
 generate "$OUT_DIR/large.png"  500  350
 generate "$OUT_DIR/xlarge.png" 1000 700
 
