@@ -4,8 +4,8 @@
     "no": "Alarm utløst"
   },
   "hint": {
-    "en": "Fires when a sensor trips the alarm while the system is armed. The alarm_type token is one of: perimeter (skin breach in armed_stay), intrusion (interior motion in armed_away), entry_delay_timeout (entry-delay sensor not disarmed in time), panic (manual). Use it together with the alarm_type_is condition to branch on alarm class.",
-    "no": "Utløses når en sensor aktiverer alarmen mens systemet er armert. alarm_type-tokenet er én av: perimeter (skall-brudd i armed_stay), intrusion (innendørs bevegelse i armed_away), entry_delay_timeout (inngangsforsinkelse ikke deaktivert i tide), panic (manuell). Kombiner med vilkåret «Alarmtype er» for å forgrene på alarmklasse."
+    "en": "Fires when any sensor trips the alarm while the system is armed. For type-specific reactions use the dedicated trigger cards: alarm_triggered_perimeter, alarm_triggered_intrusion, alarm_triggered_entry_delay or alarm_triggered_panic.",
+    "no": "Utløses når en sensor aktiverer alarmen mens systemet er armert. For type-spesifikke reaksjoner bruk de dedikerte trigger-kortene: alarm_triggered_perimeter, alarm_triggered_intrusion, alarm_triggered_entry_delay eller alarm_triggered_panic."
   },
   "tokens": [
     {
@@ -42,18 +42,6 @@
       "example": {
         "en": "motion",
         "no": "bevegelse"
-      }
-    },
-    {
-      "name": "alarm_type",
-      "type": "string",
-      "title": {
-        "en": "Alarm type",
-        "no": "Alarmtype"
-      },
-      "example": {
-        "en": "perimeter",
-        "no": "perimeter"
       }
     },
     {

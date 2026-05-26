@@ -235,12 +235,12 @@ sequenceDiagram
 
 | Kort | Tokens | Når |
 |---|---|---|
-| `alarm_triggered` | `zone`, `sensor`, `sensor_type`, `alarm_type`, `mode`, `timestamp` | Generisk — fyres alltid. Bruk `alarm_type`-token + vilkåret `alarm_type_is` for å forgrene |
+| `alarm_triggered` | `zone`, `sensor`, `sensor_type`, `mode`, `timestamp` | Generisk — fyres alltid uansett alarmtype |
 | `alarm_triggered_perimeter` | `zone`, `sensor`, `sensor_type`, `mode`, `timestamp` | Kun Skallsikring-brudd (dør/vindu/perimeter-sensor i armed_stay) |
 | `alarm_triggered_intrusion` | `zone`, `sensor`, `sensor_type`, `mode`, `timestamp` | Kun innendørs innbrudd i Borte-modus |
 | `alarm_triggered_entry_delay` | `zone`, `sensor`, `sensor_type`, `mode`, `timestamp` | Kun inngangsforsinkelse utløpt (hoveddør ikke deaktivert) |
 | `alarm_triggered_panic` | `zone`, `sensor`, `sensor_type`, `mode`, `timestamp` | Kun manuell panikk |
-| `alarm_stopped` | `zone`, `sensor`, `alarm_type`, `reason` | Generisk — fyres alltid. `alarm_type` matcher den opprinnelige alarmen |
+| `alarm_stopped` | `zone`, `sensor`, `reason` | Generisk — fyres alltid uansett alarmtype |
 | `alarm_stopped_perimeter` | `zone`, `sensor`, `reason` | Kun Skallsikring-brudd alarm avsluttet |
 | `alarm_stopped_intrusion` | `zone`, `sensor`, `reason` | Kun innbruddsalarm (Borte) avsluttet |
 | `alarm_stopped_entry_delay` | `zone`, `sensor`, `reason` | Kun inngangsforsinkelse-alarm avsluttet |
@@ -255,7 +255,6 @@ sequenceDiagram
 | Kort | Tilstand |
 |---|---|
 | `alarm_active` | Alarm er utløst akkurat nå |
-| `alarm_type_is` | Aktiv alarm er av valgt type (`perimeter` / `intrusion` / `entry_delay_timeout` / `panic`) |
 | `is_armed` | Systemet er i valgt modus |
 | `deterrence_active` | Avskrekking pågår |
 
@@ -269,11 +268,7 @@ sequenceDiagram
 
 ## Alarmtyper — forgren flow per alarmklasse
 
-For hvert alarm-scenario finnes det **to måter** å lage skreddersydde flows på — velg den som passer best:
-
-### Alternativ A: Dedikerte trigger-kort (anbefalt for enkelhet)
-
-Velg rett trigger-kort direkte i flow-editoren — ingen vilkår nødvendig:
+Velg rett trigger-kort direkte i flow-editoren:
 
 | Trigger-kort | Scenario |
 |---|---|
@@ -281,15 +276,6 @@ Velg rett trigger-kort direkte i flow-editoren — ingen vilkår nødvendig:
 | **Innbrudd oppdaget (Borte)** | Innendørs bevegelse/kontakt i Borte-modus |
 | **Inngangsforsinkelse utløpt** | ⏱-merket hoveddør ikke deaktivert i tide |
 | **Panikk utløst** | Manuell panikk-knapp eller `trigger_panic`-action |
-
-### Alternativ B: Generisk `alarm_triggered` + vilkår (fleksibelt)
-
-Bruk ett trigger-kort og forgren med vilkåret **«Alarmtype er [...]»** (`alarm_type_is`). Nyttig når du
-vil ha ett felles startpunkt med felles handlinger (f.eks. alltid skrive til hendelseslogg) etterfulgt av
-type-spesifikke grener.
-
-Du kan også bruke `alarm_type`-tokenet direkte i push-tekst:
-`«Alarm utløst i [[zone]] — type: [[alarm_type]] ([[sensor]])»`.
 
 ### Typisk reaksjon per alarmtype
 

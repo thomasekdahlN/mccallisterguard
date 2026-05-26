@@ -4,8 +4,8 @@
     "no": "Alarm avsluttet"
   },
   "hint": {
-    "en": "Fires when an active alarm is stopped (by the user, by disarming, or by deterrence completing).",
-    "no": "Utløses når en aktiv alarm stoppes (av bruker, ved deaktivering, eller når avskrekking er ferdig)."
+    "en": "Fires when any active alarm is stopped (by the user, by disarming, or automatically). For type-specific reactions use the dedicated cards: alarm_stopped_perimeter, alarm_stopped_intrusion, alarm_stopped_entry_delay or alarm_stopped_panic.",
+    "no": "Utløses når en aktiv alarm stoppes (av bruker, ved deaktivering eller automatisk). For type-spesifikke reaksjoner bruk de dedikerte kortene: alarm_stopped_perimeter, alarm_stopped_intrusion, alarm_stopped_entry_delay eller alarm_stopped_panic."
   },
   "tokens": [
     {
@@ -30,18 +30,6 @@
       "example": {
         "en": "Motion sensor (hallway)",
         "no": "Bevegelsessensor (gang)"
-      }
-    },
-    {
-      "name": "alarm_type",
-      "type": "string",
-      "title": {
-        "en": "Alarm type",
-        "no": "Alarmtype"
-      },
-      "example": {
-        "en": "perimeter",
-        "no": "perimeter"
       }
     },
     {

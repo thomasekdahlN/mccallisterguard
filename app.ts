@@ -179,10 +179,6 @@ class McCallisterGuardApp extends Homey.App {
     return this.alarmActive;
   }
 
-  getAlarmType(): AlarmType | null {
-    return this.alarmContext?.alarmType ?? null;
-  }
-
   getRecentMotionZones(): string[] {
     const cutoff = Date.now() - McCallisterGuardApp.MOTION_RECENT_MS;
     const result: string[] = [];
@@ -221,15 +217,10 @@ class McCallisterGuardApp extends Homey.App {
       timestamp: new Date().toISOString(),
     };
 
-    // Generic trigger — includes alarm_type token for condition-based filtering.
     try {
-      await this.homey.flow.getTriggerCard('alarm_triggered').trigger({
-        ...baseTokens,
-        alarm_type: alarmType,
-      });
+      await this.homey.flow.getTriggerCard('alarm_triggered').trigger(baseTokens);
     } catch { /* best-effort */ }
 
-    // Per-type dedicated triggers — directly selectable in the Homey flow editor.
     const perTypeCard = McCallisterGuardApp.ALARM_TYPE_TRIGGER_CARD[alarmType];
     try {
       await this.homey.flow.getTriggerCard(perTypeCard).trigger(baseTokens);
@@ -257,15 +248,10 @@ class McCallisterGuardApp extends Homey.App {
       reason,
     };
 
-    // Generic trigger — includes alarm_type token for condition-based filtering.
     try {
-      this.homey.flow.getTriggerCard('alarm_stopped').trigger({
-        ...baseTokens,
-        alarm_type: alarmType,
-      }).catch(() => { /* best-effort */ });
+      this.homey.flow.getTriggerCard('alarm_stopped').trigger(baseTokens).catch(() => { /* best-effort */ });
     } catch { /* best-effort */ }
 
-    // Per-type dedicated trigger — directly selectable in the Homey flow editor.
     const perTypeCard = McCallisterGuardApp.ALARM_TYPE_STOPPED_CARD[alarmType];
     try {
       this.homey.flow.getTriggerCard(perTypeCard).trigger(baseTokens).catch(() => { /* best-effort */ });
@@ -382,8 +368,6 @@ class McCallisterGuardApp extends Homey.App {
       .registerRunListener(async () => this.deterrence.getActiveZone() !== null);
     this.homey.flow.getConditionCard('alarm_active')
       .registerRunListener(async () => this.alarmActive);
-    this.homey.flow.getConditionCard('alarm_type_is')
-      .registerRunListener(async (args: { alarm_type: AlarmType }) => this.getAlarmType() === args.alarm_type);
   }
 
   private async initListeners(): Promise<void> {

@@ -1,6 +1,6 @@
 'use strict';
 
-import type { AlarmType, GuardSettings, Mode } from './lib/types';
+import type { GuardSettings, Mode } from './lib/types';
 import { classify, sensorType } from './lib/Capabilities';
 import type { SensorType } from './lib/Capabilities';
 
@@ -13,7 +13,6 @@ interface AppRef {
   stopAlarm(): Promise<void>;
   isTestActive(): boolean;
   isAlarmActive(): boolean;
-  getAlarmType(): AlarmType | null;
   getRecentMotionZones(): string[];
   homeyApi: any;
   stateMachine: {
@@ -53,7 +52,6 @@ module.exports = {
       inCrisis: app.escalation.isInCrisis(),
       testActive: app.isTestActive(),
       alarmActive: app.isAlarmActive(),
-      alarmType: app.getAlarmType(),
       recentMotionZones: app.getRecentMotionZones(),
     };
   },
