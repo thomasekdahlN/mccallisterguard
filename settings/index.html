@@ -66,6 +66,22 @@
       opacity: 0.45;
     }
 
+    .mode-btn.pending {
+      outline: 3px dashed #F2A900;
+      outline-offset: 2px;
+      animation: pulse-pending 1s ease-in-out infinite alternate;
+    }
+
+    @keyframes pulse-pending {
+      from {
+        box-shadow: 0 0 0 0 rgba(242, 169, 0, 0.6);
+      }
+
+      to {
+        box-shadow: 0 0 0 6px rgba(242, 169, 0, 0);
+      }
+    }
+
     .status-line {
       padding: 12px;
       background: #f4f4f6;
@@ -750,16 +766,29 @@
         if (s.inCrisis) extras.push('🚨 KRISE');
         if (s.simulationRunning) extras.push('Kevin aktiv');
         if (s.activeDeterrenceZone) extras.push(s.testActive ? 'Avskrekking aktiv (TEST)' : 'Avskrekking aktiv');
-        el.innerHTML = `<div class="mode-label">Modus: ${modeLabel(s.mode)}</div>`
+        if (s.entryDelayActive && s.entryDelayEndsAt) {
+          const rem = Math.max(0, Math.ceil((s.entryDelayEndsAt - Date.now()) / 1000));
+          extras.push(`⏱ Inngangsforsinkelse: ${rem}s — deaktiver for å avbryte`);
+        }
+        let modeText = modeLabel(s.mode);
+        if (s.exitDelayActive && s.exitDelayEndsAt) {
+          const rem = Math.max(0, Math.ceil((s.exitDelayEndsAt - Date.now()) / 1000));
+          modeText = `${modeLabel(s.mode)} → ${modeLabel(s.exitDelayTarget || 'armed_away')} (aktiveres om ${rem}s)`;
+        }
+        el.innerHTML = `<div class="mode-label">Modus: ${modeText}</div>`
           + `<div class="meta">Sist endret: ${fmtTs(s.modeChangedAt)}</div>`
           + (extras.length ? `<div class="meta">${extras.join(' · ')}</div>` : '');
+        const pendingMode = s.exitDelayActive ? (s.exitDelayTarget || 'armed_away') : null;
         document.querySelectorAll('.mode-btn[data-mode]').forEach((b) => {
-          b.classList.toggle('inactive', b.dataset.mode !== s.mode);
+          const isActive = b.dataset.mode === s.mode;
+          const isPending = b.dataset.mode === pendingMode;
+          b.classList.toggle('inactive', !isActive && !isPending);
+          b.classList.toggle('pending', isPending && !isActive);
         });
-        const showStop = !!(s.alarmActive || s.inCrisis || s.escalationPending || s.activeDeterrenceZone);
+        const showStop = !!(s.alarmActive || s.inCrisis || s.escalationPending || s.activeDeterrenceZone || s.exitDelayActive || s.entryDelayActive);
         const stopBtn = $('btn-stop');
         stopBtn.style.display = showStop ? '' : 'none';
-        stopBtn.classList.toggle('alarm-active', showStop);
+        stopBtn.classList.toggle('alarm-active', !!(s.alarmActive || s.inCrisis || s.escalationPending || s.activeDeterrenceZone));
       }
 
       function zoneStatusPill(zoneId) {

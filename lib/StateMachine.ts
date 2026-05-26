@@ -11,7 +11,10 @@ export default class StateMachine {
   private mode: Mode;
   private modeChangedAt: number;
   private exitTimer: NodeJS.Timeout | null = null;
+  private exitDelayEndsAt: number | null = null;
+  private exitDelayTarget: Mode | null = null;
   private entryTimer: NodeJS.Timeout | null = null;
+  private entryDelayEndsAt: number | null = null;
   private listeners: ModeChangeListener[] = [];
 
   constructor(
@@ -37,16 +40,26 @@ export default class StateMachine {
   }
 
   async setMode(next: Mode, exitDelaySeconds?: number): Promise<void> {
-    if (this.mode === next) return;
+    if (this.mode === next && !this.isExitDelayActive()) return;
 
+    const wasExitDelay = this.isExitDelayActive();
     this.clearTimers();
 
     if (next === 'armed_away' && exitDelaySeconds && exitDelaySeconds > 0) {
       this.log.add('info', `Aktiverer Borte-modus om ${exitDelaySeconds}s (Exit Delay).`);
+      this.exitDelayTarget = 'armed_away';
+      this.exitDelayEndsAt = Date.now() + exitDelaySeconds * 1000;
       this.exitTimer = this.homey.setTimeout(() => {
         this.exitTimer = null;
+        this.exitDelayEndsAt = null;
+        this.exitDelayTarget = null;
         this.applyMode('armed_away');
       }, exitDelaySeconds * 1000);
+      return;
+    }
+
+    if (wasExitDelay && this.mode === next) {
+      this.log.add('info', `Exit Delay avbrutt — modus forblir ${next}.`);
       return;
     }
 
@@ -56,8 +69,10 @@ export default class StateMachine {
   startEntryDelay(entryDelaySeconds: number, onTimeout: () => void): void {
     if (this.entryTimer) return;
     this.log.add('warning', `Innpassering oppdaget. Nedtelling ${entryDelaySeconds}s.`);
+    this.entryDelayEndsAt = Date.now() + entryDelaySeconds * 1000;
     this.entryTimer = this.homey.setTimeout(() => {
       this.entryTimer = null;
+      this.entryDelayEndsAt = null;
       onTimeout();
     }, entryDelaySeconds * 1000);
   }
@@ -66,6 +81,7 @@ export default class StateMachine {
     if (!this.entryTimer) return;
     this.homey.clearTimeout(this.entryTimer);
     this.entryTimer = null;
+    this.entryDelayEndsAt = null;
   }
 
   isEntryDelayActive(): boolean {
@@ -74,6 +90,18 @@ export default class StateMachine {
 
   isExitDelayActive(): boolean {
     return this.exitTimer !== null;
+  }
+
+  getExitDelayEndsAt(): number | null {
+    return this.exitDelayEndsAt;
+  }
+
+  getExitDelayTarget(): Mode | null {
+    return this.exitDelayTarget;
+  }
+
+  getEntryDelayEndsAt(): number | null {
+    return this.entryDelayEndsAt;
   }
 
   private applyMode(next: Mode): void {
@@ -96,10 +124,13 @@ export default class StateMachine {
     if (this.exitTimer) {
       this.homey.clearTimeout(this.exitTimer);
       this.exitTimer = null;
+      this.exitDelayEndsAt = null;
+      this.exitDelayTarget = null;
     }
     if (this.entryTimer) {
       this.homey.clearTimeout(this.entryTimer);
       this.entryTimer = null;
+      this.entryDelayEndsAt = null;
     }
   }
 

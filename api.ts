@@ -15,7 +15,15 @@ interface AppRef {
   isAlarmActive(): boolean;
   getRecentMotionZones(): string[];
   homeyApi: any;
-  stateMachine: { getMode(): Mode; getModeChangedAt(): number };
+  stateMachine: {
+    getMode(): Mode;
+    getModeChangedAt(): number;
+    isExitDelayActive(): boolean;
+    isEntryDelayActive(): boolean;
+    getExitDelayEndsAt(): number | null;
+    getExitDelayTarget(): Mode | null;
+    getEntryDelayEndsAt(): number | null;
+  };
   deterrence: { getActiveZone(): string | null; getActiveMotionZone(): string | null };
   eventLog: { recent(limit?: number): unknown[] };
   escalation: { isInCrisis(): boolean; isPending(): boolean };
@@ -32,6 +40,11 @@ module.exports = {
     return {
       mode: app.stateMachine.getMode(),
       modeChangedAt: app.stateMachine.getModeChangedAt(),
+      exitDelayActive: app.stateMachine.isExitDelayActive(),
+      exitDelayEndsAt: app.stateMachine.getExitDelayEndsAt(),
+      exitDelayTarget: app.stateMachine.getExitDelayTarget(),
+      entryDelayActive: app.stateMachine.isEntryDelayActive(),
+      entryDelayEndsAt: app.stateMachine.getEntryDelayEndsAt(),
       activeDeterrenceZone: app.deterrence.getActiveZone(),
       activeMotionZone: app.deterrence.getActiveMotionZone(),
       simulationRunning: app.simulation.isRunning(),
