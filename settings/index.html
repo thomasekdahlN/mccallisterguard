@@ -757,11 +757,19 @@
             : 'Hjemme';
       }
 
+      function alarmTypeLabel(type) {
+        return type === 'perimeter' ? 'Skallsikring-brudd'
+          : type === 'intrusion' ? 'Innbrudd (innendørs)'
+            : type === 'entry_delay_timeout' ? 'Inngangsforsinkelse utløpt'
+              : type === 'panic' ? 'Panikk'
+                : type || '';
+      }
+
       function renderStatus(s) {
         const el = $('status');
         el.classList.toggle('crisis', s.inCrisis);
         const extras = [];
-        if (s.alarmActive) extras.push('🚨 ALARM utløst');
+        if (s.alarmActive) extras.push(s.alarmType ? `🚨 ALARM utløst (${alarmTypeLabel(s.alarmType)})` : '🚨 ALARM utløst');
         if (s.escalationPending) extras.push('⏳ Eskalering venter');
         if (s.inCrisis) extras.push('🚨 KRISE');
         if (s.simulationRunning) extras.push('Kevin aktiv');

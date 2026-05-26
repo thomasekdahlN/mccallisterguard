@@ -11,20 +11,50 @@
     {
       "name": "zone",
       "type": "string",
-      "title": { "en": "Zone (that triggered)", "no": "Sone (som utløste)" },
-      "example": { "en": "Living room", "no": "Stua" }
+      "title": {
+        "en": "Zone (that triggered)",
+        "no": "Sone (som utløste)"
+      },
+      "example": {
+        "en": "Living room",
+        "no": "Stua"
+      }
     },
     {
       "name": "sensor",
       "type": "string",
-      "title": { "en": "Sensor (that triggered)", "no": "Sensor (som utløste)" },
-      "example": { "en": "Motion sensor (hallway)", "no": "Bevegelsessensor (gang)" }
+      "title": {
+        "en": "Sensor (that triggered)",
+        "no": "Sensor (som utløste)"
+      },
+      "example": {
+        "en": "Motion sensor (hallway)",
+        "no": "Bevegelsessensor (gang)"
+      }
+    },
+    {
+      "name": "alarm_type",
+      "type": "string",
+      "title": {
+        "en": "Alarm type",
+        "no": "Alarmtype"
+      },
+      "example": {
+        "en": "perimeter",
+        "no": "perimeter"
+      }
     },
     {
       "name": "reason",
       "type": "string",
-      "title": { "en": "Reason", "no": "Årsak" },
-      "example": { "en": "User stopped alarm", "no": "Bruker stoppet alarm" }
+      "title": {
+        "en": "Reason",
+        "no": "Årsak"
+      },
+      "example": {
+        "en": "User stopped alarm",
+        "no": "Bruker stoppet alarm"
+      }
     }
   ]
 }

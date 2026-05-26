@@ -13,7 +13,7 @@ import SimulationEngine from './lib/SimulationEngine';
 import CameraManager from './lib/CameraManager';
 import { isLight } from './lib/Capabilities';
 import {
-  DEFAULT_SETTINGS, GuardSettings, Mode, SETTINGS_KEYS,
+  AlarmType, DEFAULT_SETTINGS, GuardSettings, Mode, SETTINGS_KEYS,
 } from './lib/types';
 
 class McCallisterGuardApp extends Homey.App {
@@ -32,7 +32,7 @@ class McCallisterGuardApp extends Homey.App {
   private testStopTimer: NodeJS.Timeout | null = null;
   private motionLastSeen = new Map<string, number>();
   private alarmActive = false;
-  private alarmContext: { zoneId: string; zoneName: string; deviceId: string; deviceName: string; sensorType: string } | null = null;
+  private alarmContext: { zoneId: string; zoneName: string; deviceId: string; deviceName: string; sensorType: string; alarmType: AlarmType } | null = null;
   private zoneNameCache = new Map<string, string>();
   private zoneCacheTimer: NodeJS.Timeout | null = null;
   private mediaTokens: Record<string, string> = {};
@@ -156,7 +156,7 @@ class McCallisterGuardApp extends Homey.App {
 
   async triggerPanic(): Promise<void> {
     this.eventLog.add('critical', 'PANIKK utløst manuelt.');
-    await this.fireAlarmTriggered('__all__', '__panic__', 'panic');
+    await this.fireAlarmTriggered('__all__', '__panic__', 'panic', 'panic');
     this.escalation.start(0);
   }
 
@@ -179,6 +179,10 @@ class McCallisterGuardApp extends Homey.App {
     return this.alarmActive;
   }
 
+  getAlarmType(): AlarmType | null {
+    return this.alarmContext?.alarmType ?? null;
+  }
+
   getRecentMotionZones(): string[] {
     const cutoff = Date.now() - McCallisterGuardApp.MOTION_RECENT_MS;
     const result: string[] = [];
@@ -199,20 +203,21 @@ class McCallisterGuardApp extends Homey.App {
     this.fireAlarmStopped('Bruker stoppet alarm.');
   }
 
-  private async fireAlarmTriggered(zoneId: string, deviceId: string, sensorType: 'motion' | 'contact' | 'panic'): Promise<void> {
+  private async fireAlarmTriggered(zoneId: string, deviceId: string, sensorType: 'motion' | 'contact' | 'panic', alarmType: AlarmType): Promise<void> {
     if (this.alarmActive) return;
     const { zoneName, deviceName } = await this.resolveNames(zoneId, deviceId);
     this.alarmActive = true;
     this.alarmContext = {
-      zoneId, zoneName, deviceId, deviceName, sensorType,
+      zoneId, zoneName, deviceId, deviceName, sensorType, alarmType,
     };
-    this.eventLog.add('alarm', `ALARM utløst i ${zoneName} (sensor: ${deviceName}, type: ${sensorType}).`, zoneId, deviceId);
-    this.pushTimeline(`🚨 ALARM utløst i ${zoneName} (${sensorType}: ${deviceName}).`);
+    this.eventLog.add('alarm', `ALARM utløst i ${zoneName} (sensor: ${deviceName}, type: ${sensorType}, alarm: ${alarmType}).`, zoneId, deviceId);
+    this.pushTimeline(`🚨 ALARM utløst i ${zoneName} (${alarmType} · ${sensorType}: ${deviceName}).`);
     try {
       await this.homey.flow.getTriggerCard('alarm_triggered').trigger({
         zone: zoneName,
         sensor: deviceName,
         sensor_type: sensorType,
+        alarm_type: alarmType,
         mode: this.stateMachine.getMode(),
         timestamp: new Date().toISOString(),
       });
@@ -229,6 +234,7 @@ class McCallisterGuardApp extends Homey.App {
       this.homey.flow.getTriggerCard('alarm_stopped').trigger({
         zone: ctx?.zoneName ?? '',
         sensor: ctx?.deviceName ?? '',
+        alarm_type: ctx?.alarmType ?? 'intrusion',
         reason,
       }).catch(() => { /* best-effort */ });
     } catch { /* best-effort */ }
@@ -337,6 +343,8 @@ class McCallisterGuardApp extends Homey.App {
       .registerRunListener(async () => this.deterrence.getActiveZone() !== null);
     this.homey.flow.getConditionCard('alarm_active')
       .registerRunListener(async () => this.alarmActive);
+    this.homey.flow.getConditionCard('alarm_type_is')
+      .registerRunListener(async (args: { alarm_type: AlarmType }) => this.getAlarmType() === args.alarm_type);
   }
 
   private async initListeners(): Promise<void> {
@@ -383,7 +391,7 @@ class McCallisterGuardApp extends Homey.App {
 
     if (mode === 'armed_stay') {
       if (!this.isPerimeterSensor(deviceId)) return;
-      await this.fireAlarmTriggered(zoneId, deviceId, 'motion');
+      await this.fireAlarmTriggered(zoneId, deviceId, 'motion', 'perimeter');
       await this.deterrence.handleMotion(zoneId);
       this.escalation.start(0);
       return;
@@ -394,10 +402,10 @@ class McCallisterGuardApp extends Homey.App {
       this.eventLog.add('info', `Inngangsforsinkelse startet (${settings.entry_delay}s) — deaktiver for å avbryte.`, zoneId);
       this.stateMachine.startEntryDelay(settings.entry_delay, () => {
         if (this.stateMachine.getMode() === 'disarmed') return;
-        this.handleConfirmedMotion(zoneId, deviceId, 'motion').catch(() => { /* best-effort */ });
+        this.handleConfirmedMotion(zoneId, deviceId, 'motion', 'intrusion').catch(() => { /* best-effort */ });
       });
     } else {
-      await this.handleConfirmedMotion(zoneId, deviceId, 'motion');
+      await this.handleConfirmedMotion(zoneId, deviceId, 'motion', 'intrusion');
     }
   }
 
@@ -422,28 +430,29 @@ class McCallisterGuardApp extends Homey.App {
     }
 
     if (mode === 'armed_stay') {
-      await this.fireAlarmTriggered(zoneId, deviceId, 'contact');
+      await this.fireAlarmTriggered(zoneId, deviceId, 'contact', 'perimeter');
       this.escalation.start(0);
       return;
     }
     this.falseAlarm.registerContactOpen();
-    await this.handleConfirmedMotion(zoneId, deviceId, 'contact');
+    await this.handleConfirmedMotion(zoneId, deviceId, 'contact', 'intrusion');
   }
 
   private async handleConfirmedContact(zoneId: string, deviceId: string, mode: Mode): Promise<void> {
     if (this.stateMachine.getMode() === 'disarmed') return;
-    await this.fireAlarmTriggered(zoneId, deviceId, 'contact');
+    const alarmType: AlarmType = mode === 'armed_stay' ? 'perimeter' : 'entry_delay_timeout';
+    await this.fireAlarmTriggered(zoneId, deviceId, 'contact', alarmType);
     if (mode === 'armed_stay') {
       await this.deterrence.handleMotion(zoneId);
       this.escalation.start(0);
       return;
     }
-    await this.handleConfirmedMotion(zoneId, deviceId, 'contact');
+    await this.handleConfirmedMotion(zoneId, deviceId, 'contact', alarmType);
   }
 
-  private async handleConfirmedMotion(zoneId: string, deviceId: string, sensorType: 'motion' | 'contact'): Promise<void> {
+  private async handleConfirmedMotion(zoneId: string, deviceId: string, sensorType: 'motion' | 'contact', alarmType: AlarmType): Promise<void> {
     if (this.stateMachine.getMode() === 'disarmed') return;
-    await this.fireAlarmTriggered(zoneId, deviceId, sensorType);
+    await this.fireAlarmTriggered(zoneId, deviceId, sensorType, alarmType);
     await this.deterrence.handleMotion(zoneId);
     const confirmed = this.falseAlarm.registerMotion(zoneId);
     if (confirmed && !this.escalation.isPending() && !this.escalation.isInCrisis()) {

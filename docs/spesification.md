@@ -244,6 +244,8 @@ Appen skal eksponere ferdige Flow-kort for å gjøre oppsettet sømløst mot Hom
 ### Triggere (NÅR...)
 
 * `McCallister Guard: Avskrekking startet i sone [Sone]`
+* `McCallister Guard: Alarm utløst` — eksponerer token `alarm_type` (`perimeter`, `intrusion`, `entry_delay_timeout`, `panic`) i tillegg til `zone`, `sensor`, `sensor_type`, `mode`, `timestamp`
+* `McCallister Guard: Alarm avsluttet` — eksponerer `alarm_type` (samme som da alarmen ble utløst)
 * `McCallister Guard: Alarm eskalert til KRISENIVÅ`
 * `McCallister Guard: Uautorisert lys slått av automatisk`
 * `McCallister Guard: Helsesjekk feilet (Lavt batteri/Offline enheter)`
@@ -251,6 +253,7 @@ Appen skal eksponere ferdige Flow-kort for å gjøre oppsettet sømløst mot Hom
 ### Betingelser (OG...)
 
 * `Systemet er aktivert i [Borte-modus / Natt-modus]`
+* `Alarmtype er [perimeter / intrusion / entry_delay_timeout / panic]` — for å forgrene på alarmklasse innenfor ett trigger-kort
 * `En sone-avskrekking pågår akkurat nå`
 
 ### Handlinger (DA...)

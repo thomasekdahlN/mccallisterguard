@@ -2,6 +2,15 @@
 
 export type Mode = 'disarmed' | 'armed_away' | 'armed_stay';
 
+export type AlarmType = 'perimeter' | 'intrusion' | 'entry_delay_timeout' | 'panic';
+
+export const ALARM_TYPE_LABELS: Record<AlarmType, { no: string; en: string }> = {
+  perimeter: { no: 'Skallsikring-brudd', en: 'Perimeter breach' },
+  intrusion: { no: 'Innbrudd (innendørs)', en: 'Intrusion (interior)' },
+  entry_delay_timeout: { no: 'Inngangsforsinkelse utløpt', en: 'Entry delay timeout' },
+  panic: { no: 'Panikk', en: 'Panic' },
+};
+
 export type EventLevel = 'info' | 'warning' | 'alarm' | 'critical';
 
 export interface EventEntry {
