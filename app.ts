@@ -85,7 +85,14 @@ class McCallisterGuardApp extends Homey.App {
       const motionName = this.zoneNameCache.get(motionZoneId) ?? motionZoneId;
       this.pushTimeline(`🔔 Avskrekking startet i ${reactionName} (bevegelse i ${motionName}).`);
       const card = this.homey.flow.getTriggerCard('deterrence_started');
-      card.trigger({ zone: reactionZoneId, ...this.mediaTokens }).catch(() => { /* best-effort */ });
+      const tokenCount = Object.keys(this.mediaTokens).length;
+      card.trigger({ zone: reactionZoneId, ...this.mediaTokens })
+        .then(() => {
+          this.eventLog.add('info', `Flow-trigger «deterrence_started» fyrt for sone ${reactionZoneId} (${tokenCount} media-URL tokens).`, reactionZoneId);
+        })
+        .catch((err) => {
+          this.eventLog.add('warning', `Flow-trigger «deterrence_started» feilet: ${(err as Error).message}`, reactionZoneId);
+        });
     });
     this.escalation.onCrisis(() => {
       this.pushTimeline('🚨 KRITISK: Avskrekking feilet — full eskalering (sirener + strobe).');

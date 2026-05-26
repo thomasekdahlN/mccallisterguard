@@ -154,6 +154,115 @@ sequenceDiagram
 | `trigger_panic` | Utløs panikk-alarm umiddelbart |
 
 
+## Sett opp en avskrekkings-flow
+
+Når avskrekking starter i en sone — enten utløst av reell bevegelse eller via «Test avskrekking»-knappen i
+Soneoversikten — gjør appen to ting:
+
+1. **Innebygd lys-blink** i reaksjonssonen (sakte PÅ/AV-syklus, default 15 sek hver vei, justerbart pr. sone).
+2. **Fyrer flow-triggeren `deterrence_started`** med 9 tokens: `zone` + 8 ferdige, absolutte URL-er til lyd-
+   og videofiler som ligger bundlet med appen og hostes lokalt på Homey-en.
+
+Du trenger ikke gjøre noe annet for å få lys-blinkingen. Men hvis du vil legge til lyd, video, push, SMS eller
+annet, bygger du selv en Homey-flow som lytter på `deterrence_started`.
+
+### Tilgjengelige media-URL-tokens
+
+Alle URL-ene leveres som ferdige `http://<homey-ip>/app/com.mccallister.guard/assets/media/<fil>`-strenger og
+oppdateres automatisk hvis Homey-en bytter IP. Bare dra tokenet rett inn i URL-feltet på en cast-action.
+
+| Token | Type | Fil | Innhold |
+|---|---|---|---|
+| `url_police_siren` | Lyd | `police-siren.ogg` | Politisirene |
+| `url_fire_alarm` | Lyd | `fire-alarm.ogg` | Brannalarm |
+| `url_alarm_beep` | Lyd | `alarm-beep.ogg` | Alarm-pip |
+| `url_guard_dog` | Lyd | `guard-dog.ogg` | Vakthund som bjeffer |
+| `url_intruder_voice` | Lyd | `intruder-voice.m4a` | Stemme-advarsel mot inntrenger |
+| `url_blue_lights` | Video | `blue-lights.mp4` | Blålys (politi-effekt i vindu) |
+| `url_cop_silhouette` | Video | `cop-silhouette.mp4` | Silhuett av politibetjent |
+| `url_large_dog` | Video | `large-dog.mp4` | Stor hund i vindu |
+
+### Generelt mønster
+
+I Flow-editoren (`Homey-appen → Flows → Ny flow`):
+
+1. **NÅR** — `McCallister Guard → Avskrekking startet i sone`
+2. **OG** *(valgfritt)* — `Logikk → Tekst er lik` med token `[zone]` lik navnet på sonen du vil filtrere på.
+   Lager du én flow pr. sone, kan du hoppe over dette steget og heller bruke `[zone]`-tokenet til å velge
+   riktig destinasjons-enhet inne i actionen.
+3. **SÅ** — en cast/play-action fra Chromecast-, Sonos-, Samsung TV- eller Hue-appen. Lim inn ett av URL-tokenene
+   over i URL-feltet på actionen.
+
+### Eksempel 1 — blålys-video på Chromecast i stua
+
+```text
+NÅR  McCallister Guard → Avskrekking startet i sone
+OG   Logikk → Tekst er lik     [zone] === "Stue"
+SÅ   Google Chromecast (Stue-TV) → Cast a video
+       URL: [url_blue_lights]
+```
+
+### Eksempel 2 — vakthund-bjeffing på Sonos overalt
+
+```text
+NÅR  McCallister Guard → Avskrekking startet i sone
+SÅ   Sonos (Hele huset) → Play a URL
+       URL:    [url_guard_dog]
+       Volum:  80 %
+```
+
+### Eksempel 3 — stemme-advarsel på Nest Hub i gangen
+
+```text
+NÅR  McCallister Guard → Avskrekking startet i sone
+OG   Logikk → Tekst er lik     [zone] === "Gang"
+SÅ   Google Chromecast (Nest Hub Gang) → Cast a URL
+       URL: [url_intruder_voice]
+```
+
+### Eksempel 4 — politi-silhuett på Samsung TV (med automatisk på-slag)
+
+```text
+NÅR  McCallister Guard → Avskrekking startet i sone
+OG   Logikk → Tekst er lik     [zone] === "Stue"
+SÅ-1 Samsung TV (Stue) → Send key   KEY_POWER
+SÅ-2 Vent 3 sekunder
+SÅ-3 Samsung TV (Stue) → Cast a URL
+       URL: [url_cop_silhouette]
+```
+
+### Eksempel 5 — push med dyplenke til kamera
+
+```text
+NÅR  McCallister Guard → Avskrekking startet i sone
+SÅ   Homey → Send a push notification
+       Tittel:  🚨 Avskrekking i [zone]
+       Tekst:   Lys blinker. Sjekk kamera i Homey-appen.
+```
+
+### Test og feilsøking
+
+- **Test-knappen i Soneoversikten** fyrer `deterrence_started` på nøyaktig samme måte som en reell alarm —
+  perfekt for å sjekke at flowen din plukker opp triggeren.
+- I **Event Log** vil du se en linje
+  `Flow-trigger «deterrence_started» fyrt for sone <id> (8 media-URL tokens).` like etter triggering — dette
+  er bekreftelse på at appen leverte triggeren med tokens. Om en lyttende flow finnes som plukker den opp,
+  er Athom sitt ansvar; vi har levert vår del.
+- URL-tokenene er statiske pr. installasjon. Hvis Homey-en din bytter IP, regenereres tokenene automatisk
+  ved neste app-restart — du trenger ikke endre flowene dine.
+- Hvis URL-en feiler (Chromecast offline, audio-format ikke støttet o.l.) skjer det stille i tredjeparts-appen.
+  Lys-blinkingen kjører uansett, så avskrekkingen virker fortsatt.
+
+### Hva tokenene faktisk peker på
+
+Alle filer ligger i `assets/media/` i app-pakken. Når Homey laster appen, eksponeres katalogen automatisk
+på `http://<homey-ip>/app/com.mccallister.guard/assets/media/`. Dette er en standard Homey-mekanisme — du
+kan teste en URL ved å åpne den i nettleseren (forutsatt at du er på samme nettverk som Homey-en).
+
+Filene er bevisst korte (10–30 sek) for å fungere bra som «alarm-loop» i Chromecast/Sonos-actions som
+spiller URL-en én gang. Vil du ha en lengre loop, kombiner flere actions med «Vent N sekunder» mellom.
+
+
 ## Installasjon
 
 ### Krav
