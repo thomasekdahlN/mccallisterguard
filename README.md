@@ -240,7 +240,11 @@ sequenceDiagram
 | `alarm_triggered_intrusion` | `zone`, `sensor`, `sensor_type`, `mode`, `timestamp` | Kun innendørs innbrudd i Borte-modus |
 | `alarm_triggered_entry_delay` | `zone`, `sensor`, `sensor_type`, `mode`, `timestamp` | Kun inngangsforsinkelse utløpt (hoveddør ikke deaktivert) |
 | `alarm_triggered_panic` | `zone`, `sensor`, `sensor_type`, `mode`, `timestamp` | Kun manuell panikk |
-| `alarm_stopped` | `zone`, `sensor`, `alarm_type`, `reason` | Når en aktiv alarm avsluttes. `alarm_type` matcher den opprinnelige alarmen |
+| `alarm_stopped` | `zone`, `sensor`, `alarm_type`, `reason` | Generisk — fyres alltid. `alarm_type` matcher den opprinnelige alarmen |
+| `alarm_stopped_perimeter` | `zone`, `sensor`, `reason` | Kun Skallsikring-brudd alarm avsluttet |
+| `alarm_stopped_intrusion` | `zone`, `sensor`, `reason` | Kun innbruddsalarm (Borte) avsluttet |
+| `alarm_stopped_entry_delay` | `zone`, `sensor`, `reason` | Kun inngangsforsinkelse-alarm avsluttet |
+| `alarm_stopped_panic` | `zone`, `sensor`, `reason` | Kun panikkalarm avsluttet |
 | `mode_changed` | `mode_new`, `mode_previous` | Når systemet bytter modus (uavhengig av alarm) |
 | `deterrence_started` | `zone`, `url_police_siren`, `url_fire_alarm`, `url_alarm_beep`, `url_guard_dog`, `url_intruder_voice`, `url_blue_lights`, `url_cop_silhouette`, `url_large_dog` | Når avskrekking starter i en sone. URL-tokens peker på bundlede lyd-/videofiler som hostes lokalt av appen og kan brukes direkte i `Cast a URL`-actions |
 | `alarm_escalated` | — | Når eskalering når krise-nivå |

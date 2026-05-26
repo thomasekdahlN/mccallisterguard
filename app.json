@@ -143,6 +143,202 @@
       },
       {
         "title": {
+          "en": "Entry delay timeout alarm stopped",
+          "no": "Inngangsforsinkelse-alarm avsluttet"
+        },
+        "hint": {
+          "en": "Fires when an entry-delay-timeout alarm is stopped — by the user, by disarming, or automatically.",
+          "no": "Utløses når en inngangsforsinkelse-alarm stoppes — av bruker, ved deaktivering eller automatisk."
+        },
+        "tokens": [
+          {
+            "name": "zone",
+            "type": "string",
+            "title": {
+              "en": "Zone (that triggered)",
+              "no": "Sone (som utløste)"
+            },
+            "example": {
+              "en": "Hallway",
+              "no": "Gang"
+            }
+          },
+          {
+            "name": "sensor",
+            "type": "string",
+            "title": {
+              "en": "Sensor (that triggered)",
+              "no": "Sensor (som utløste)"
+            },
+            "example": {
+              "en": "Front door",
+              "no": "Hoveddør"
+            }
+          },
+          {
+            "name": "reason",
+            "type": "string",
+            "title": {
+              "en": "Reason",
+              "no": "Årsak"
+            },
+            "example": {
+              "en": "User stopped alarm",
+              "no": "Bruker stoppet alarm"
+            }
+          }
+        ],
+        "id": "alarm_stopped_entry_delay"
+      },
+      {
+        "title": {
+          "en": "Intrusion alarm stopped",
+          "no": "Innbruddsalarm avsluttet"
+        },
+        "hint": {
+          "en": "Fires when an interior intrusion alarm (armed_away) is stopped — by the user, by disarming, or automatically.",
+          "no": "Utløses når en innendørs innbruddsalarm (Borte) stoppes — av bruker, ved deaktivering eller automatisk."
+        },
+        "tokens": [
+          {
+            "name": "zone",
+            "type": "string",
+            "title": {
+              "en": "Zone (that triggered)",
+              "no": "Sone (som utløste)"
+            },
+            "example": {
+              "en": "Living room",
+              "no": "Stua"
+            }
+          },
+          {
+            "name": "sensor",
+            "type": "string",
+            "title": {
+              "en": "Sensor (that triggered)",
+              "no": "Sensor (som utløste)"
+            },
+            "example": {
+              "en": "Motion sensor (hallway)",
+              "no": "Bevegelsessensor (gang)"
+            }
+          },
+          {
+            "name": "reason",
+            "type": "string",
+            "title": {
+              "en": "Reason",
+              "no": "Årsak"
+            },
+            "example": {
+              "en": "User stopped alarm",
+              "no": "Bruker stoppet alarm"
+            }
+          }
+        ],
+        "id": "alarm_stopped_intrusion"
+      },
+      {
+        "title": {
+          "en": "Panic alarm stopped",
+          "no": "Panikkalarmen avsluttet"
+        },
+        "hint": {
+          "en": "Fires when an active panic alarm is stopped — by the user or by disarming.",
+          "no": "Utløses når en aktiv panikkalarm stoppes — av bruker eller ved deaktivering."
+        },
+        "tokens": [
+          {
+            "name": "zone",
+            "type": "string",
+            "title": {
+              "en": "Zone (that triggered)",
+              "no": "Sone (som utløste)"
+            },
+            "example": {
+              "en": "All zones",
+              "no": "Alle soner"
+            }
+          },
+          {
+            "name": "sensor",
+            "type": "string",
+            "title": {
+              "en": "Sensor (that triggered)",
+              "no": "Sensor (som utløste)"
+            },
+            "example": {
+              "en": "Manual panic",
+              "no": "Manuell panikk"
+            }
+          },
+          {
+            "name": "reason",
+            "type": "string",
+            "title": {
+              "en": "Reason",
+              "no": "Årsak"
+            },
+            "example": {
+              "en": "User stopped alarm",
+              "no": "Bruker stoppet alarm"
+            }
+          }
+        ],
+        "id": "alarm_stopped_panic"
+      },
+      {
+        "title": {
+          "en": "Perimeter breach alarm stopped",
+          "no": "Skallsikring-brudd alarm avsluttet"
+        },
+        "hint": {
+          "en": "Fires when a perimeter breach alarm (armed_stay) is stopped — by the user, by disarming, or automatically.",
+          "no": "Utløses når en Skallsikring-brudd alarm stoppes — av bruker, ved deaktivering eller automatisk."
+        },
+        "tokens": [
+          {
+            "name": "zone",
+            "type": "string",
+            "title": {
+              "en": "Zone (that triggered)",
+              "no": "Sone (som utløste)"
+            },
+            "example": {
+              "en": "Hallway",
+              "no": "Gang"
+            }
+          },
+          {
+            "name": "sensor",
+            "type": "string",
+            "title": {
+              "en": "Sensor (that triggered)",
+              "no": "Sensor (som utløste)"
+            },
+            "example": {
+              "en": "Front door",
+              "no": "Hoveddør"
+            }
+          },
+          {
+            "name": "reason",
+            "type": "string",
+            "title": {
+              "en": "Reason",
+              "no": "Årsak"
+            },
+            "example": {
+              "en": "User stopped alarm",
+              "no": "Bruker stoppet alarm"
+            }
+          }
+        ],
+        "id": "alarm_stopped_perimeter"
+      },
+      {
+        "title": {
           "en": "Alarm triggered",
           "no": "Alarm utløst"
         },

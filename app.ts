@@ -249,15 +249,35 @@ class McCallisterGuardApp extends Homey.App {
     this.alarmActive = false;
     this.alarmContext = null;
     this.pushTimeline(`✅ Alarm stoppet${ctx?.zoneName ? ` (sone: ${ctx.zoneName})` : ''} — ${reason}`);
+
+    const alarmType = ctx?.alarmType ?? 'intrusion';
+    const baseTokens = {
+      zone: ctx?.zoneName ?? '',
+      sensor: ctx?.deviceName ?? '',
+      reason,
+    };
+
+    // Generic trigger — includes alarm_type token for condition-based filtering.
     try {
       this.homey.flow.getTriggerCard('alarm_stopped').trigger({
-        zone: ctx?.zoneName ?? '',
-        sensor: ctx?.deviceName ?? '',
-        alarm_type: ctx?.alarmType ?? 'intrusion',
-        reason,
+        ...baseTokens,
+        alarm_type: alarmType,
       }).catch(() => { /* best-effort */ });
     } catch { /* best-effort */ }
+
+    // Per-type dedicated trigger — directly selectable in the Homey flow editor.
+    const perTypeCard = McCallisterGuardApp.ALARM_TYPE_STOPPED_CARD[alarmType];
+    try {
+      this.homey.flow.getTriggerCard(perTypeCard).trigger(baseTokens).catch(() => { /* best-effort */ });
+    } catch { /* best-effort */ }
   }
+
+  private static readonly ALARM_TYPE_STOPPED_CARD: Record<AlarmType, string> = {
+    perimeter: 'alarm_stopped_perimeter',
+    intrusion: 'alarm_stopped_intrusion',
+    entry_delay_timeout: 'alarm_stopped_entry_delay',
+    panic: 'alarm_stopped_panic',
+  };
 
   private pushTimeline(excerpt: string): void {
     this.homey.notifications.createNotification({ excerpt }).catch(() => { /* best-effort */ });
