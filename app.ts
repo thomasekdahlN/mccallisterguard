@@ -212,17 +212,36 @@ class McCallisterGuardApp extends Homey.App {
     };
     this.eventLog.add('alarm', `ALARM utløst i ${zoneName} (sensor: ${deviceName}, type: ${sensorType}, alarm: ${alarmType}).`, zoneId, deviceId);
     this.pushTimeline(`🚨 ALARM utløst i ${zoneName} (${alarmType} · ${sensorType}: ${deviceName}).`);
+
+    const baseTokens = {
+      zone: zoneName,
+      sensor: deviceName,
+      sensor_type: sensorType,
+      mode: this.stateMachine.getMode(),
+      timestamp: new Date().toISOString(),
+    };
+
+    // Generic trigger — includes alarm_type token for condition-based filtering.
     try {
       await this.homey.flow.getTriggerCard('alarm_triggered').trigger({
-        zone: zoneName,
-        sensor: deviceName,
-        sensor_type: sensorType,
+        ...baseTokens,
         alarm_type: alarmType,
-        mode: this.stateMachine.getMode(),
-        timestamp: new Date().toISOString(),
       });
     } catch { /* best-effort */ }
+
+    // Per-type dedicated triggers — directly selectable in the Homey flow editor.
+    const perTypeCard = McCallisterGuardApp.ALARM_TYPE_TRIGGER_CARD[alarmType];
+    try {
+      await this.homey.flow.getTriggerCard(perTypeCard).trigger(baseTokens);
+    } catch { /* best-effort */ }
   }
+
+  private static readonly ALARM_TYPE_TRIGGER_CARD: Record<AlarmType, string> = {
+    perimeter: 'alarm_triggered_perimeter',
+    intrusion: 'alarm_triggered_intrusion',
+    entry_delay_timeout: 'alarm_triggered_entry_delay',
+    panic: 'alarm_triggered_panic',
+  };
 
   private fireAlarmStopped(reason: string): void {
     if (!this.alarmActive) return;

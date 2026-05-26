@@ -235,7 +235,11 @@ sequenceDiagram
 
 | Kort | Tokens | Når |
 |---|---|---|
-| `alarm_triggered` | `zone`, `sensor`, `sensor_type`, `alarm_type`, `mode`, `timestamp` | Når sensor bekrefter innbrudd (etter evt. entry delay). Se `alarm_type`-verdier nedenfor |
+| `alarm_triggered` | `zone`, `sensor`, `sensor_type`, `alarm_type`, `mode`, `timestamp` | Generisk — fyres alltid. Bruk `alarm_type`-token + vilkåret `alarm_type_is` for å forgrene |
+| `alarm_triggered_perimeter` | `zone`, `sensor`, `sensor_type`, `mode`, `timestamp` | Kun Skallsikring-brudd (dør/vindu/perimeter-sensor i armed_stay) |
+| `alarm_triggered_intrusion` | `zone`, `sensor`, `sensor_type`, `mode`, `timestamp` | Kun innendørs innbrudd i Borte-modus |
+| `alarm_triggered_entry_delay` | `zone`, `sensor`, `sensor_type`, `mode`, `timestamp` | Kun inngangsforsinkelse utløpt (hoveddør ikke deaktivert) |
+| `alarm_triggered_panic` | `zone`, `sensor`, `sensor_type`, `mode`, `timestamp` | Kun manuell panikk |
 | `alarm_stopped` | `zone`, `sensor`, `alarm_type`, `reason` | Når en aktiv alarm avsluttes. `alarm_type` matcher den opprinnelige alarmen |
 | `mode_changed` | `mode_new`, `mode_previous` | Når systemet bytter modus (uavhengig av alarm) |
 | `deterrence_started` | `zone`, `url_police_siren`, `url_fire_alarm`, `url_alarm_beep`, `url_guard_dog`, `url_intruder_voice`, `url_blue_lights`, `url_cop_silhouette`, `url_large_dog` | Når avskrekking starter i en sone. URL-tokens peker på bundlede lyd-/videofiler som hostes lokalt av appen og kan brukes direkte i `Cast a URL`-actions |
@@ -261,35 +265,54 @@ sequenceDiagram
 
 ## Alarmtyper — forgren flow per alarmklasse
 
-`alarm_triggered`-tokenet `alarm_type` (og det matchende vilkåret `alarm_type_is`) lar deg lage forskjellig
-oppførsel avhengig av hva som utløste alarmen. Dette er typisk forskjellen mellom et **skallsikring-brudd**
-(noen åpner ytterdøren i Skallsikring-modus) og et **innendørs innbrudd** (bevegelse i Borte-modus).
+For hvert alarm-scenario finnes det **to måter** å lage skreddersydde flows på — velg den som passer best:
 
-| `alarm_type` | Når | Typisk reaksjon |
-|---|---|---|
-| `perimeter` | Dør/vindu åpnet eller bevegelse på perimeter-sensor i **Skallsikring** | Lokal varsling først (lyd i gangen, blink ute), ikke nødvendigvis varsle hele familien — du er antakelig hjemme |
-| `intrusion` | Bevegelse/kontakt i **Borte** etter false-alarm-bekreftelse | Full push til alle, kamera-snapshot, kraftig avskrekking |
-| `entry_delay_timeout` | Inngangsforsinkelse på hoveddør (Borte) utløp uten at noen deaktiverte | Push «Var det deg?» med deaktiver-knapp, deretter full eskalering |
-| `panic` | Manuell panikk-trigger eller `trigger_panic`-action | Umiddelbar krise-eskalering, ring nødkontakt |
+### Alternativ A: Dedikerte trigger-kort (anbefalt for enkelhet)
 
-### Eksempel-flow: Skallsikring vs. innbrudd
+Velg rett trigger-kort direkte i flow-editoren — ingen vilkår nødvendig:
 
-```
-NÅR  alarm_triggered
-OG   alarm_type_is = perimeter
-SÅ   Send push «Noen forsøker å åpne hoveddøren» (kun til deg)
-     Skru på alle lys i 1. etasje
-     Spill av URL: url_intruder_voice på gang-høyttaler
+| Trigger-kort | Scenario |
+|---|---|
+| **Skallsikring-brudd oppdaget** | Dør/vindu/perimeter-sensor åpnet i Skallsikring |
+| **Innbrudd oppdaget (Borte)** | Innendørs bevegelse/kontakt i Borte-modus |
+| **Inngangsforsinkelse utløpt** | ⏱-merket hoveddør ikke deaktivert i tide |
+| **Panikk utløst** | Manuell panikk-knapp eller `trigger_panic`-action |
 
-NÅR  alarm_triggered
-OG   alarm_type_is = intrusion
-SÅ   Send push til ALLE i husstanden
-     Lag kamera-snapshot og legg ved
-     Start sirene + blink i hele huset
-```
+### Alternativ B: Generisk `alarm_triggered` + vilkår (fleksibelt)
 
-Du kan også bruke `alarm_type` direkte som token i push-tekst:
+Bruk ett trigger-kort og forgren med vilkåret **«Alarmtype er [...]»** (`alarm_type_is`). Nyttig når du
+vil ha ett felles startpunkt med felles handlinger (f.eks. alltid skrive til hendelseslogg) etterfulgt av
+type-spesifikke grener.
+
+Du kan også bruke `alarm_type`-tokenet direkte i push-tekst:
 `«Alarm utløst i [[zone]] — type: [[alarm_type]] ([[sensor]])»`.
+
+### Typisk reaksjon per alarmtype
+
+| Alarmtype | Når | Typisk flow-reaksjon |
+|---|---|---|
+| `perimeter` | Dør/vindu åpnet eller bevegelse på perimeter-sensor i **Skallsikring** | Lokal varsling (lyd i gangen, blink ute), varsle kun deg — du er antakelig hjemme |
+| `intrusion` | Bevegelse/kontakt i **Borte** etter false-alarm-bekreftelse | Full push til alle, kamera-snapshot, kraftig avskrekking |
+| `entry_delay_timeout` | Hoveddør (Borte) ikke deaktivert innen nedtellingen | Push «Var det deg? Deaktiver nå», deretter full eskalering |
+| `panic` | Manuell panikk eller `trigger_panic`-action | Umiddelbar krise-eskalering, ring nødkontakt |
+
+### Eksempel-flows
+
+```
+NÅR  Skallsikring-brudd oppdaget          ← dedikert trigger-kort
+SÅ   Push til DEG: «Noen ved [[sensor]] (sone: [[zone]])»
+     Skru på alle lys i 1. etasje
+     Spill av url_intruder_voice på gang-høyttaler
+
+NÅR  Innbrudd oppdaget (Borte)             ← dedikert trigger-kort
+SÅ   Push til ALLE i husstanden
+     Ta kamera-snapshot
+     Start sirene + blink i hele huset
+
+NÅR  Panikk utløst                         ← dedikert trigger-kort
+SÅ   Ring nødkontakt via IFTTT/SMS
+     Send push med høyest prioritet til alle
+```
 
 
 ## Sett opp en avskrekkings-flow

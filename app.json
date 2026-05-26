@@ -228,6 +228,298 @@
       },
       {
         "title": {
+          "en": "Entry delay timeout — door not disarmed in time",
+          "no": "Inngangsforsinkelse utløpt — dør ikke deaktivert i tide"
+        },
+        "hint": {
+          "en": "Fires when an entry-delay sensor (e.g. front door marked with ⏱ in settings) was opened in Borte mode and the grace period expired before the system was disarmed. A typical flow reaction: send a push «Was that you? Disarm now» and then escalate if no response.",
+          "no": "Utløses når en inngangsforsinkelse-sensor (f.eks. hoveddøren merket med ⏱ i innstillinger) ble åpnet i Borte-modus og nedtellingen utløp uten at systemet ble deaktivert. Typisk flow-reaksjon: send push «Var det deg? Deaktiver nå» og eskaler hvis ingen svarer."
+        },
+        "tokens": [
+          {
+            "name": "zone",
+            "type": "string",
+            "title": {
+              "en": "Zone",
+              "no": "Sone"
+            },
+            "example": {
+              "en": "Hallway",
+              "no": "Gang"
+            }
+          },
+          {
+            "name": "sensor",
+            "type": "string",
+            "title": {
+              "en": "Sensor",
+              "no": "Sensor"
+            },
+            "example": {
+              "en": "Front door",
+              "no": "Hoveddør"
+            }
+          },
+          {
+            "name": "sensor_type",
+            "type": "string",
+            "title": {
+              "en": "Sensor type",
+              "no": "Sensortype"
+            },
+            "example": {
+              "en": "contact",
+              "no": "kontakt"
+            }
+          },
+          {
+            "name": "mode",
+            "type": "string",
+            "title": {
+              "en": "Current mode",
+              "no": "Aktiv modus"
+            },
+            "example": {
+              "en": "armed_away",
+              "no": "armed_away"
+            }
+          },
+          {
+            "name": "timestamp",
+            "type": "string",
+            "title": {
+              "en": "Timestamp (ISO 8601)",
+              "no": "Tidsstempel (ISO 8601)"
+            },
+            "example": {
+              "en": "2026-05-26T08:00:00.000Z",
+              "no": "2026-05-26T08:00:00.000Z"
+            }
+          }
+        ],
+        "id": "alarm_triggered_entry_delay"
+      },
+      {
+        "title": {
+          "en": "Intrusion detected (Borte / armed away)",
+          "no": "Innbrudd oppdaget (Borte)"
+        },
+        "hint": {
+          "en": "Fires when interior motion or a contact sensor trips the alarm while the system is in Borte (armed_away) mode and no one should be home. Use this for full-strength reactions: push to all household members, camera snapshots, siren, full deterrence.",
+          "no": "Utløses når innendørs bevegelse eller en kontaktsensor aktiverer alarmen i Borte-modus og ingen burde være hjemme. Bruk dette for full reaksjon: push til alle i husstanden, kamera-snapshot, sirene, full avskrekking."
+        },
+        "tokens": [
+          {
+            "name": "zone",
+            "type": "string",
+            "title": {
+              "en": "Zone",
+              "no": "Sone"
+            },
+            "example": {
+              "en": "Living room",
+              "no": "Stua"
+            }
+          },
+          {
+            "name": "sensor",
+            "type": "string",
+            "title": {
+              "en": "Sensor",
+              "no": "Sensor"
+            },
+            "example": {
+              "en": "Motion sensor (hallway)",
+              "no": "Bevegelsessensor (gang)"
+            }
+          },
+          {
+            "name": "sensor_type",
+            "type": "string",
+            "title": {
+              "en": "Sensor type",
+              "no": "Sensortype"
+            },
+            "example": {
+              "en": "motion",
+              "no": "bevegelse"
+            }
+          },
+          {
+            "name": "mode",
+            "type": "string",
+            "title": {
+              "en": "Current mode",
+              "no": "Aktiv modus"
+            },
+            "example": {
+              "en": "armed_away",
+              "no": "armed_away"
+            }
+          },
+          {
+            "name": "timestamp",
+            "type": "string",
+            "title": {
+              "en": "Timestamp (ISO 8601)",
+              "no": "Tidsstempel (ISO 8601)"
+            },
+            "example": {
+              "en": "2026-05-26T08:00:00.000Z",
+              "no": "2026-05-26T08:00:00.000Z"
+            }
+          }
+        ],
+        "id": "alarm_triggered_intrusion"
+      },
+      {
+        "title": {
+          "en": "Panic triggered",
+          "no": "Panikk utløst"
+        },
+        "hint": {
+          "en": "Fires immediately when the panic button is pressed or the trigger_panic flow action runs. Use this for the most urgent reactions: call an emergency contact, SMS all household members, maximum deterrence with no delay.",
+          "no": "Utløses umiddelbart når panikk-knappen trykkes eller flow-handlingen trigger_panic kjøres. Bruk dette til de mest akutte reaksjonene: ring nødkontakt, SMS til alle i husstanden, maksimal avskrekking uten forsinkelse."
+        },
+        "tokens": [
+          {
+            "name": "zone",
+            "type": "string",
+            "title": {
+              "en": "Zone",
+              "no": "Sone"
+            },
+            "example": {
+              "en": "All zones",
+              "no": "Alle soner"
+            }
+          },
+          {
+            "name": "sensor",
+            "type": "string",
+            "title": {
+              "en": "Sensor",
+              "no": "Sensor"
+            },
+            "example": {
+              "en": "Manual panic",
+              "no": "Manuell panikk"
+            }
+          },
+          {
+            "name": "sensor_type",
+            "type": "string",
+            "title": {
+              "en": "Sensor type",
+              "no": "Sensortype"
+            },
+            "example": {
+              "en": "panic",
+              "no": "panikk"
+            }
+          },
+          {
+            "name": "mode",
+            "type": "string",
+            "title": {
+              "en": "Current mode",
+              "no": "Aktiv modus"
+            },
+            "example": {
+              "en": "armed_away",
+              "no": "armed_away"
+            }
+          },
+          {
+            "name": "timestamp",
+            "type": "string",
+            "title": {
+              "en": "Timestamp (ISO 8601)",
+              "no": "Tidsstempel (ISO 8601)"
+            },
+            "example": {
+              "en": "2026-05-26T08:00:00.000Z",
+              "no": "2026-05-26T08:00:00.000Z"
+            }
+          }
+        ],
+        "id": "alarm_triggered_panic"
+      },
+      {
+        "title": {
+          "en": "Perimeter breach detected (Skallsikring)",
+          "no": "Skallsikring-brudd oppdaget"
+        },
+        "hint": {
+          "en": "Fires when a door, window or perimeter motion sensor trips the alarm while the system is in Skallsikring (armed_stay) mode. Use this for tailored reactions when someone is home — e.g. interior lights on, warning voice, without waking the whole household.",
+          "no": "Utløses når en dør, et vindu eller en perimeter-bevegelsessensor aktiverer alarmen i Skallsikring-modus. Bruk dette for skreddersydde reaksjoner når noen er hjemme — f.eks. lys på, stemme-advarsel, uten å vekke hele husstanden."
+        },
+        "tokens": [
+          {
+            "name": "zone",
+            "type": "string",
+            "title": {
+              "en": "Zone",
+              "no": "Sone"
+            },
+            "example": {
+              "en": "Hallway",
+              "no": "Gang"
+            }
+          },
+          {
+            "name": "sensor",
+            "type": "string",
+            "title": {
+              "en": "Sensor",
+              "no": "Sensor"
+            },
+            "example": {
+              "en": "Front door",
+              "no": "Hoveddør"
+            }
+          },
+          {
+            "name": "sensor_type",
+            "type": "string",
+            "title": {
+              "en": "Sensor type",
+              "no": "Sensortype"
+            },
+            "example": {
+              "en": "contact",
+              "no": "kontakt"
+            }
+          },
+          {
+            "name": "mode",
+            "type": "string",
+            "title": {
+              "en": "Current mode",
+              "no": "Aktiv modus"
+            },
+            "example": {
+              "en": "armed_stay",
+              "no": "armed_stay"
+            }
+          },
+          {
+            "name": "timestamp",
+            "type": "string",
+            "title": {
+              "en": "Timestamp (ISO 8601)",
+              "no": "Tidsstempel (ISO 8601)"
+            },
+            "example": {
+              "en": "2026-05-26T08:00:00.000Z",
+              "no": "2026-05-26T08:00:00.000Z"
+            }
+          }
+        ],
+        "id": "alarm_triggered_perimeter"
+      },
+      {
+        "title": {
           "en": "Deterrence started in zone",
           "no": "Avskrekking startet i sone"
         },
