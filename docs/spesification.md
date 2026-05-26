@@ -134,6 +134,13 @@ Brukes når huseier sover.
 * Alle andre sensorer som ikke er hakket av som perimeter-sensorer **ignoreres** i denne modusen.
 * Hvis ingen sensorer er valgt globalt, brukes alle sensorer som fallback (bakoverkompatibelt).
 * Når en perimeter-sensor trigges hoppes det over "mind-games" og det går rett til *Eskalert Alarm (Krise)*.
+* **Inngangsforsinkelse (⏱) pr. sensor** — dør-/vindu-sensorer kan markeres med ⏱ (innstillingen
+  `entry_delay_sensors`). Når en slik sensor utløses, startes en nedtelling på `entry_delay`
+  sekunder (default 30) før alarmen utløses, slik at en autorisert bruker som kommer inn med
+  kodelås/smart-lås rekker å sette systemet i Hjemme-modus. Anbefales for hoveddør og bakdør.
+  Gjelder både Skallsikring og Borte-modus. Kombineres typisk med en bruker-bygget flow som
+  automatisk deaktiverer systemet når smartlåsen rapporterer autorisert opplåsing — da utløses
+  ingen alarm i det hele tatt, og inngangsforsinkelsen er fallback hvis flowen feiler.
 
 ---
 

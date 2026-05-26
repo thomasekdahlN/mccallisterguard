@@ -10,6 +10,7 @@ McCallister Guard er ikke enda et passivt alarmsystem. I stedet for å bare tute
 
 - **Tre moduser** — `Hjemme` (deaktivert), `Borte` (full overvåking + Kevin-simulering), `Skallsikring` (kun valgte perimeter-sensorer aktive — typisk når du sover)
 - **Skallsikring med sensorvalg** — pek ut nøyaktig hvilke sensorer (ytterdører, vinduer, uteområder) som skal kunne utløse alarm ved Skallsikring; bevegelse innendørs ignoreres
+- **Inngangsforsinkelse (⏱) pr. sensor** — marker hoveddør/bakdør med ⏱ for å gi en `entry_delay`-nedtelling (default 30 s) ved åpning, slik at en autorisert bruker med kodelås/smart-lås rekker å deaktivere systemet før alarmen utløses
 - **Sone-basert avskrekking** — bevegelse i én sone trigger media i en annen «reaksjonssone» (matrise konfigurerbar per sone), så tyven aldri møter responsen sin der hen er
 - **Konfigurerbar lys-avskrekking** — appen blinker lys i reaksjonssonen med en sakte syklus (PÅ/AV-tid konfigurerbar pr. sone, default 15 sek hver vei). Samtidig fyrer den `deterrence_started`-triggeren slik at du fritt kan bygge en Homey-flow som spiller lyd/video/animasjoner via Chromecast, Sonos, Hue eller annet
 - **Bundlede media som flow-tokens** — `deterrence_started`-triggeren leverer ferdige URL-tokens til alle medfølgende lyder (bjeffende vakthund, politisirene, brannalarm, …) og videoer (blålys, politi-silhuett, stor hund). Dra-og-slipp inn i `Cast a URL`/`Cast a video` på Chromecast eller Sonos uten å hoste filene selv
@@ -31,99 +32,202 @@ McCallister Guard er ikke enda et passivt alarmsystem. I stedet for å bare tute
 
 ```mermaid
 flowchart TB
-  subgraph UI[Settings UI - dashboard og konfigurasjon]
+  subgraph UI[Settings UI]
     DASH[Dashbord]
-    ZONES[Sone-blokker]
+    ZONES[Soneoversikt - sensorvalg, ⏱ entry-delay, blink_on/off, Kevin]
+    DOCS[Dokumentasjon]
+    LOG[Event Log]
   end
 
-  subgraph API[Internal API /api/*]
-    STATUS[/status]
-    SETMODE[/setMode]
-    TESTD[/testDeterrence]
-    STOP[/stopAlarm]
+  subgraph API[Internal HTTP API]
+    STATUS[/status/]
+    SETMODE[/set-mode/]
+    TESTD[/test-deterrence/]
+    STOP[/stop-alarm/]
+    PANIC[/panic/]
+    SAVE[/settings/]
   end
 
   subgraph APP[McCallisterGuardApp]
     SM[StateMachine - mode + entry/exit delay]
-    AS[alarmActive - state separate from mode]
-    FAF[FalseAlarmFilter]
-    DE[DeterrenceEngine]
-    MC[MediaCaster]
-    LAG[LightAuthGuard]
+    AS[alarmActive - state separat fra mode]
+    FAF[FalseAlarmFilter - 90s konfidens]
+    DE[DeterrenceEngine - reaksjonssone-matrise]
+    MC[MediaCaster - blink_on/off pr sone]
+    LAG[LightAuthGuard - manuelt lys = noen hjemme]
     SIM[SimulationEngine - Kevin-modus]
-    EM[EscalationManager]
-    CAM[CameraManager]
-    EL[EventLog]
+    EM[EscalationManager - krise-timer]
+    CAM[CameraManager - snapshot-loop]
+    EL[EventLog - intern hendelseslogg]
+  end
+
+  subgraph SETTINGS[GuardSettings]
+    S1[perimeter_sensors]
+    S2[entry_delay_sensors]
+    S3[zone_matrix]
+    S4[blink_on / blink_off]
+    S5[kevin_zones]
+    S6[entry_delay / exit_delay / escalation_minutes]
   end
 
   subgraph HOMEY[Homey Platform]
     DEV[Sensorer og lys]
     FLOW[Flow-motor - bruker-bygde avskrekkings-flows]
-    NOTIF[Push og varslinger]
+    NOTIF[Timeline og push]
   end
 
   UI <--> API
   API <--> APP
-  DEV -- alarm_motion - alarm_contact --> APP
-  APP -- onoff strobe --> DEV
-  APP -- trigger alarm_triggered - alarm_stopped - deterrence_started --> FLOW
-  FLOW --> NOTIF
+  APP -.leser.-> SETTINGS
+  DEV -- alarm_motion / alarm_contact --> APP
+  APP -- onoff blink --> DEV
+  APP -- alarm_triggered / alarm_stopped / deterrence_started / mode_changed / alarm_escalated --> FLOW
+  APP --> NOTIF
   SM --> AS
   DE --> MC
   EM --> MC
 ```
 
-### Alarmflyt — fra detektering til krise
+### Modus-tilstandsmaskin
+
+```mermaid
+stateDiagram-v2
+  [*] --> Hjemme
+  Hjemme --> Borte: setMode(armed_away)
+  Hjemme --> Skallsikring: setMode(armed_stay)
+
+  state Borte {
+    [*] --> ExitDelay
+    ExitDelay --> Aktiv: exit_delay utløpt
+    Aktiv --> EntryDelay: bevegelse / ⏱-dør åpnet
+    EntryDelay --> Aktiv: cancelEntryDelay (annen sensor)
+    EntryDelay --> Alarm: entry_delay utløpt
+    Alarm --> Eskalert: escalation_minutes utløpt
+  }
+
+  state Skallsikring {
+    [*] --> Vakt
+    Vakt --> StayEntryDelay: ⏱-dør åpnet
+    Vakt --> Alarm2: perimeter-sensor utløst (uten ⏱)
+    StayEntryDelay --> Alarm2: entry_delay utløpt
+    Alarm2 --> Eskalert2: escalation_minutes utløpt
+  }
+
+  Borte --> Hjemme: setMode(disarmed)
+  Skallsikring --> Hjemme: setMode(disarmed)
+```
+
+### Sensor-rute — fra detektering til krise
+
+```mermaid
+flowchart TD
+  S[Sensor utløst] --> M{mode}
+  M -- disarmed --> X1[Ignorer<br/>oppdater recentMotionZones]
+  M -- exit_delay aktiv --> X2[Ignorer<br/>bruker forlater huset]
+  M -- armed_stay --> SS{Perimeter-sensor?}
+  M -- armed_away --> ED1{⏱ entry-delay-markert?}
+  SS -- nei --> X3[Ignorer<br/>innendørs bevegelse]
+  SS -- ja --> ED2{⏱ entry-delay-markert?}
+  ED1 -- ja --> DELAY[startEntryDelay<br/>entry_delay sek]
+  ED1 -- nei --> MOTION_AWAY{Sensor type?}
+  ED2 -- ja --> DELAY
+  ED2 -- nei --> FIRE_STAY[fireAlarm + escalation umiddelbart]
+  MOTION_AWAY -- motion --> MOT_DELAY[startEntryDelay<br/>entry_delay sek]
+  MOTION_AWAY -- contact --> CONFIRM[handleConfirmedMotion<br/>via false-alarm-filter]
+  DELAY --> WAIT{Bruker deaktiverer?}
+  MOT_DELAY --> WAIT
+  WAIT -- ja --> X4[cancelEntryDelay<br/>ingen alarm]
+  WAIT -- nei, timer utløpt --> CONFIRM
+  CONFIRM --> FIRE[fireAlarmTriggered + DeterrenceEngine + EscalationManager]
+  FIRE_STAY --> ESC[Eskalering pågår]
+  FIRE --> ESC
+  ESC --> CRISIS{escalation_minutes utløpt?}
+  CRISIS -- ja --> KRISE[KRISE: full sirene + strobe + alarm_escalated]
+  CRISIS -- nei, bruker stopper --> STOP[alarm_stopped]
+```
+
+### Inngangsforsinkelse (⏱) — autorisert inngang med kodelås
 
 ```mermaid
 sequenceDiagram
   autonumber
-  participant S as Sensor
+  participant U as Bruker
+  participant L as Smart-lås
+  participant D as Dør-sensor (⏱)
   participant App as Guard App
   participant SM as StateMachine
+  participant F as Flow-trigger
+
+  Note over U,App: Anbefalt oppsett (ingen alarm)
+  U->>L: Skriv inn kode
+  L-->>F: Lås åpnet med kode X<br/>(bruker-bygget flow)
+  F->>App: set_mode(disarmed)
+  App->>SM: setMode(disarmed) før døren åpnes
+  U->>D: Åpne dør
+  Note over App: mode = disarmed → ignoreres
+
+  Note over U,App: Fallback (entry-delay redder dagen)
+  U->>D: Åpne dør uten å låse opp først
+  D->>App: alarm_contact = true
+  App->>App: isEntryDelaySensor() = true
+  App->>SM: startEntryDelay(30 s)
+  Note over App,SM: Nedtelling pågår — sirene IKKE startet
+  alt Bruker deaktiverer i tide
+    U->>App: Trykk «Hjemme» på dashbord
+    App->>SM: cancelEntryDelay
+    Note over App: Ingen alarm fyres
+  else 30 s passerer
+    SM->>App: handleConfirmedContact()
+    App->>F: trigger alarm_triggered
+    App->>F: trigger deterrence_started (lys + media-tokens)
+  end
+```
+
+### Avskrekkings-flow — innebygd lys + ekstern media via flow-trigger
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant App as Guard App
   participant DE as DeterrenceEngine
   participant MC as MediaCaster
-  participant EM as EscalationManager
-  participant F as Flow-trigger
-  S->>App: alarm_motion = true
-  App->>SM: getMode()
-  alt mode = disarmed
-    App-->>App: Ignorer (bare logg recentMotionZones)
-  else mode = armed_away
-    App->>SM: startEntryDelay(N sekunder)
-    Note over App,SM: Bruker kan deaktivere innen N sekunder
-    alt Bruker deaktiverer i tide
-      App->>SM: setMode(disarmed) - cancelEntryDelay
-      Note over App: Ingen alarm fyres - rent kutt
-    else Entry delay timer fyrer
-      App->>F: trigger alarm_triggered(zone, sensor, type, mode)
-      App->>DE: handleMotion(zoneId)
-      DE->>MC: startBlink paa reaksjonssonen (og fyrer deterrence_started-trigger)
-      App->>EM: start(escalation_minutes)
-      Note over EM: Hvis fortsatt aktiv etter N min
-      EM->>F: trigger alarm_escalated
-      EM->>MC: Strobe alle lys + full volum overalt
-    end
+  participant LIGHT as Lys i reaksjonssone
+  participant TRG as Flow-trigger<br/>deterrence_started
+  participant UF as Bruker-bygget Homey-flow
+  participant CAST as Chromecast / Sonos / Samsung TV
+
+  Note over App,DE: Alarm bekreftet ELLER «Test avskrekking» trykket
+  App->>DE: handleMotion(zoneId) / runDirect(zoneId)
+  DE->>MC: startBlink(reaksjonssone)
+  loop blink_on / blink_off pr. sone (default 15 s / 15 s)
+    MC->>LIGHT: onoff = true
+    MC->>MC: vent blink_on sek
+    MC->>LIGHT: onoff = false
+    MC->>MC: vent blink_off sek
   end
-  Note over App: Bruker trykker Stopp alarm
-  App->>F: trigger alarm_stopped(zone, sensor, reason)
+  DE->>TRG: trigger med zone + 8 media-URL-tokens<br/>(url_police_siren, url_blue_lights, …)
+  TRG->>UF: NÅR Avskrekking startet
+  UF->>UF: OG zone = «Stue» (valgfritt filter)
+  UF->>CAST: Cast a URL = [url_blue_lights]
+  Note over CAST: Spiller blålys-video / hund / sirene
+  Note over MC,CAST: LightAuthGuard er deaktivert i reaksjonssonen<br/>så flow-en kan trygt styre lys parallelt
 ```
 
 ## Komponenter
 
 | Modul | Ansvar |
 |---|---|
-| `app.ts` | Hovedklasse — orkestrering, listener-registrering, alarm-state |
-| `StateMachine` | Modus + entry/exit delays |
-| `DeterrenceEngine` | Velger reaksjonssone, fyrer alltid blink-fallback + `deterrence_started`-trigger |
-| `MediaCaster` | Blink-fallback (lys-strobing) i reaksjonssonen ved avskrekking |
-| `EscalationManager` | Timer fra avskrekking til full krise + strobe-rutine |
-| `FalseAlarmFilter` | Krever konfidens-terskel før eskalering |
-| `LightAuthGuard` | Tolker manuell lysbruk som «noen er hjemme» |
-| `SimulationEngine` | Kevin-modus: lys-mønstre i Borte-modus |
-| `CameraManager` | Starter opptak fra sone-kameraer ved alarm |
-| `EventLog` | Strukturert hendelseslogg (vises i settings-UI) |
-| `Capabilities` | Klassifiserer enheter (audio/video/light/sensor) for UI-visning |
+| `app.ts` | Hovedklasse — orkestrering, sensor-listeners, alarm-state, entry-delay-routing for motion + ⏱-dører |
+| `StateMachine` | Modus + entry/exit delays (felles timer for både motion og ⏱-dører) |
+| `DeterrenceEngine` | Velger reaksjonssone fra `zone_matrix`, starter blink og fyrer `deterrence_started`-trigger med media-URL-tokens |
+| `MediaCaster` | Lys-blink i reaksjonssonen med konfigurerbar PÅ/AV-syklus (`blink_on`/`blink_off` pr. sone, default 15 s / 15 s) |
+| `EscalationManager` | Timer fra alarm til full krise + strobe-rutine på alle lys |
+| `FalseAlarmFilter` | Krever (kontakt + bevegelse) eller bevegelse i to soner innen 90 s før eskalering |
+| `LightAuthGuard` | Tolker manuell lysbruk som «noen er hjemme»; deaktivert under aktiv avskrekking så eksterne flows kan styre lys trygt |
+| `SimulationEngine` | Kevin-modus: lys-mønstre i Borte-modus på markerte soner |
+| `CameraManager` | Snapshot-loop fra sone-kameraer ved alarm (hopper over soner uten kameraer) |
+| `EventLog` | Strukturert intern hendelseslogg (vises i Event Log-fanen i settings-UI) |
+| `Capabilities` | Klassifiserer enheter (`isLight` krever `device.class === 'light'`) for UI-visning og blink-utvalg |
 
 ## Flow-kort
 
