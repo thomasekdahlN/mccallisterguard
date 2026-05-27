@@ -80,14 +80,14 @@ export const DEFAULT_SETTINGS: GuardSettings = {
 
 /**
  * Allowed mode transitions.
- * - disarmed  → armed_away | armed_stay
+ * - disarmed   → armed_away | armed_stay
  * - armed_away → disarmed only  (must disarm before switching to stay)
- * - armed_stay → disarmed only  (must disarm before switching to away)
+ * - armed_stay → disarmed | armed_away  (can escalate to full-away without disarming first)
  */
 export const VALID_TRANSITIONS: Readonly<Record<Mode, readonly Mode[]>> = {
   disarmed: ['armed_away', 'armed_stay'],
   armed_away: ['disarmed'],
-  armed_stay: ['disarmed'],
+  armed_stay: ['disarmed', 'armed_away'],
 };
 
 export function isValidTransition(from: Mode, to: Mode): boolean {
