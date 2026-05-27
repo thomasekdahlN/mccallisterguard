@@ -78,6 +78,22 @@ export const DEFAULT_SETTINGS: GuardSettings = {
   camera_motion_enabled: true,
 };
 
+/**
+ * Allowed mode transitions.
+ * - disarmed  → armed_away | armed_stay
+ * - armed_away → disarmed only  (must disarm before switching to stay)
+ * - armed_stay → disarmed only  (must disarm before switching to away)
+ */
+export const VALID_TRANSITIONS: Readonly<Record<Mode, readonly Mode[]>> = {
+  disarmed: ['armed_away', 'armed_stay'],
+  armed_away: ['disarmed'],
+  armed_stay: ['disarmed'],
+};
+
+export function isValidTransition(from: Mode, to: Mode): boolean {
+  return (VALID_TRANSITIONS[from] as readonly Mode[]).includes(to);
+}
+
 export const SETTINGS_KEYS = {
   MODE: 'mode',
   MODE_CHANGED_AT: 'mode_changed_at',

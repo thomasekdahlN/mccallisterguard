@@ -136,4 +136,44 @@ describe('StateMachine', () => {
     await sm.setMode('armed_stay');
     expect(ok).toHaveBeenCalledTimes(1);
   });
+
+  describe('ulovlige modusoverganger', () => {
+    it('kaster feil ved armed_away → armed_stay', async () => {
+      const sm = new StateMachine(homey as never, log);
+      await sm.setMode('armed_away');
+      await expect(sm.setMode('armed_stay')).rejects.toThrow('Ugyldig modusovergang');
+      expect(sm.getMode()).toBe('armed_away');
+    });
+
+    it('kaster feil ved armed_stay → armed_away', async () => {
+      const sm = new StateMachine(homey as never, log);
+      await sm.setMode('armed_stay');
+      await expect(sm.setMode('armed_away')).rejects.toThrow('Ugyldig modusovergang');
+      expect(sm.getMode()).toBe('armed_stay');
+    });
+
+    it('modus er uendret etter avvist overgang', async () => {
+      const sm = new StateMachine(homey as never, log);
+      const listener = vi.fn();
+      sm.onModeChange(listener);
+      await sm.setMode('armed_away');
+      listener.mockClear();
+
+      await sm.setMode('armed_stay').catch(() => { /* expected */ });
+      expect(sm.getMode()).toBe('armed_away');
+      expect(listener).not.toHaveBeenCalled();
+    });
+
+    it('tillater disarmed → armed_away → disarmed → armed_stay', async () => {
+      const sm = new StateMachine(homey as never, log);
+      await sm.setMode('armed_away');
+      expect(sm.getMode()).toBe('armed_away');
+      await sm.setMode('disarmed');
+      expect(sm.getMode()).toBe('disarmed');
+      await sm.setMode('armed_stay');
+      expect(sm.getMode()).toBe('armed_stay');
+      await sm.setMode('disarmed');
+      expect(sm.getMode()).toBe('disarmed');
+    });
+  });
 });

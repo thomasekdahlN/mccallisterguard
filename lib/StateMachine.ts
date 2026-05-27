@@ -2,7 +2,7 @@
 
 import type Homey from 'homey/lib/Homey';
 import type EventLog from './EventLog';
-import { Mode, SETTINGS_KEYS } from './types';
+import { isValidTransition, Mode, SETTINGS_KEYS } from './types';
 
 export type ModeChangeListener = (mode: Mode, previous: Mode) => void;
 
@@ -41,6 +41,12 @@ export default class StateMachine {
 
   async setMode(next: Mode, exitDelaySeconds?: number): Promise<void> {
     if (this.mode === next && !this.isExitDelayActive()) return;
+
+    if (!isValidTransition(this.mode, next)) {
+      const msg = `Ugyldig modusovergang: kan ikke gå fra ${this.mode} til ${next}. Deaktiver systemet først.`;
+      this.log.add('warning', msg);
+      throw new Error(msg);
+    }
 
     const wasExitDelay = this.isExitDelayActive();
     this.clearTimers();

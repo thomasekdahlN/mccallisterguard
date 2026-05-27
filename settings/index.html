@@ -478,6 +478,9 @@
         <option value="300">5 min</option>
       </select>
     </div>
+    <div id="mode-error"
+      style="display:none; background:#D32F2F; color:#fff; border-radius:8px; padding:10px 14px; margin-top:8px; font-size:13px;">
+    </div>
     <div class="info-banner">Alarmen aktiveres kun via knappene over eller en flow. Som standard antas det at du er
       hjemme. Bruk «Stopp alarm» for å avbryte eskalering, sirener og avskrekking uten å endre modus.
     </div>
@@ -1004,10 +1007,23 @@
         }
       }
 
+      function showModeError(msg) {
+        const el = $('mode-error');
+        el.textContent = msg;
+        el.style.display = '';
+        clearTimeout(el._hideTimer);
+        el._hideTimer = setTimeout(() => { el.style.display = 'none'; }, 6000);
+      }
+
       document.querySelectorAll('.mode-btn[data-mode]').forEach((b) => {
         b.addEventListener('click', async () => {
-          await Homey.api('POST', '/mode', { mode: b.dataset.mode });
-          refreshLive();
+          $('mode-error').style.display = 'none';
+          const result = await Homey.api('POST', '/mode', { mode: b.dataset.mode });
+          if (result && result.success === false) {
+            showModeError(result.error || 'Ugyldig modusovergang.');
+          } else {
+            refreshLive();
+          }
         });
       });
       $('btn-panic').addEventListener('click', async () => {

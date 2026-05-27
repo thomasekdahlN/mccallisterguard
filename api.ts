@@ -131,8 +131,12 @@ module.exports = {
   },
 
   async setMode({ homey, body }: BodyCtx<{ mode: Mode }>) {
-    await homey.app.setMode(body.mode);
-    return { success: true };
+    try {
+      await homey.app.setMode(body.mode);
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: (err as Error).message };
+    }
   },
 
   async triggerPanic({ homey }: Ctx) {
