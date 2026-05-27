@@ -42,6 +42,8 @@ export interface GuardSettings {
   camera_alarm_count: Record<string, number>;
   /** Per-camera: how many snapshots to take when motion is detected while no alarm. Default: 1. 0 = disabled. */
   camera_motion_count: Record<string, number>;
+  /** Global master switch: whether to take motion snapshots when no alarm is active. Default: true. */
+  camera_motion_enabled: boolean;
 }
 
 export const DEFAULT_BLINK_SECONDS = 15;
@@ -73,6 +75,7 @@ export const DEFAULT_SETTINGS: GuardSettings = {
   alarm_blink_off: DEFAULT_ALARM_BLINK_OFF,
   camera_alarm_count: {},
   camera_motion_count: {},
+  camera_motion_enabled: true,
 };
 
 export const SETTINGS_KEYS = {

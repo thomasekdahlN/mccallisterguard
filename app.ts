@@ -32,6 +32,8 @@ class McCallisterGuardApp extends Homey.App {
   private testStopTimer: NodeJS.Timeout | null = null;
   private motionLastSeen = new Map<string, number>();
   private alarmActive = false;
+  private perimeterBypassEndsAt: number | null = null;
+  private perimeterBypassTimer: NodeJS.Timeout | null = null;
   private alarmContext: { zoneId: string; zoneName: string; deviceId: string; deviceName: string; sensorType: string; alarmType: AlarmType } | null = null;
   private zoneNameCache = new Map<string, string>();
   private zoneCacheTimer: NodeJS.Timeout | null = null;
@@ -202,6 +204,28 @@ class McCallisterGuardApp extends Homey.App {
   setCameraMotionEnabled(enabled: boolean): void {
     this.saveSettings({ camera_motion_enabled: enabled });
     this.eventLog.add('info', `Bevegelsesbilder ${enabled ? 'aktivert' : 'deaktivert'}.`);
+  }
+
+  isPerimeterBypassed(): boolean {
+    return this.perimeterBypassEndsAt !== null && Date.now() < this.perimeterBypassEndsAt;
+  }
+
+  getPerimeterBypassEndsAt(): number | null {
+    return this.isPerimeterBypassed() ? this.perimeterBypassEndsAt : null;
+  }
+
+  bypassPerimeter(seconds: number): void {
+    if (this.perimeterBypassTimer) {
+      this.homey.clearTimeout(this.perimeterBypassTimer);
+      this.perimeterBypassTimer = null;
+    }
+    this.perimeterBypassEndsAt = Date.now() + seconds * 1000;
+    this.eventLog.add('info', `Perimeter-bypass aktivert i ${seconds}s — perimetersensorer ignoreres.`);
+    this.perimeterBypassTimer = this.homey.setTimeout(() => {
+      this.perimeterBypassTimer = null;
+      this.perimeterBypassEndsAt = null;
+      this.eventLog.add('info', 'Perimeter-bypass utløpt — perimetersensorer aktive igjen.');
+    }, seconds * 1000);
   }
 
   getRecentMotionZones(): string[] {
@@ -399,6 +423,11 @@ class McCallisterGuardApp extends Homey.App {
         this.setCameraMotionEnabled(args.enabled === 'enable');
         return true;
       });
+    this.homey.flow.getActionCard('bypass_perimeter')
+      .registerRunListener(async (args: { duration: number }) => {
+        this.bypassPerimeter(Math.max(5, Math.round(args.duration)));
+        return true;
+      });
     this.homey.flow.getConditionCard('is_armed')
       .registerRunListener(async (args: { mode: Mode }) => this.stateMachine.getMode() === args.mode);
     this.homey.flow.getConditionCard('deterrence_active')
@@ -454,6 +483,10 @@ class McCallisterGuardApp extends Homey.App {
 
     if (mode === 'armed_stay') {
       if (!this.isPerimeterSensor(deviceId)) return;
+      if (this.isPerimeterBypassed()) {
+        this.eventLog.add('info', `Bevegelse i perimetersensor ignorert (bypass aktiv).`, zoneId, deviceId);
+        return;
+      }
       await this.fireAlarmTriggered(zoneId, deviceId, 'motion', 'perimeter');
       await this.deterrence.handleMotion(zoneId);
       this.escalation.start(0);
@@ -479,6 +512,11 @@ class McCallisterGuardApp extends Homey.App {
     this.eventLog.add('warning', `Dør/vindu åpnet i sone ${zoneId}.`, zoneId, deviceId);
 
     if (mode === 'armed_stay' && !this.isPerimeterSensor(deviceId)) return;
+
+    if (mode === 'armed_stay' && this.isPerimeterBypassed()) {
+      this.eventLog.add('info', `Dør/vindu i perimetersensor ignorert (bypass aktiv).`, zoneId, deviceId);
+      return;
+    }
 
     if (this.isEntryDelaySensor(deviceId)) {
       this.falseAlarm.registerContactOpen();

@@ -11,6 +11,10 @@ interface AppRef {
   triggerPanic(): Promise<void>;
   testDeterrence(zoneId: string): Promise<void>;
   stopAlarm(): Promise<void>;
+  setCameraMotionEnabled(enabled: boolean): void;
+  bypassPerimeter(seconds: number): void;
+  isPerimeterBypassed(): boolean;
+  getPerimeterBypassEndsAt(): number | null;
   isTestActive(): boolean;
   isAlarmActive(): boolean;
   getRecentMotionZones(): string[];
@@ -53,6 +57,9 @@ module.exports = {
       testActive: app.isTestActive(),
       alarmActive: app.isAlarmActive(),
       recentMotionZones: app.getRecentMotionZones(),
+      cameraMotionEnabled: app.getSettings().camera_motion_enabled !== false,
+      perimeterBypassed: app.isPerimeterBypassed(),
+      perimeterBypassEndsAt: app.getPerimeterBypassEndsAt(),
     };
   },
 
@@ -140,6 +147,16 @@ module.exports = {
 
   async stopAlarm({ homey }: Ctx) {
     await homey.app.stopAlarm();
+    return { success: true };
+  },
+
+  async setCameraMotion({ homey, body }: BodyCtx<{ enabled: boolean }>) {
+    homey.app.setCameraMotionEnabled(body.enabled);
+    return { success: true };
+  },
+
+  async bypassPerimeter({ homey, body }: BodyCtx<{ duration: number }>) {
+    homey.app.bypassPerimeter(Math.max(5, Math.round(body.duration ?? 60)));
     return { success: true };
   },
 

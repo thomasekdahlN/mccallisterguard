@@ -62,6 +62,14 @@
       background: #D32F2F;
     }
 
+    .mode-btn.toggle-on {
+      background: #1A531A;
+    }
+
+    .mode-btn.toggle-off {
+      background: #555;
+    }
+
     .mode-btn.inactive {
       opacity: 0.45;
     }
@@ -456,6 +464,20 @@
       <button class="mode-btn armed_stay" data-mode="armed_stay">Skallsikring</button>
       <button class="mode-btn panic" id="btn-panic">🚨 PANIKK</button>
     </div>
+    <div class="row" style="margin-bottom:12px;">
+      <button class="mode-btn toggle-on" id="btn-camera-motion">📷 Bilder uten alarm: Av</button>
+    </div>
+    <div class="row" style="margin-bottom:12px; align-items:center; gap:8px;">
+      <button class="mode-btn" id="btn-bypass" style="background:#6c757d;">Forbigå perimeter: Av</button>
+      <select id="bypass-duration" style="height:36px; border-radius:6px; border:1px solid #ccc; padding:0 8px;">
+        <option value="30">30 s</option>
+        <option value="60" selected>60 s</option>
+        <option value="90">90 s</option>
+        <option value="120">2 min</option>
+        <option value="180">3 min</option>
+        <option value="300">5 min</option>
+      </select>
+    </div>
     <div class="info-banner">Alarmen aktiveres kun via knappene over eller en flow. Som standard antas det at du er
       hjemme. Bruk «Stopp alarm» for å avbryte eskalering, sirener og avskrekking uten å endre modus.
     </div>
@@ -789,6 +811,27 @@
         const stopBtn = $('btn-stop');
         stopBtn.style.display = showStop ? '' : 'none';
         stopBtn.classList.toggle('alarm-active', !!(s.alarmActive || s.inCrisis || s.escalationPending || s.activeDeterrenceZone));
+        if (typeof s.cameraMotionEnabled === 'boolean') updateCameraMotionBtn(s.cameraMotionEnabled);
+        updateBypassBtn(s.perimeterBypassed, s.perimeterBypassEndsAt);
+      }
+
+      function updateCameraMotionBtn(enabled) {
+        const btn = $('btn-camera-motion');
+        btn.dataset.enabled = enabled ? 'true' : 'false';
+        btn.textContent = enabled ? '📷 Bilder uten alarm: På' : '📷 Bilder uten alarm: Av';
+        btn.className = 'mode-btn ' + (enabled ? 'toggle-on' : 'toggle-off');
+      }
+
+      function updateBypassBtn(active, endsAt) {
+        const btn = $('btn-bypass');
+        if (active && endsAt) {
+          const secsLeft = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
+          btn.textContent = `Forbigå perimeter: På (${secsLeft}s igjen)`;
+          btn.style.background = '#d97706';
+        } else {
+          btn.textContent = 'Forbigå perimeter: Av';
+          btn.style.background = '#6c757d';
+        }
       }
 
       function zoneStatusPill(zoneId) {
@@ -971,6 +1014,29 @@
         if (!confirm('Utløse PANIKK?')) return;
         await Homey.api('POST', '/panic', {});
         refreshLive();
+      });
+      $('btn-camera-motion').addEventListener('click', async () => {
+        const btn = $('btn-camera-motion');
+        const currentlyOn = btn.dataset.enabled === 'true';
+        const newVal = !currentlyOn;
+        btn.disabled = true;
+        try {
+          await Homey.api('POST', '/set-camera-motion', { enabled: newVal });
+          updateCameraMotionBtn(newVal);
+        } finally {
+          btn.disabled = false;
+        }
+      });
+      $('btn-bypass').addEventListener('click', async () => {
+        const btn = $('btn-bypass');
+        const duration = parseInt($('bypass-duration').value, 10) || 60;
+        btn.disabled = true;
+        try {
+          await Homey.api('POST', '/bypass-perimeter', { duration });
+          await refreshLive();
+        } finally {
+          btn.disabled = false;
+        }
       });
       $('btn-stop').addEventListener('click', async () => {
         $('btn-stop').disabled = true;

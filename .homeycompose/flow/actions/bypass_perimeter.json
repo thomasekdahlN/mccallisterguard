@@ -1,0 +1,27 @@
+{
+  "title": {
+    "en": "Bypass perimeter sensors",
+    "no": "Forbigå perimetersensorer"
+  },
+  "titleFormatted": {
+    "en": "Bypass perimeter sensors for [[duration]] seconds",
+    "no": "Forbigå perimetersensorer i [[duration]] sekunder"
+  },
+  "args": [
+    {
+      "name": "duration",
+      "type": "number",
+      "min": 5,
+      "max": 300,
+      "step": 5,
+      "label": {
+        "en": "Duration (seconds)",
+        "no": "Varighet (sekunder)"
+      },
+      "placeholder": {
+        "en": "60",
+        "no": "60"
+      }
+    }
+  ]
+}

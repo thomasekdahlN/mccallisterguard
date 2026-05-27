@@ -1,0 +1,32 @@
+{
+  "title": {
+    "en": "Set motion snapshot",
+    "no": "Sett bevegelsesbilder"
+  },
+  "titleFormatted": {
+    "en": "Set motion snapshots to [[enabled]]",
+    "no": "Sett bevegelsesbilder til [[enabled]]"
+  },
+  "args": [
+    {
+      "name": "enabled",
+      "type": "dropdown",
+      "values": [
+        {
+          "id": "enable",
+          "label": {
+            "en": "Enabled",
+            "no": "Aktivert"
+          }
+        },
+        {
+          "id": "disable",
+          "label": {
+            "en": "Disabled",
+            "no": "Deaktivert"
+          }
+        }
+      ]
+    }
+  ]
+}
