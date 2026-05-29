@@ -265,3 +265,56 @@ Appen skal eksponere ferdige Flow-kort for å gjøre oppsettet sømløst mot Hom
 * `trigger_alarm` — test full alarm (stopp etter 15 s)
 * `bypass_perimeter` — deaktiver perimeter-sensorene midlertidig (X minutter)
 * `set_camera_motion` — aktiver / deaktiver bevegelsesutløst kamera-opptak
+
+---
+
+## 8. Anbefalte flow-mønstre
+
+### 8.1 Deaktivering via smart-lås
+
+Knytt deaktivering til **autorisert opplåsing av smart-lås** — ikke til presence-sensorer.
+Presence (GPS/Bluetooth) er for upresist til å deaktivere alarmen; du kan befinne deg hos naboen
+og utløse en falsk deaktivering. Smart-låsen krever fysisk tilgang og vet hvem som låste opp.
+
+```
+NÅR  Smart-lås: Lås åpnet av [bruker]
+DA   Sett modus til Hjemme av [[bruker]]
+```
+
+**Oppførsel per aktiv modus:**
+
+| Aktiv modus | Resultat |
+|---|---|
+| `armed` (Borte) | Systemet deaktiveres normalt — ingen alarm |
+| `armed_perimeter` (Skallsikring) | `set_mode=disarmed` ignoreres av guard. Hoveddøren (⏱) starter automatisk entry delay + bypass av alle perimeter-sensorer i samme periode. Beboer deaktiverer manuelt via dashboard innen entry_delay sekunder |
+| `disarmed` | Ingen effekt |
+
+> **Skallsikring og entry delay:** Merk at hoveddøren MÅ være merket som ⏱ entry delay-sensor
+> for at automatisk perimeter-bypass skal aktiveres. Uten ⏱ vil hoveddøren umiddelbart utløse
+> avskrekking ved åpning i skallsikrings-modus.
+
+### 8.2 Aktivering av Borte-modus basert på tilstedeværelse
+
+Presence-sensorer egner seg godt til å **aktivere** Borte-modus — ikke til å deaktivere.
+False positives (systemet tror huset er tomt, men det er det ikke) er ufarlig;
+false negatives (systemet tror noen er hjemme, men det er ingen) er det ikke.
+
+```
+NÅR  Tilstedeværelse: Ingen hjemme
+OG   Modus er [Hjemme (disarmed)]
+DA   Sett modus til Borte
+```
+
+Bruk `get_mode = disarmed` som condition for å unngå at flowen overskriver en aktiv
+`armed_perimeter` (nattmodus) dersom alle forlater huset om morgenen.
+
+### 8.3 Aktivering av Skallsikring (nattmodus)
+
+Skallsikring aktiveres best via **tidsplanleggeren** i appen (innstillinger → Skallsikring auto).
+Alternativt via en manuell flow med tidsbetingelse:
+
+```
+NÅR  Klokken er 22:00
+OG   Modus er [Hjemme (disarmed)]
+DA   Sett modus til Skallsikring
+```

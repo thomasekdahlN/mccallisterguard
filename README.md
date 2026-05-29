@@ -166,27 +166,31 @@ sequenceDiagram
   participant SM as StateMachine
   participant F as Flow-trigger
 
-  Note over U,App: Anbefalt oppsett (ingen alarm)
-  U->>L: Skriv inn kode
-  L-->>F: Lås åpnet med kode X<br/>(bruker-bygget flow)
-  F->>App: set_mode(disarmed)
-  App->>SM: setMode(disarmed) før døren åpnes
+  Note over U,App: Borte-modus — smart-lås deaktiverer systemet
+  U->>L: Skriv inn kode / scan fingeravtrykk
+  L-->>F: Lås åpnet av [Navn]
+  F->>App: set_mode(disarmed, name="Navn")
+  App->>SM: setMode(disarmed) — modus endres FØR døren åpnes
   U->>D: Åpne dør
-  Note over App: mode = disarmed → ignoreres
+  Note over App: mode = disarmed → ingen sensor-reaksjon
 
-  Note over U,App: Fallback (entry-delay redder dagen)
-  U->>D: Åpne dør uten å låse opp først
+  Note over U,App: Skallsikring — hoveddør har ⏱ entry delay
+  U->>L: Skriv inn kode / scan fingeravtrykk
+  L-->>F: Lås åpnet
+  F->>App: set_mode(disarmed) — IGNORERT (guard)
+  U->>D: Åpne dør
   D->>App: alarm_contact = true
-  App->>App: isEntryDelaySensor() = true
-  App->>SM: startEntryDelay(30 s)
-  Note over App,SM: Nedtelling pågår — sirene IKKE startet
-  alt Bruker deaktiverer i tide
+  App->>App: isEntryDelaySensor() = true + mode=armed_perimeter
+  App->>App: bypassPerimeter(entry_delay sek)
+  App->>SM: startEntryDelay(entry_delay sek)
+  Note over App,SM: Alle perimeter-sensorer ignoreres i entry_delay sek
+  alt Bruker deaktiverer manuelt i tide (dashboard/fysisk knapp)
     U->>App: Trykk «Hjemme» på dashbord
     App->>SM: cancelEntryDelay
-    Note over App: Ingen alarm fyres
-  else 30 s passerer
+    Note over App: Ingen alarm — skallsikring deaktivert
+  else entry_delay sek passerer uten deaktivering
     SM->>App: handleConfirmedContact()
-    App->>F: trigger alarm_triggered (zone, sensor, mode=armed)
+    App->>F: trigger alarm_perimeter_triggered
     App->>SM: setMode(deterrence)
   end
 ```
@@ -287,7 +291,7 @@ sequenceDiagram
 | Under `alarm` + condition `alarm_triggered_from = armed_perimeter` | Mild eskalering — vekk beboerne, ingen politimelding |
 | Under `alarm` + condition `alarm_triggered_from = armed` | Full eskalering — sirene, politimelding, push med høyest prioritet |
 
-### Eksempel-flows
+### Eksempel-flows — alarmreaksjon
 
 ```
 NÅR  Skallsikring-brudd oppdaget (alarm_perimeter_triggered)
@@ -309,6 +313,42 @@ NÅR  Modus endret (mode_changed, mode_new = alarm)
 OG   Alarm ble utløst fra [Skallsikring]    ← alarm_triggered_from condition
 SÅ   Vekk beboerne (intern sirene) — ingen ekstern varsling
 ```
+
+### Anbefalte flows — deaktivering og aktivering
+
+#### Deaktivering via smart-lås (anbefalt)
+
+Koble deaktivering til **autorisert opplåsing av smart-lås** med brukerens navn som token.
+Ikke bruk presence-sensorer (GPS/Bluetooth) til å deaktivere — de er for upresise og kan
+skru av alarmen mens du er på nabobesøk.
+
+```
+NÅR  Smart-lås: Lås åpnet av [bruker]       ← smart-lås-trigger med navn-token
+DA   Sett modus til Hjemme av [[bruker]]    ← set_mode action (name = låsens bruker-token)
+```
+
+**Hva skjer i ulike modi:**
+
+| Aktiv modus | Resultat |
+|---|---|
+| `armed` (Borte) | Systemet deaktiveres normalt før døren åpnes — ingen alarm |
+| `armed_perimeter` (Skallsikring) | `set_mode=disarmed` ignoreres (guard aktiv) — men hoveddøren har entry delay, som starter perimeter-bypass automatisk. Beboer kan deaktivere manuelt via dashboard innen entry_delay sekunder |
+| `disarmed` | Ingen effekt |
+
+#### Aktivering basert på tilstedeværelse (anbefalt)
+
+Bruk presence-sensorer til å **aktivere** Borte-modus, ikke til å deaktivere.
+Dette er trygt fordi false positives (tror feil at huset er tomt) er langt mindre farlig
+enn false negatives (deaktiverer alarmen mens du ikke er hjemme).
+
+```
+NÅR  Tilstedeværelse: Ingen hjemme          ← Homey presence / zone-trigger
+OG   Modus er [Hjemme (disarmed)]           ← get_mode condition (unngå å re-arme fra perimeter)
+DA   Sett modus til Borte                   ← set_mode = armed
+```
+
+> **Merk:** Bruk `get_mode = disarmed` som condition for å unngå at presence-flowen
+> overskriver en eksisterende `armed_perimeter` (nattmodus) når alle forlater huset om morgenen.
 
 
 ## Sett opp flows basert på modus-endringer

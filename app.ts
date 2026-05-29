@@ -645,7 +645,15 @@ class McCallisterGuardApp extends Homey.App {
       this.falseAlarm.registerContactOpen();
       if (this.stateMachine.isEntryDelayActive()) return;
       const settings = this.getSettings();
-      this.eventLog.add('info', `Inngangsforsinkelse startet (${settings.entry_delay}s) — deaktiver for å avbryte.`, zoneId, deviceId);
+      if (mode === 'armed_perimeter') {
+        // Auto-bypass all other perimeter sensors for the same duration as the entry delay.
+        // This prevents hallway motion / secondary door sensors from triggering an alarm
+        // while an authorised resident walks in through the entry-delay door.
+        this.bypassPerimeter(settings.entry_delay);
+        this.eventLog.add('info', `Inngangsforsinkelse startet (${settings.entry_delay}s) — perimetersensorer ignoreres i samme periode.`, zoneId, deviceId);
+      } else {
+        this.eventLog.add('info', `Inngangsforsinkelse startet (${settings.entry_delay}s) — deaktiver for å avbryte.`, zoneId, deviceId);
+      }
       this.stateMachine.startEntryDelay(settings.entry_delay, () => {
         if (this.stateMachine.getMode() === 'disarmed') return;
         this.handleConfirmedContact(zoneId, deviceId, mode).catch(() => { /* best-effort */ });
