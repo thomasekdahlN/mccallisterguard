@@ -30,6 +30,7 @@ class McCallisterGuardApp extends Homey.App {
   public cameras!: CameraManager;
 
   private testStopTimer: NodeJS.Timeout | null = null;
+  private armedStaySchedulerTimer: NodeJS.Timeout | null = null;
   private motionLastSeen = new Map<string, number>();
   private alarmActive = false;
   private perimeterBypassEndsAt: number | null = null;
@@ -73,6 +74,18 @@ class McCallisterGuardApp extends Homey.App {
     this.escalation = new EscalationManager(this.homey, this.homeyApi, this.eventLog, this.lightAuth);
     this.simulation = new SimulationEngine(this.homey, this.homeyApi, this.eventLog, this.lightAuth, () => this.getSettings());
     this.cameras = new CameraManager(this.homey, this.homeyApi, this.eventLog, () => this.getSettings());
+
+    // Before an alarm-burst, turn on all lights in the motion zone so the camera captures a lit scene.
+    this.cameras.setFlashCallback(async (zoneId: string) => {
+      const devices = await this.homeyApi.devices.getDevices();
+      const lights = (Object.values(devices) as any[]).filter((d) => d.zone === zoneId && isLight(d));
+      for (const light of lights) {
+        try {
+          this.lightAuth.registerOwnCommand(light.id, true);
+          await light.setCapabilityValue({ capabilityId: 'onoff', value: true });
+        } catch { /* best-effort */ }
+      }
+    });
 
     this.lightAuth.setActivePredicate(() => {
       if (this.stateMachine.getMode() === 'disarmed') return false;
@@ -123,6 +136,7 @@ class McCallisterGuardApp extends Homey.App {
     await this.initListeners();
 
     if (this.stateMachine.getMode() === 'armed_away') this.simulation.start();
+    this.startArmedStayScheduler();
     this.log('McCallister Guard initialisert.');
   }
 
@@ -158,6 +172,8 @@ class McCallisterGuardApp extends Homey.App {
   saveSettings(settings: Partial<GuardSettings>): GuardSettings {
     const merged: GuardSettings = { ...this.getSettings(), ...settings };
     this.homey.settings.set(SETTINGS_KEYS.SETTINGS, merged);
+    // Refresh the camera-zone cache so added/removed cameras are reflected immediately.
+    this.cameras?.refreshZoneCache().catch(() => { /* best-effort */ });
     return merged;
   }
 
@@ -365,6 +381,63 @@ class McCallisterGuardApp extends Homey.App {
     if (this.testStopTimer) {
       this.homey.clearTimeout(this.testStopTimer);
       this.testStopTimer = null;
+    }
+  }
+
+  /**
+   * Start the armed_stay scheduler. Checks every 60 s whether auto-arming should fire.
+   * Also runs immediately on startup so an overnight window is respected when the app restarts.
+   */
+  private startArmedStayScheduler(): void {
+    this.checkArmedStaySchedule(true);
+    this.armedStaySchedulerTimer = this.homey.setInterval(() => {
+      this.checkArmedStaySchedule(false);
+    }, 60_000);
+  }
+
+  /**
+   * Evaluate the armed_stay auto-schedule against the current time.
+   *
+   * @param startup - When true, also activate if we are already inside the armed_stay window
+   *                  (handles app restarts in the middle of the night).
+   */
+  private checkArmedStaySchedule(startup: boolean): void {
+    const settings = this.getSettings();
+    if (!settings.armed_stay_auto) return;
+
+    const on = settings.armed_stay_on || '22:00';
+    const off = settings.armed_stay_off || '06:00';
+    const now = new Date();
+    const hhmm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    const mode = this.stateMachine.getMode();
+
+    // Determine whether we are currently inside the armed_stay window.
+    // Overnight windows (e.g. 22:00 – 06:00) cross midnight, so the comparison
+    // is: inside when now >= on OR now < off.
+    const overnight = on > off;
+    const inWindow = overnight ? (hhmm >= on || hhmm < off) : (hhmm >= on && hhmm < off);
+
+    if (startup) {
+      // On startup: activate immediately if inside window and currently disarmed.
+      if (inWindow && mode === 'disarmed') {
+        this.eventLog.add('info', `Automatisk skallsikring aktivert ved oppstart (kl. ${hhmm}, vindu ${on}–${off}).`);
+        this.setMode('armed_stay').catch(() => { /* best-effort */ });
+      }
+      // On startup: deactivate if outside window and still in armed_stay (edge case: schedule changed while app was down).
+      if (!inWindow && mode === 'armed_stay') {
+        this.eventLog.add('info', `Automatisk skallsikring deaktivert ved oppstart — utenfor tidsvindu (kl. ${hhmm}, vindu ${on}–${off}).`);
+        this.setMode('disarmed').catch(() => { /* best-effort */ });
+      }
+      return;
+    }
+
+    // Normal minute-tick: fire exactly at the boundary times.
+    if (hhmm === on && mode === 'disarmed') {
+      this.eventLog.add('info', `Automatisk skallsikring aktivert (kl. ${hhmm}).`);
+      this.setMode('armed_stay').catch(() => { /* best-effort */ });
+    } else if (hhmm === off && mode === 'armed_stay') {
+      this.eventLog.add('info', `Automatisk skallsikring deaktivert (kl. ${hhmm}).`);
+      this.setMode('disarmed').catch(() => { /* best-effort */ });
     }
   }
 

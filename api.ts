@@ -1,8 +1,35 @@
 'use strict';
 
+import * as fs from 'fs';
+import * as path from 'path';
 import type { GuardSettings, Mode } from './lib/types';
+import { SNAPSHOT_DIR_ALARM, SNAPSHOT_DIR_MOTION } from './lib/types';
 import { classify, isCamera, sensorType } from './lib/Capabilities';
 import type { SensorType } from './lib/Capabilities';
+
+/** Snapshot metadata returned by getSnapshotList. */
+interface SnapshotMeta {
+  filename: string;
+  timestamp: number;
+  size: number;
+}
+
+/** Builds a sorted (newest-first) list of snapshot metadata from a directory. */
+function listSnapshotDir(dir: string): SnapshotMeta[] {
+  try {
+    return fs.readdirSync(dir)
+      .filter((f) => /^[0-9]+-[0-9a-f]+\.jpg$/i.test(f))
+      .map((filename) => {
+        const timestamp = parseInt(filename.split('-')[0], 10);
+        let size = 0;
+        try { size = fs.statSync(path.join(dir, filename)).size; } catch { /* best-effort */ }
+        return { filename, timestamp, size };
+      })
+      .sort((a, b) => b.timestamp - a.timestamp); // newest first
+  } catch {
+    return [];
+  }
+}
 
 interface AppRef {
   getSettings(): GuardSettings;
@@ -162,6 +189,56 @@ module.exports = {
   async bypassPerimeter({ homey, body }: BodyCtx<{ duration: number }>) {
     homey.app.bypassPerimeter(Math.max(5, Math.round(body.duration ?? 60)));
     return { success: true };
+  },
+
+  /** GET /snapshot-list — returns metadata for all stored snapshots, split by type. */
+  async getSnapshotList(_ctx: Ctx) {
+    return {
+      alarm: listSnapshotDir(SNAPSHOT_DIR_ALARM),
+      motion: listSnapshotDir(SNAPSHOT_DIR_MOTION),
+    };
+  },
+
+  /**
+   * GET /snapshot-image — returns the raw JPEG as a base64 string.
+   * Body/query params: { type: 'alarm' | 'motion', filename: string }
+   */
+  async getSnapshotImage(_ctx: Ctx & { query: { type?: string; filename?: string } }) {
+    const { type, filename } = (_ctx as any).query ?? {};
+    if ((type !== 'alarm' && type !== 'motion') || !filename) {
+      throw new Error('Ugyldig type eller filnavn.');
+    }
+    // Prevent path traversal: filename must be a plain basename.
+    if (path.basename(filename) !== filename || !/^[0-9]+-[0-9a-f]+\.jpg$/i.test(filename)) {
+      throw new Error('Ugyldig filnavn.');
+    }
+    const dir = type === 'alarm' ? SNAPSHOT_DIR_ALARM : SNAPSHOT_DIR_MOTION;
+    const filepath = path.join(dir, filename);
+    const buffer = fs.readFileSync(filepath);
+    return { data: buffer.toString('base64') };
+  },
+
+  /**
+   * DELETE /snapshots — deletes snapshot files.
+   * Body: { type: 'alarm' | 'motion' | 'all' }
+   */
+  async deleteSnapshots(_ctx: Ctx & { body: { type?: string } }) {
+    const { type } = (_ctx as any).body ?? {};
+    const dirs: string[] = [];
+    if (type === 'alarm' || type === 'all') dirs.push(SNAPSHOT_DIR_ALARM);
+    if (type === 'motion' || type === 'all') dirs.push(SNAPSHOT_DIR_MOTION);
+    if (dirs.length === 0) throw new Error('Ugyldig type. Bruk alarm, motion eller all.');
+
+    let deleted = 0;
+    for (const dir of dirs) {
+      try {
+        const files = fs.readdirSync(dir).filter((f) => f.endsWith('.jpg'));
+        for (const f of files) {
+          try { fs.unlinkSync(path.join(dir, f)); deleted += 1; } catch { /* best-effort */ }
+        }
+      } catch { /* dir may not exist */ }
+    }
+    return { success: true, deleted };
   },
 
 };

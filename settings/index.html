@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>McCallister Guard</title>
   <script type="text/javascript" src="/homey.js" data-origin="settings"></script>
   <style>
@@ -441,6 +442,194 @@
     .docs ul {
       padding-left: 22px;
     }
+
+    /* ── Snapshot gallery ─────────────────────────────────────────── */
+    .snap-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 20px 0 8px;
+    }
+
+    .snap-header h3 {
+      margin: 0;
+    }
+
+    .snap-delete-btn {
+      background: #D32F2F;
+      color: #fff;
+      border: 0;
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .snapshot-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 8px;
+    }
+
+    .snapshot-thumb {
+      width: 100%;
+      aspect-ratio: 4/3;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 2px solid #e1e4e8;
+      cursor: pointer;
+      background: #f4f4f6;
+      transition: border-color 0.15s;
+    }
+
+    .snapshot-thumb:hover {
+      border-color: #F2A900;
+    }
+
+    .snap-empty {
+      color: #888;
+      font-size: 13px;
+      padding: 12px 0;
+    }
+
+    .snap-load-more {
+      margin: 12px 0;
+      padding: 8px 20px;
+      background: #1A531A;
+      color: #fff;
+      border: 0;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    /* ── Lightbox ─────────────────────────────────────────────────── */
+    #lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.88);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    #lightbox img {
+      max-width: 96vw;
+      max-height: 86vh;
+      border-radius: 8px;
+      object-fit: contain;
+    }
+
+    #lightbox-meta {
+      color: #ccc;
+      font-size: 12px;
+    }
+
+    #lightbox-close {
+      position: absolute;
+      top: 16px;
+      right: 20px;
+      background: transparent;
+      border: 2px solid #fff;
+      color: #fff;
+      border-radius: 6px;
+      padding: 4px 14px;
+      font-size: 18px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    /* ── Responsive / mobile ───────────────────────────────────────── */
+    @media (max-width: 560px) {
+      body {
+        padding: 8px;
+      }
+
+      /* Tab labels: smaller text so all four fit on one row */
+      .tab-btn {
+        font-size: 12px;
+        padding: 10px 4px;
+      }
+
+      /* Zone body: switch to single-column stacked layout */
+      .zone-body {
+        grid-template-columns: 1fr;
+        gap: 4px 0;
+      }
+
+      /* Field labels become small uppercase section headers */
+      .zone-body>label:not([style]) {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #666;
+        margin-top: 12px;
+      }
+
+      /* First field label needs no top margin */
+      .zone-body>label:not([style]):first-of-type {
+        margin-top: 0;
+      }
+
+      /* All inputs and selects fill the full width */
+      .zone-body select,
+      .zone-body input[type=number],
+      .zone-body input[type=text],
+      .zone-body input[type=url] {
+        width: 100% !important;
+        box-sizing: border-box;
+      }
+
+      /* Camera rows: let name wrap to its own line so checkboxes sit below */
+      .zone-body .camera-row {
+        flex-wrap: wrap;
+        gap: 6px 12px;
+      }
+
+      .zone-body .camera-row .sensor-name {
+        flex-basis: 100%;
+        font-weight: 600;
+      }
+
+      /* Sensor rows: allow wrapping for long names + entry-delay badge */
+      .zone-body .sensor-row {
+        flex-wrap: wrap;
+        gap: 4px 8px;
+      }
+
+      /* Test button: full width, easier tap target */
+      .zone-body .test-btn {
+        padding: 14px;
+        font-size: 15px;
+      }
+
+      /* Global settings grid: single column, labels as headers */
+      .settings-grid {
+        grid-template-columns: 1fr;
+        gap: 4px 0;
+      }
+
+      .settings-grid label {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #666;
+        margin-top: 10px;
+      }
+
+      .settings-grid input,
+      .settings-grid select {
+        width: 100%;
+        box-sizing: border-box;
+      }
+    }
   </style>
 </head>
 
@@ -451,6 +640,7 @@
     <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
     <button class="tab-btn" data-tab="zones">Soneoversikt</button>
     <button class="tab-btn" data-tab="settings">Innstillinger</button>
+    <button class="tab-btn" data-tab="images">Bilder</button>
     <button class="tab-btn" data-tab="log">Hendelseslogg</button>
     <button class="tab-btn" data-tab="docs">Dokumentasjon</button>
   </div>
@@ -509,6 +699,31 @@
   <section class="tab-panel" id="tab-log">
     <div id="log" style="max-height: 480px; overflow-y: auto; border:1px solid #eee; border-radius:6px;"></div>
   </section>
+
+  <section class="tab-panel" id="tab-images">
+    <div class="info-banner">Lagrede kamerabilder. Antall bilder som beholdes stilles inn under «Innstillinger».</div>
+
+    <div class="snap-header">
+      <h3>Alarmbilder</h3>
+      <button class="snap-delete-btn" id="btn-delete-alarm">Slett alle alarmbilder</button>
+    </div>
+    <div id="grid-alarm" class="snapshot-grid"></div>
+    <div id="more-alarm-wrap"></div>
+
+    <div class="snap-header">
+      <h3>Bevegelsesbilder</h3>
+      <button class="snap-delete-btn" id="btn-delete-motion">Slett alle bevegelsesbilder</button>
+    </div>
+    <div id="grid-motion" class="snapshot-grid"></div>
+    <div id="more-motion-wrap"></div>
+  </section>
+
+  <!-- Lightbox overlay -->
+  <div id="lightbox" style="display:none;">
+    <button id="lightbox-close">✕</button>
+    <img id="lightbox-img" src="" alt="Snapshot">
+    <div id="lightbox-meta"></div>
+  </div>
 
   <section class="tab-panel" id="tab-docs">
     <div class="docs">
@@ -894,9 +1109,9 @@
                 + entryBox
                 + `</div>`;
             }).join('');
-            sensorBlock = `<label>Sensorer</label><div class="sensor-list">${sensorRows}</div>`;
+            sensorBlock = `<label>Skallsikring</label><div class="sensor-list">${sensorRows}</div>`;
           } else {
-            sensorBlock = `<label>Sensorer</label><div class="sensor-empty">Ingen dør/vindu- eller bevegelses-sensorer i denne sonen.</div>`;
+            sensorBlock = `<label>Skallsikring</label><div class="sensor-empty">Ingen dør/vindu- eller bevegelses-sensorer i denne sonen.</div>`;
           }
 
           const onSec = Number.isFinite(blinkOn[z.id]) ? blinkOn[z.id] : 15;
@@ -906,20 +1121,18 @@
             + `<label>Lys av (sek)</label>`
             + `<input type="number" min="1" step="1" data-blink-off="${esc(z.id)}" value="${offSec}" style="width:120px;">`;
 
-          const cameraAlarmMap = settings.camera_alarm_count || {};
-          const cameraMotionMap = settings.camera_motion_count || {};
+          const cameraAlarmCams = settings.camera_alarm_cams || {};
+          const cameraMotionCams = settings.camera_motion_cams || {};
           const cameras = z.cameras || [];
           let cameraBlock = '';
           if (cameras.length > 0) {
             const cameraRows = cameras.map((cam) => {
-              const alarmVal = Number.isFinite(cameraAlarmMap[cam.id]) ? cameraAlarmMap[cam.id] : 10;
-              const motionVal = Number.isFinite(cameraMotionMap[cam.id]) ? cameraMotionMap[cam.id] : 1;
-              return `<div class="sensor-row">`
+              const alarmOn = cameraAlarmCams[cam.id] !== false ? 'checked' : '';
+              const motionOn = cameraMotionCams[cam.id] !== false ? 'checked' : '';
+              return `<div class="sensor-row camera-row">`
                 + `<span class="sensor-name">📷 ${esc(cam.name)}</span>`
-                + `<label class="sensor-flag" title="Antall bilder ved alarm (1 sekunds intervall)">🔴</label>`
-                + `<input type="number" min="0" step="1" data-camera-alarm="${esc(cam.id)}" value="${alarmVal}" style="width:60px;" title="Bilder ved alarm">`
-                + `<label class="sensor-flag" title="Antall bilder ved bevegelse uten alarm (0 = deaktivert)">🟢</label>`
-                + `<input type="number" min="0" step="1" data-camera-motion="${esc(cam.id)}" value="${motionVal}" style="width:60px;" title="Bilder uten alarm">`
+                + `<label class="sensor-flag" title="Ta bilder ved alarm"><input type="checkbox" data-camera-alarm-cam="${esc(cam.id)}" ${alarmOn}> 🔴 Alarm</label>`
+                + `<label class="sensor-flag" title="Ta bilder ved bevegelse (uten alarm)"><input type="checkbox" data-camera-motion-cam="${esc(cam.id)}" ${motionOn}> 🟢 Bevegelse</label>`
                 + `</div>`;
             }).join('');
             cameraBlock = `<label>Kameraer</label><div class="sensor-list">${cameraRows}</div>`;
@@ -984,9 +1197,28 @@
           ['escalation_minutes', 'Escalation time (min)', 'number'],
           ['alarm_blink_on', 'Alarm blink on (s)', 'number'],
           ['alarm_blink_off', 'Alarm blink off (s)', 'number'],
+          ['snapshot_max_count', 'Maks bilder per kategori (alarm/bevegelse)', 'number'],
+          ['camera_alarm_burst', 'Bilder per kamera ved alarm', 'number'],
+          ['camera_motion_burst', 'Bilder per kamera ved bevegelse', 'number'],
         ];
-        $('settings-grid').innerHTML = fields.map(([k, label, t]) => `<label for="set_${k}">${label}</label>`
+        let html = fields.map(([k, label, t]) => `<label for="set_${k}">${label}</label>`
           + `<input id="set_${k}" type="${t}" value="${esc(settings[k] ?? '')}">`).join('');
+
+        // Skallsikring auto-planlegger (checkbox + two time pickers on one row)
+        const autoChecked = settings.armed_stay_auto ? 'checked' : '';
+        const onVal = esc(settings.armed_stay_on ?? '22:00');
+        const offVal = esc(settings.armed_stay_off ?? '06:00');
+        html += `<label>Automatisk skallsikring</label>`
+          + `<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">`
+          + `<label style="display:flex;align-items:center;gap:6px;font-weight:normal;">`
+          + `<input type="checkbox" id="set_armed_stay_auto" ${autoChecked}> Aktiver tidsplan</label>`
+          + `<label for="set_armed_stay_on" style="font-weight:normal;">Fra</label>`
+          + `<input id="set_armed_stay_on" type="time" value="${onVal}" style="width:110px;">`
+          + `<label for="set_armed_stay_off" style="font-weight:normal;">Til</label>`
+          + `<input id="set_armed_stay_off" type="time" value="${offVal}" style="width:110px;">`
+          + `</div>`;
+
+        $('settings-grid').innerHTML = html;
       }
 
       function flashToast(toastId) {
@@ -1065,13 +1297,15 @@
       });
       $('btn-save').addEventListener('click', async () => {
         const payload = {};
-        ['bedtime', 'sunset_offset', 'random_min', 'random_max', 'deterrence_delay', 'exit_delay', 'entry_delay', 'escalation_minutes', 'alarm_blink_on', 'alarm_blink_off']
-          .forEach((k) => { const v = $('set_' + k).value; payload[k] = k === 'bedtime' ? v : Number(v); });
+        const timeKeys = new Set(['bedtime', 'armed_stay_on', 'armed_stay_off']);
+        ['bedtime', 'sunset_offset', 'random_min', 'random_max', 'deterrence_delay', 'exit_delay', 'entry_delay', 'escalation_minutes', 'alarm_blink_on', 'alarm_blink_off', 'snapshot_max_count', 'camera_alarm_burst', 'camera_motion_burst', 'armed_stay_on', 'armed_stay_off']
+          .forEach((k) => { const v = $('set_' + k).value; payload[k] = timeKeys.has(k) ? v : Number(v); });
+        payload.armed_stay_auto = $('set_armed_stay_auto').checked;
         await saveSettings(payload, $('btn-save'), 'saved-toast');
       });
       $('btn-save-zones').addEventListener('click', async () => {
         const payload = {
-          kevin_zones: {}, zone_matrix: {}, perimeter_sensors: [], entry_delay_sensors: [], blink_on: {}, blink_off: {}, camera_alarm_count: {}, camera_motion_count: {},
+          kevin_zones: {}, zone_matrix: {}, perimeter_sensors: [], entry_delay_sensors: [], blink_on: {}, blink_off: {}, camera_alarm_cams: {}, camera_motion_cams: {},
         };
         document.querySelectorAll('[data-kevin]').forEach((c) => { payload.kevin_zones[c.dataset.kevin] = c.checked; });
         document.querySelectorAll('[data-matrix]').forEach((s) => { if (s.value) payload.zone_matrix[s.dataset.matrix] = s.value; });
@@ -1085,15 +1319,116 @@
           const v = Math.max(1, Number(i.value) || 15);
           payload.blink_off[i.dataset.blinkOff] = v;
         });
-        document.querySelectorAll('[data-camera-alarm]').forEach((i) => {
-          payload.camera_alarm_count[i.dataset.cameraAlarm] = Math.max(0, Number(i.value) || 10);
+        document.querySelectorAll('[data-camera-alarm-cam]').forEach((c) => {
+          payload.camera_alarm_cams[c.dataset.cameraAlarmCam] = c.checked;
         });
-        document.querySelectorAll('[data-camera-motion]').forEach((i) => {
-          payload.camera_motion_count[i.dataset.cameraMotion] = Math.max(0, Number(i.value) || 1);
+        document.querySelectorAll('[data-camera-motion-cam]').forEach((c) => {
+          payload.camera_motion_cams[c.dataset.cameraMotionCam] = c.checked;
         });
         await saveSettings(payload, $('btn-save-zones'), 'saved-toast-zones');
         renderZoneBlocks();
       });
+
+      // ── Snapshot gallery ─────────────────────────────────────────
+      const PAGE_SIZE = 24;
+
+      function fmtBytes(b) {
+        if (b < 1024) return b + ' B';
+        if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+        return (b / 1048576).toFixed(1) + ' MB';
+      }
+
+      function openLightbox(type, filename, timestamp, size) {
+        $('lightbox-img').src = '';
+        $('lightbox-meta').textContent = 'Laster…';
+        $('lightbox').style.display = 'flex';
+        Homey.api('GET', '/snapshot-image', { type, filename }).then((res) => {
+          if (res && res.data) {
+            $('lightbox-img').src = 'data:image/jpeg;base64,' + res.data;
+            $('lightbox-meta').textContent = new Date(timestamp).toLocaleString('no-NO') + '  •  ' + fmtBytes(size);
+          }
+        }).catch(() => { $('lightbox-meta').textContent = 'Kunne ikke laste bildet.'; });
+      }
+
+      $('lightbox-close').addEventListener('click', () => { $('lightbox').style.display = 'none'; $('lightbox-img').src = ''; });
+      $('lightbox').addEventListener('click', (ev) => { if (ev.target === $('lightbox')) { $('lightbox').style.display = 'none'; $('lightbox-img').src = ''; } });
+
+      function renderSnapshotGrid(gridId, moreWrapId, items, type) {
+        const grid = $(gridId);
+        const moreWrap = $(moreWrapId);
+        grid.innerHTML = '';
+        moreWrap.innerHTML = '';
+
+        if (!items || items.length === 0) {
+          grid.innerHTML = '<p class="snap-empty">Ingen bilder lagret.</p>';
+          return;
+        }
+
+        const totalBytes = items.reduce((sum, i) => sum + (i.size || 0), 0);
+        const summary = document.createElement('p');
+        summary.className = 'snap-empty';
+        summary.style.marginBottom = '8px';
+        summary.textContent = items.length + ' bilde' + (items.length !== 1 ? 'r' : '') + '  •  totalt ' + fmtBytes(totalBytes);
+        grid.appendChild(summary);
+
+        let shown = 0;
+
+        function showPage() {
+          const slice = items.slice(shown, shown + PAGE_SIZE);
+          for (const item of slice) {
+            const img = document.createElement('img');
+            img.className = 'snapshot-thumb';
+            img.alt = new Date(item.timestamp).toLocaleString('no-NO');
+            img.title = img.alt + ' • ' + fmtBytes(item.size);
+            img.loading = 'lazy';
+            // Lazy-load image data when it becomes visible.
+            const observer = new IntersectionObserver((entries, obs) => {
+              if (!entries[0].isIntersecting) return;
+              obs.disconnect();
+              Homey.api('GET', '/snapshot-image', { type, filename: item.filename }).then((res) => {
+                if (res && res.data) img.src = 'data:image/jpeg;base64,' + res.data;
+              }).catch(() => { });
+            }, { rootMargin: '100px' });
+            observer.observe(img);
+            img.addEventListener('click', () => openLightbox(type, item.filename, item.timestamp, item.size));
+            grid.appendChild(img);
+          }
+          shown += slice.length;
+
+          moreWrap.innerHTML = '';
+          if (shown < items.length) {
+            const btn = document.createElement('button');
+            btn.className = 'snap-load-more';
+            btn.textContent = 'Vis flere (' + (items.length - shown) + ' igjen)';
+            btn.addEventListener('click', showPage);
+            moreWrap.appendChild(btn);
+          }
+        }
+
+        showPage();
+      }
+
+      async function loadImages() {
+        const list = await Homey.api('GET', '/snapshot-list');
+        if (!list) return;
+        renderSnapshotGrid('grid-alarm', 'more-alarm-wrap', list.alarm || [], 'alarm');
+        renderSnapshotGrid('grid-motion', 'more-motion-wrap', list.motion || [], 'motion');
+      }
+
+      // Load images when the Bilder tab is activated.
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          if (btn.dataset.tab === 'images') loadImages();
+        });
+      });
+
+      async function deleteSnapshotsOfType(type) {
+        if (!confirm('Slette alle ' + (type === 'alarm' ? 'alarm' : 'bevegelses') + 'bilder?')) return;
+        await Homey.api('DELETE', '/snapshots', { type });
+        await loadImages();
+      }
+      $('btn-delete-alarm').addEventListener('click', () => deleteSnapshotsOfType('alarm'));
+      $('btn-delete-motion').addEventListener('click', () => deleteSnapshotsOfType('motion'));
 
       (async () => {
         await loadStaticOnce();

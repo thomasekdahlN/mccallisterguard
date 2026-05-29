@@ -38,23 +38,44 @@ export interface GuardSettings {
   blink_off: ZoneSeconds;
   alarm_blink_on: number;
   alarm_blink_off: number;
-  /** Per-camera: how many snapshots to take when motion is detected while alarm is active. Default: 10. */
-  camera_alarm_count: Record<string, number>;
-  /** Per-camera: how many snapshots to take when motion is detected while no alarm. Default: 1. 0 = disabled. */
-  camera_motion_count: Record<string, number>;
+  /** Global: number of snapshots per camera when alarm is active and motion is detected. Default: 10. */
+  camera_alarm_burst: number;
+  /** Global: number of snapshots per camera when motion is detected without an active alarm. Default: 1. */
+  camera_motion_burst: number;
+  /** Per-camera enabled flag for alarm snapshots. Absent = enabled by default. */
+  camera_alarm_cams: Record<string, boolean>;
+  /** Per-camera enabled flag for motion snapshots. Absent = enabled by default. */
+  camera_motion_cams: Record<string, boolean>;
   /** Global master switch: whether to take motion snapshots when no alarm is active. Default: true. */
   camera_motion_enabled: boolean;
+  /** Maximum number of snapshots to retain per category (alarm / motion). Oldest are deleted first. Default: 250. */
+  snapshot_max_count: number;
+  /** Whether armed_stay should activate and deactivate automatically on a daily schedule. Default: false. */
+  armed_stay_auto: boolean;
+  /** Time to automatically enable armed_stay (HH:MM, 24h). Default: '22:00'. */
+  armed_stay_on: string;
+  /** Time to automatically disable armed_stay (HH:MM, 24h). Default: '06:00'. */
+  armed_stay_off: string;
 }
 
 export const DEFAULT_BLINK_SECONDS = 15;
 export const DEFAULT_ALARM_BLINK_ON = 1;
 export const DEFAULT_ALARM_BLINK_OFF = 1;
-/** Default number of snapshots per camera when alarm is active and motion is detected. */
-export const CAMERA_ALARM_DEFAULT_COUNT = 10;
-/** Default number of snapshots per camera when motion is detected without an active alarm. */
-export const CAMERA_MOTION_DEFAULT_COUNT = 1;
+/** Default global burst size when alarm is active and motion is detected. */
+export const CAMERA_ALARM_BURST_DEFAULT = 10;
+/** Default global burst size when motion is detected without an active alarm. */
+export const CAMERA_MOTION_BURST_DEFAULT = 1;
 /** Interval in ms between snapshots in a burst. */
 export const SNAPSHOT_BURST_INTERVAL_MS = 1_000;
+/** How long (ms) to wait after turning on zone lights before taking the first alarm snapshot. */
+export const CAMERA_FLASH_DELAY_MS = 500;
+
+/** Persistent directories for camera snapshots on Homey Pro's /userdata/ partition. */
+export const SNAPSHOT_DIR_ALARM = '/userdata/snapshots/alarm';
+export const SNAPSHOT_DIR_MOTION = '/userdata/snapshots/motion';
+
+/** Default maximum snapshots retained per category before FIFO cleanup. */
+export const SNAPSHOT_MAX_COUNT_DEFAULT = 250;
 
 export const DEFAULT_SETTINGS: GuardSettings = {
   bedtime: '23:30',
@@ -63,7 +84,7 @@ export const DEFAULT_SETTINGS: GuardSettings = {
   random_max: 45,
   deterrence_delay: 15,
   exit_delay: 60,
-  entry_delay: 30,
+  entry_delay: 60,
   escalation_minutes: 5,
   zone_matrix: {},
   kevin_zones: {},
@@ -73,9 +94,15 @@ export const DEFAULT_SETTINGS: GuardSettings = {
   blink_off: {},
   alarm_blink_on: DEFAULT_ALARM_BLINK_ON,
   alarm_blink_off: DEFAULT_ALARM_BLINK_OFF,
-  camera_alarm_count: {},
-  camera_motion_count: {},
+  camera_alarm_burst: CAMERA_ALARM_BURST_DEFAULT,
+  camera_motion_burst: CAMERA_MOTION_BURST_DEFAULT,
+  camera_alarm_cams: {},
+  camera_motion_cams: {},
   camera_motion_enabled: true,
+  snapshot_max_count: SNAPSHOT_MAX_COUNT_DEFAULT,
+  armed_stay_auto: false,
+  armed_stay_on: '22:00',
+  armed_stay_off: '06:00',
 };
 
 /**

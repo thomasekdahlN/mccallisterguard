@@ -857,6 +857,87 @@
           }
         ],
         "id": "mode_changed"
+      },
+      {
+        "title": {
+          "en": "Snapshot taken",
+          "no": "Snapshot tatt"
+        },
+        "titleFormatted": {
+          "en": "A snapshot was taken in [[zone]]",
+          "no": "Et snapshot ble tatt i [[zone]]"
+        },
+        "tokens": [
+          {
+            "name": "zone",
+            "type": "string",
+            "title": {
+              "en": "Zone",
+              "no": "Sone"
+            },
+            "example": {
+              "en": "Living room",
+              "no": "Stua"
+            }
+          },
+          {
+            "name": "sensor",
+            "type": "string",
+            "title": {
+              "en": "Camera",
+              "no": "Kamera"
+            },
+            "example": {
+              "en": "Front door camera",
+              "no": "Kamera hoveddør"
+            }
+          },
+          {
+            "name": "sensor_type",
+            "type": "string",
+            "title": {
+              "en": "Sensor type",
+              "no": "Sensortype"
+            },
+            "example": {
+              "en": "camera",
+              "no": "camera"
+            }
+          },
+          {
+            "name": "mode",
+            "type": "string",
+            "title": {
+              "en": "Arm mode",
+              "no": "Armert modus"
+            },
+            "example": {
+              "en": "armed_away",
+              "no": "armed_away"
+            }
+          },
+          {
+            "name": "timestamp",
+            "type": "string",
+            "title": {
+              "en": "Timestamp (ISO 8601)",
+              "no": "Tidsstempel (ISO 8601)"
+            },
+            "example": {
+              "en": "2026-05-26T08:00:00.000Z",
+              "no": "2026-05-26T08:00:00.000Z"
+            }
+          },
+          {
+            "name": "snapshot",
+            "type": "image",
+            "title": {
+              "en": "Snapshot image",
+              "no": "Snapshot-bilde"
+            }
+          }
+        ],
+        "id": "snapshot_taken"
       }
     ],
     "conditions": [
@@ -920,6 +1001,67 @@
       }
     ],
     "actions": [
+      {
+        "title": {
+          "en": "Bypass perimeter sensors",
+          "no": "Forbigå perimetersensorer"
+        },
+        "titleFormatted": {
+          "en": "Bypass perimeter sensors for [[duration]] seconds",
+          "no": "Forbigå perimetersensorer i [[duration]] sekunder"
+        },
+        "args": [
+          {
+            "name": "duration",
+            "type": "number",
+            "min": 5,
+            "max": 300,
+            "step": 5,
+            "label": {
+              "en": "Duration (seconds)",
+              "no": "Varighet (sekunder)"
+            },
+            "placeholder": {
+              "en": "60",
+              "no": "60"
+            }
+          }
+        ],
+        "id": "bypass_perimeter"
+      },
+      {
+        "title": {
+          "en": "Set motion snapshot",
+          "no": "Sett bevegelsesbilder"
+        },
+        "titleFormatted": {
+          "en": "Set motion snapshots to [[enabled]]",
+          "no": "Sett bevegelsesbilder til [[enabled]]"
+        },
+        "args": [
+          {
+            "name": "enabled",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "enable",
+                "label": {
+                  "en": "Enabled",
+                  "no": "Aktivert"
+                }
+              },
+              {
+                "id": "disable",
+                "label": {
+                  "en": "Disabled",
+                  "no": "Deaktivert"
+                }
+              }
+            ]
+          }
+        ],
+        "id": "set_camera_motion"
+      },
       {
         "title": {
           "en": "Set McCallister Guard mode",
