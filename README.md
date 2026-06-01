@@ -47,10 +47,11 @@ flowchart TB
 
   subgraph API[Internal HTTP API]
     STATUS[/status/]
-    SETMODE[/set-mode/]
+    SETMODE[/mode/]
     TESTD[/test-deterrence/]
     TESTA[/test-alarm/]
     STOP[/stop-alarm/]
+    PANIC[/panic/]
     SAVE[/settings/]
   end
 
@@ -100,18 +101,19 @@ stateDiagram-v2
   [*] --> Hjemme
 
   Hjemme --> Borte: setMode(armed)\n(exit delay)
-  Hjemme --> Skallsikring: setMode(armed_perimeter)
+  Hjemme --> Skallsikring: setMode(armed_perimeter)\neller scheduler (22:00)
   Hjemme --> Avskrekking: testDeterrence()
   Hjemme --> Alarm: testAlarm()
 
   Borte --> Hjemme: setMode(disarmed)\n(utenfor nattvindu)
-  Borte --> Skallsikring: setMode(disarmed)\ni nattvindu (auto-redirect)
+  Borte --> Skallsikring: setMode(disarmed) i nattvindu\n(auto-redirect)\neller scheduler (22:00)
   Borte --> Avskrekking: sensor utløst\n(entry delay → confirm)
   Borte --> Alarm: testAlarm()
 
-  Skallsikring --> Hjemme: setMode(disarmed)\n[dashboard: alltid OK\nflow uten force: ignoreres]
+  Skallsikring --> Hjemme: dashboard setMode(disarmed)\n[force=true, alltid OK]\neller scheduler (06:00)
+  Skallsikring --> Hjemme: flow-kort setMode(disarmed)\n[uten force: ignoreres]
   Skallsikring --> Borte: setMode(armed)
-  Skallsikring --> Avskrekking: perimeter-sensor utløst
+  Skallsikring --> Avskrekking: perimeter-sensor utløst\n(ikke i sensorsnap)
   Skallsikring --> Alarm: testAlarm()
 
   Avskrekking --> Alarm: escalation_minutes timer
@@ -133,19 +135,21 @@ flowchart TD
   M -- deterrence --> X2[Oppdater reaksjonssone\nuten ny timer]
   M -- alarm --> X3[Ignorer]
   M -- exit_delay aktiv --> X4[Ignorer\nbruker forlater huset]
-  M -- armed_perimeter --> SS{Perimeter-sensor?}
+  M -- armed_perimeter --> SS{Perimeter-sensor\ni perimeter_sensors-liste?}
   M -- armed --> ED1{⏱ entry-delay-markert?}
   SS -- nei --> X5[Ignorer\ninnendørs bevegelse]
-  SS -- ja --> ED2{⏱ entry-delay-markert?}
+  SS -- ja --> SNAP{I sensorsnap?\nåpen ved aktivering}
+  SNAP -- ja --> X7[Ignorer stille\nventilasjonsmodus]
+  SNAP -- nei --> ED2{⏱ entry-delay-markert?}
   ED1 -- ja --> DELAY[startEntryDelay\nentry_delay sek]
   ED1 -- nei --> MOTION_AWAY{Sensor type?}
   ED2 -- ja --> DELAY
   ED2 -- nei --> ENTER_DET_STAY[enterDeterrence\nalarm_perimeter_triggered]
   MOTION_AWAY -- motion --> MOT_DELAY[startEntryDelay\nentry_delay sek]
   MOTION_AWAY -- contact --> CONFIRM[handleConfirmedMotion\nvia false-alarm-filter]
-  DELAY --> WAIT{Bruker deaktiverer?}
+  DELAY --> WAIT{Bruker deaktiverer\ni tide?}
   MOT_DELAY --> WAIT
-  WAIT -- ja --> X6[cancelEntryDelay\ningan alarm]
+  WAIT -- ja --> X6[cancelEntryDelay\nIngen alarm]
   WAIT -- nei, timer utløpt --> CONFIRM
   CONFIRM --> ENTER_DET[enterDeterrence\nmode = deterrence\nalarm_triggered\nblink i reaksjonssone]
   ENTER_DET_STAY --> ENTER_DET
@@ -178,7 +182,8 @@ sequenceDiagram
   Note over U,App: Skallsikring — hoveddør har ⏱ entry delay
   U->>L: Skriv inn kode / scan fingeravtrykk
   L-->>F: Lås åpnet
-  F->>App: set_mode(disarmed) — IGNORERT (guard)
+  F->>App: set_mode(disarmed) — IGNORERT av guard\n(flow-kort uten force=true)
+  Note over App: Dashboard-knapp «Hjemme» ville virket\n(force=true hopper over guard)
   U->>D: Åpne dør
   D->>App: alarm_contact = true
   App->>App: isEntryDelaySensor() = true + mode=armed_perimeter
