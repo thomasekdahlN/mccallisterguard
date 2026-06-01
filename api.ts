@@ -34,7 +34,7 @@ function listSnapshotDir(dir: string): SnapshotMeta[] {
 interface AppRef {
   getSettings(): GuardSettings;
   saveSettings(settings: Partial<GuardSettings>): GuardSettings;
-  setMode(mode: Mode): Promise<void>;
+  setMode(mode: Mode, options?: { force?: boolean }): Promise<void>;
   testDeterrence(zoneId: string): Promise<void>;
   testAlarm(): Promise<void>;
   stopAlarm(): Promise<void>;
@@ -159,7 +159,8 @@ module.exports = {
 
   async setMode({ homey, body }: BodyCtx<{ mode: Mode }>) {
     try {
-      await homey.app.setMode(body.mode);
+      // Dashboard actions are explicit user intent — always bypass guards (force=true).
+      await homey.app.setMode(body.mode, { force: true });
       return { success: true };
     } catch (err) {
       return { success: false, error: (err as Error).message };

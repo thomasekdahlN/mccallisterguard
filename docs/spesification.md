@@ -134,7 +134,7 @@ Brukes når huseier sover.
   ytterdører, vinduer og utendørssensorer. Bevegelsessensorer innendørs hakes vanligvis vekk slik
   at man kan gå rundt om natten uten å utløse alarm.
 * Alle andre sensorer som ikke er hakket av som perimeter-sensorer **ignoreres** i denne modusen.
-* Hvis ingen sensorer er valgt globalt, brukes alle sensorer som fallback (bakoverkompatibelt).
+* Hvis ingen sensorer er valgt globalt, er det ingen aktive perimeter-sensorer — systemet vil ikke reagere på noen sensorer i Skallsikring-modus.
 * Når en perimeter-sensor trigges hoppes det over "mind-games" og det går rett til *Eskalert Alarm (Krise)*.
 * **Inngangsforsinkelse (⏱) pr. sensor** — dør-/vindu-sensorer kan markeres med ⏱ (innstillingen
   `entry_delay_sensors`). Når en slik sensor utløses, startes en nedtelling på `entry_delay`
@@ -143,7 +143,7 @@ Brukes når huseier sover.
   Gjelder både Skallsikring og Borte-modus. Kombineres typisk med en bruker-bygget flow som
   automatisk deaktiverer systemet når smartlåsen rapporterer autorisert opplåsing — da utløses
   ingen alarm i det hele tatt, og inngangsforsinkelsen er fallback hvis flowen feiler.
-* **Ventilasjonsmodus (sensorsnap):** Ved aktivering av Skallsikring tas et øyeblikksbilde av alle perimeter-sensorer som allerede er åpne (`alarm_contact = true`). Disse ignoreres stille for resten av sesjonen. Dette gjør det mulig å sove med et vindu på gløtt uten at det utløser alarm. Nye åpninger (etter aktiveringstidspunktet) reagerer normalt. Øyeblikksbildet nullstilles automatisk ved deaktivering.
+* **Ventilasjonsmodus (sensorsnap):** Ved aktivering av Skallsikring tas et øyeblikksbilde av **konfigurerte** perimeter-sensorer som allerede er åpne (`alarm_contact = true`). Disse ignoreres stille for resten av sesjonen. Dette gjør det mulig å sove med et vindu på gløtt uten at det utløser alarm. Nye åpninger (etter aktiveringstidspunktet) reagerer normalt. Øyeblikksbildet nullstilles automatisk ved deaktivering. Hvis ingen perimeter-sensorer er konfigurert, tas det ikke noe øyeblikksbilde.
 
 ---
 
@@ -316,6 +316,11 @@ Bruk `get_mode = disarmed` som condition for å unngå at flowen overskriver en 
 ### 8.3 Aktivering av Skallsikring (nattmodus)
 
 Skallsikring aktiveres best via **tidsplanleggeren** i appen (innstillinger → Skallsikring auto).
+Tidsplanleggeren er transition-basert: den aktiverer Skallsikring nøyaktig når klokken passerer
+ON-tidspunktet, og deaktiverer ved OFF-tidspunktet. **Ved appstart gjøres ingen automatisk
+aktivering eller deaktivering** — lagret modus beholdes uendret. Dette forhindrer at en restart
+midt på natten endrer modus uventet.
+
 Alternativt via en manuell flow med tidsbetingelse:
 
 ```

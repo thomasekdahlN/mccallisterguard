@@ -161,9 +161,13 @@ alarm           → armed_perimeter, armed, disarmed
 * armed → disarmed omdirigeres til armed_perimeter når Skallsikring-scheduleren er aktiv og
   klokken er innenfor det konfigurerte nattvinduet (f.eks. 22:00–06:00).
   Dette forhindrer at en smart-lås-flow deaktiverer systemet helt når noen kommer hjem sent.
-  Scheduler og force=true hopper over omdirigeringen.
-* armed_perimeter → disarmed ignoreres fra eksterne flows (smart-lås-guard).
-  Kun scheduler med force=true kan deaktivere Skallsikring automatisk.
+  Scheduler og force=true (dashboard, stopAlarm) hopper over omdirigeringen.
+* armed_perimeter → disarmed fra dashboard virker alltid (api.ts sender force=true).
+  armed_perimeter → disarmed fra Flow-kort uten force ignoreres (smart-lås-guard).
+  Scheduleren deaktiverer automatisk via force=true ved tidsvinduets slutt.
+* Scheduleren gjør ingen automatisk aktivering/deaktivering ved appstart (restart-sikker).
+  Modus er lagret i Homey settings og overlever restart uendret.
+  Scheduleren aktiverer/deaktiverer kun ved faktiske tidsoverganger (edge-detektion pr. minutt).
 * deterrence/alarm fra disarmed er kun tilgjengelig fra test-knapp/flow.
 ```
 
@@ -200,7 +204,7 @@ Initialiserer appen, kobler seg til Homey API-en og lytter på globale bevegelse
 | `setMode()` | Brukerinitiiert modusbytte — rydder timere/media ved disarmed, håndterer nattvindu-redirect og sensorsnap |
 | `stopAlarm()` | Stopper pågående alarm og returnerer til `previousArmedMode` |
 | `isInArmedPerimeterWindow()` | Returnerer `true` dersom Skallsikring-scheduleren er aktiv og klokken er innenfor nattvinduet |
-| `snapshotOpenPerimeterSensors()` | Tar øyeblikksbilde av åpne perimeter-sensorer ved aktivering av Skallsikring; disse ignoreres for resten av sesjonen (ventilasjonsmodus) |
+| `snapshotOpenPerimeterSensors()` | Tar øyeblikksbilde av åpne **konfigurerte** perimeter-sensorer ved aktivering av Skallsikring; disse ignoreres for resten av sesjonen (ventilasjonsmodus). Ingen snapshot hvis perimeter_sensors-listen er tom. |
 | `checkOpenContactSensors()` | Sjekker alle dør/vindu-sensorer ved arming i Borte-modus; sender push-notifikasjon og logger advarsel for åpne sensorer |
 
 ### 4.2. Logikkmotoren for "Mind-games": `lib/DeterrenceEngine.ts`

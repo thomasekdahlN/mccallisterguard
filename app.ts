@@ -443,8 +443,12 @@ class McCallisterGuardApp extends Homey.App {
   /**
    * Evaluate the armed_perimeter auto-schedule against the current time.
    *
-   * @param startup - When true, also activate if we are already inside the armed_perimeter window
-   *                  (handles app restarts in the middle of the night).
+   * Only fires on window transitions (open→closed, closed→open) detected by comparing
+   * the current window state to the last known state. At startup we record the current
+   * state so the first tick never produces a false transition — the stored mode already
+   * reflects what was active before the restart, so no forced activation/deactivation is needed.
+   *
+   * @param startup - When true, initialise lastArmedStayWindowState without triggering any action.
    */
   private checkArmedStaySchedule(startup: boolean): void {
     const settings = this.getSettings();
@@ -454,28 +458,16 @@ class McCallisterGuardApp extends Homey.App {
     const off = settings.armed_perimeter_off || '06:00';
     const now = new Date();
     const hhmm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-    const mode = this.stateMachine.getMode();
 
     // Determine whether we are currently inside the armed_perimeter window.
-    // Overnight windows (e.g. 22:00 – 06:00) cross midnight, so the comparison
-    // is: inside when now >= on OR now < off.
+    // Overnight windows (e.g. 22:00–06:00) cross midnight: inside when now >= on OR now < off.
     const overnight = on > off;
     const inWindow = overnight ? (hhmm >= on || hhmm < off) : (hhmm >= on && hhmm < off);
 
     if (startup) {
-      // On startup: remember current window state so the first tick can detect transitions.
+      // Seed the window state so the first minute-tick can detect real transitions.
+      // Do NOT auto-activate or auto-deactivate here — the persisted mode is already correct.
       this.lastArmedStayWindowState = inWindow;
-      // Activate immediately if inside window and currently disarmed.
-      // Never activate automatically if already in alarm (full alarm) mode.
-      if (inWindow && mode === 'disarmed') {
-        this.eventLog.add('info', `Automatisk skallsikring aktivert ved oppstart (kl. ${hhmm}, vindu ${on}–${off}).`);
-        this.setMode('armed_perimeter').catch(() => { /* best-effort */ });
-      }
-      // Deactivate if outside window and still in armed_perimeter (edge case: schedule changed while app was down).
-      if (!inWindow && mode === 'armed_perimeter') {
-        this.eventLog.add('info', `Automatisk skallsikring deaktivert ved oppstart — utenfor tidsvindu (kl. ${hhmm}, vindu ${on}–${off}).`);
-        this.setMode('disarmed', { force: true }).catch(() => { /* best-effort */ });
-      }
       return;
     }
 
@@ -484,12 +476,13 @@ class McCallisterGuardApp extends Homey.App {
     if (this.lastArmedStayWindowState === inWindow) return;
     this.lastArmedStayWindowState = inWindow;
 
-    // Never activate armed_perimeter automatically if already in alarm (full alarm) or armed.
+    const mode = this.stateMachine.getMode();
+    // Only activate from disarmed; never interrupt armed/alarm/deterrence.
     if (inWindow && mode === 'disarmed') {
-      this.eventLog.add('info', `Automatisk skallsikring aktivert (kl. ${hhmm}, vindu ${on}–${off}).`);
+      this.eventLog.add('info', `Automatisk skallsikring aktivert (vindu ${on}–${off}).`);
       this.setMode('armed_perimeter').catch(() => { /* best-effort */ });
     } else if (!inWindow && mode === 'armed_perimeter') {
-      this.eventLog.add('info', `Automatisk skallsikring deaktivert (kl. ${hhmm}, vindu ${on}–${off}).`);
+      this.eventLog.add('info', `Automatisk skallsikring deaktivert (vindu ${on}–${off}).`);
       this.setMode('disarmed', { force: true }).catch(() => { /* best-effort */ });
     }
   }
@@ -539,10 +532,9 @@ class McCallisterGuardApp extends Homey.App {
         if (args.mode === 'disarmed') {
           // Always log disarm attempts — including when mode is already disarmed or
           // when armed_perimeter guard silently ignores the request.
-          const now = new Date().toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
           const who = args.name?.trim() || 'ukjent';
-          this.eventLog.add('info', `Deaktivering forsøkt av ${who} kl. ${now}.`);
-          this.pushTimeline(`McCallister Guard: Deaktivering av ${who} kl. ${now}`);
+          this.eventLog.add('info', `Deaktivering forsøkt av ${who}.`);
+          this.pushTimeline(`McCallister Guard: Deaktivering av ${who}`);
         }
         await this.setMode(args.mode);
         return true;
@@ -639,13 +631,19 @@ class McCallisterGuardApp extends Homey.App {
    * for the night should not trigger an alarm.
    */
   private async snapshotOpenPerimeterSensors(): Promise<void> {
+    // Use strict matching: only snapshot sensors explicitly listed in perimeter_sensors.
+    // If no sensors are configured we snapshot nothing — falling back to "all sensors"
+    // would cause the guard to silently ignore sensors the user actually wants monitored.
+    const perimeterList = this.getSettings().perimeter_sensors ?? [];
+    if (perimeterList.length === 0) return;
+
     try {
       const devices = await this.homeyApi.devices.getDevices();
       this.openSensorsAtPerimeterStart.clear();
       for (const device of Object.values(devices) as any[]) {
         if (!Array.isArray(device.capabilities)) continue;
         if (!device.capabilities.includes('alarm_contact')) continue;
-        if (!this.isPerimeterSensor(device.id)) continue;
+        if (!perimeterList.includes(device.id)) continue;
         const val = device.capabilitiesObj?.alarm_contact?.value;
         if (val === true) {
           this.openSensorsAtPerimeterStart.add(device.id);

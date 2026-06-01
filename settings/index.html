@@ -1070,7 +1070,12 @@
       const fmtTs = (ts) => {
         if (!ts) return '–';
         const d = new Date(ts);
-        return d.toLocaleString('no-NO', { dateStyle: 'short', timeStyle: 'medium' });
+        // Show date without year (dd.MM) and time without seconds (HH:mm).
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const hour = String(d.getHours()).padStart(2, '0');
+        const min = String(d.getMinutes()).padStart(2, '0');
+        return `${day}.${month} ${hour}:${min}`;
       };
 
       let zones = [];

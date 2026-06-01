@@ -109,7 +109,7 @@ stateDiagram-v2
   Borte --> Avskrekking: sensor utløst\n(entry delay → confirm)
   Borte --> Alarm: testAlarm()
 
-  Skallsikring --> Hjemme: setMode(disarmed) [ignoreres utenfra]
+  Skallsikring --> Hjemme: setMode(disarmed)\n[dashboard: alltid OK\nflow uten force: ignoreres]
   Skallsikring --> Borte: setMode(armed)
   Skallsikring --> Avskrekking: perimeter-sensor utløst
   Skallsikring --> Alarm: testAlarm()
@@ -334,7 +334,7 @@ DA   Sett modus til Hjemme av [[bruker]]    ← set_mode action (name = låsens 
 |---|---|
 | `armed` (Borte) — utenfor nattvindu | Systemet deaktiveres normalt før døren åpnes — ingen alarm |
 | `armed` (Borte) — **i nattvindu** | `set_mode=disarmed` omdirigeres automatisk til `armed_perimeter` — huset går til Skallsikring i stedet for å deaktiveres helt. Forhindrer at en smart-lås-flow lar huset stå ubeskyttet om natten. |
-| `armed_perimeter` (Skallsikring) | `set_mode=disarmed` ignoreres (guard aktiv) — hoveddøren har entry delay som starter perimeter-bypass automatisk. Beboer kan deaktivere manuelt via dashboard innen entry_delay sekunder. |
+| `armed_perimeter` (Skallsikring) | `set_mode=disarmed` fra **dashboard** virker alltid (force=true). `set_mode=disarmed` fra **flow-kort uten force** ignoreres — hoveddøren har entry delay som starter perimeter-bypass automatisk. |
 | `disarmed` | Ingen effekt |
 
 > **Nattvindu-redirect:** Omdirigering fra `armed` til `armed_perimeter` gjelder kun når den innebygde Skallsikring-scheduleren er aktivert (Innstillinger → Skallsikring auto) og klokken er innenfor det konfigurerte tidsrommet (f.eks. 22:00–06:00). Automatisk scheduler og `force=true` fra interne flows går forbi denne logikken.
@@ -364,9 +364,13 @@ DA   Sett modus til Skallsikring
 
 Alternativt: bruk den innebygde tidsplanleggeren i appen (Innstillinger → Skallsikring auto).
 
+> **Scheduleren aktiverer kun ved overganger.** Aktivering skjer nøyaktig når klokken passerer ON-tidspunktet (f.eks. 22:00) og deaktivering ved OFF-tidspunktet (f.eks. 06:00). Ved appstart gjøres ingen automatisk aktivering/deaktivering — den lagrede modusen beholdes som den er.
+
 #### Ventilasjonsmodus — Skallsikring med åpne vinduer
 
-Når Skallsikring aktiveres tar appen et øyeblikksbilde av hvilke perimeter-sensorer som allerede er åpne. Disse sensorene ignoreres stille for resten av sesjonen — du kan sove med et vindu på gløtt uten å utløse alarm. Nye åpninger (vinduer/dører som åpnes *etter* aktivering) reagerer normalt.
+Når Skallsikring aktiveres tar appen et øyeblikksbilde av hvilke **konfigurerte perimeter-sensorer** som allerede er åpne. Disse sensorene ignoreres stille for resten av sesjonen — du kan sove med et vindu på gløtt uten å utløse alarm. Nye åpninger (vinduer/dører som åpnes *etter* aktivering) reagerer normalt.
+
+> **Merk:** Øyeblikksbildet bruker kun sensorer som eksplisitt er konfigurert som perimeter-sensorer i Soneoversikten. Hvis ingen sensorer er konfigurert, tas det ikke noe øyeblikksbilde.
 
 ```
 Eksempel:
