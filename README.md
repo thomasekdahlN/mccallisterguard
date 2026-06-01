@@ -785,6 +785,20 @@ For kameraer som ikke støtter Homeys native snapshot-API kan en mulig workaroun
 - Vi kan ikke detektere om en Chromecast/Sonos er i bruk av noen andre når avskrekkingen starter — det er opp til brukerens flow å håndtere «interrupt»-logikk.
 - Vi kan ikke feste bilder til Homey-notifikasjoner (`notifications.createNotification` tar kun tekst). Snapshot-loopen sender derfor kun tekst-varsler i dag — bildene må eksponeres via en flow med image-token hvis brukeren skal kunne se dem.
 
+---
+
+## ☕ Støtt prosjektet
+
+McCallister Guard er utviklet på fritiden og deles gratis med hele Homey-samfunnet — ingen abonnement, ingen skjulte kostnader, ingen reklame.
+
+Hvis appen beskytter hjemmet ditt, gir deg tryggere netter, eller bare sparer deg for hodepine du ellers ville fått — vurder å sende en liten takk. **Selv $5 / €5 monner og motiverer til videre utvikling**, nye funksjoner og raskere feilretting.
+
+> 💳 **PayPal:** [thomas@ekdahl.no](https://www.paypal.com/paypalme/thomasekdahl)
+>
+> Alle bidrag går direkte til kaffe, utviklingstid og Homey-hardware for testing. 🙏
+
+---
+
 ## Lisens og credits
 
 - **App-kode**: MIT — se [LICENSE](LICENSE)
