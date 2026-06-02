@@ -523,8 +523,8 @@ class McCallisterGuardApp extends Homey.App {
           // Always log disarm attempts — including when mode is already disarmed or
           // when armed_perimeter guard silently ignores the request.
           const who = args.name?.trim() || 'ukjent';
-          this.eventLog.add('info', `Deaktivering forsøkt av ${who}.`);
-          this.pushTimeline(`McCallister Guard: Deaktivering av ${who}`);
+          this.eventLog.add('info', `Deaktivert av ${who}.`);
+          this.pushTimeline(`McCallister Guard: Deaktivert av ${who}`);
         }
         await this.setMode(args.mode);
         return true;
