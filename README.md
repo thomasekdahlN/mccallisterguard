@@ -1,10 +1,10 @@
-# McCallister Guard
+# Homey Alone Guard
 
 > Alene Hjemme-inspirert smart sikkerhet for Homey Pro — psykologisk avskrekking av tyver med lyd, video og lys i stedet for bare alarm-sirener.
 
 [![Homey](https://img.shields.io/badge/Homey-SDK%203-blue)](https://apps.developer.homey.app/) [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-McCallister Guard er ikke enda et passivt alarmsystem. I stedet for å bare tute når noen bryter seg inn, **forteller den tyven at huset er bebodd og at noen følger med** — gjennom lyder (bjeffing, sirener), video (blålys, store hunder, silhuetter i vinduet) og lysmønstre som etterligner et hjem i full aktivitet. Inspirasjonen er Kevin McCallister fra *Alene Hjemme* (1990): vinn ved å få tyven til å snu i døra.
+Homey Alone Guard er ikke enda et passivt alarmsystem. I stedet for å bare tute når noen bryter seg inn, **forteller den tyven at huset er bebodd og at noen følger med** — gjennom lyder (bjeffing, sirener), video (blålys, store hunder, silhuetter i vinduet) og lysmønstre som etterligner et hjem i full aktivitet. Inspirasjonen er Kevin McCallister fra *Alene Hjemme* (1990): vinn ved å få tyven til å snu i døra.
 
 ## Funksjoner
 
@@ -54,7 +54,7 @@ flowchart TB
     SAVE[/settings/]
   end
 
-  subgraph APP[McCallisterGuardApp]
+  subgraph APP[HomeyAloneGuardApp]
     SM[StateMachine - 5 modi + entry/exit delay]
     FAF[FalseAlarmFilter - 90s konfidens]
     DE[DeterrenceEngine - reaksjonssone-matrise]
@@ -369,7 +369,7 @@ DA   Sett modus til Hjemme av [[bruker]]    ← set_mode action (name = låsens 
 >   manuell deaktivering via dashboard/app
 > - Legg til en **fysisk knapp ved inngangsdøren** som aktiverer/deaktiverer alarmen — pålitelig,
 >   rask og fungerer uten internett
-> - Bruk **McCallister Guard-appen** (dashboard) for manuell kontroll når knappen ikke er tilgjengelig
+> - Bruk **Homey Alone Guard-appen** (dashboard) for manuell kontroll når knappen ikke er tilgjengelig
 
 **Anbefalt oppsett: presence aktiverer, men knapp/lås deaktiverer**
 
@@ -456,7 +456,7 @@ Appen sjekker i tillegg om noen sensorer er offline (utilgjengelige). Er noen ut
 
 ## Hva logges hvor
 
-McCallister Guard bruker tre separate loggkanaler med ulike formål:
+Homey Alone Guard bruker tre separate loggkanaler med ulike formål:
 
 | Kanal | Hva | Detalj-nivå | Varighet |
 |---|---|---|---|
@@ -590,14 +590,14 @@ Systemet har seks modi: `disarmed` (Hjemme), `armed` (Borte), `armed_perimeter` 
 
 I Flow-editoren (`Homey-appen → Flows → Ny flow`):
 
-1. **NÅR** — `McCallister Guard → Modus endret`
+1. **NÅR** — `Homey Alone Guard → Modus endret`
 2. **OG** *(valgfritt)* — filtrer på `[mode_new]` eller `[mode_previous]` for å reagere på spesifikke overganger.
 3. **SÅ** — kjør ønsket handling (push, SMS, tenn lys, aktiver scene, o.l.)
 
 ### Eksempel 1 — push når avskrekking starter
 
 ```text
-NÅR  McCallister Guard → Modus endret
+NÅR  Homey Alone Guard → Modus endret
 OG   mode_new = deterrence
 SÅ   Homey → Send a push notification
        Tittel:  Avskrekking aktiv
@@ -607,7 +607,7 @@ SÅ   Homey → Send a push notification
 ### Eksempel 2 — ring nødkontakt ved full alarm
 
 ```text
-NÅR  McCallister Guard → Modus endret
+NÅR  Homey Alone Guard → Modus endret
 OG   mode_new = alarm
 SÅ   Ring nødkontakt via IFTTT/SMS
      Send push med høyest prioritet til alle
@@ -616,7 +616,7 @@ SÅ   Ring nødkontakt via IFTTT/SMS
 ### Eksempel 3 — logg modus-historikk
 
 ```text
-NÅR  McCallister Guard → Modus endret
+NÅR  Homey Alone Guard → Modus endret
 SÅ   Google Sheet → Legg til rad: [mode_new], [mode_previous], [tidspunkt]
 ```
 
@@ -641,14 +641,14 @@ SÅ   Google Sheet → Legg til rad: [mode_new], [mode_previous], [tidspunkt]
 
 ```bash
 git clone https://github.com/thomasekdahlN/mcallisteralarm.git
-cd mcallisteralarm/com.mccallister.guard
+cd mcallisteralarm/com.homeyalone.guard
 npm install
 homey app install
 ```
 
 ### Konfigurasjon
 
-1. Åpne **Innstillinger → Apper → McCallister Guard → Konfigurer app**.
+1. Åpne **Innstillinger → Apper → Homey Alone Guard → Konfigurer app**.
 2. Under **Soneoversikt**, utvid hver sone og se hvilke kapabiliteter (🔊 lyd, 📺 skjerm, 💡 lys) og sensorer
    (🚪 dør/vindu, 👁️ bevegelse) som er oppdaget.
 3. Definer **reaksjonssone-matrise** per sone — f.eks. «bevegelse på loft → spill avskrekking i stua».
@@ -698,7 +698,7 @@ App-ikonet kopieres direkte (samme SVG som master). App Images regenereres fra `
 ### Mappestruktur
 
 ```
-com.mccallister.guard/
+com.homeyalone.guard/
 ├── app.ts                  # Hovedklasse
 ├── api.ts                  # Internal HTTP API for settings-UI
 ├── lib/                    # Moduler (StateMachine, DeterrenceEngine, …)
@@ -904,7 +904,7 @@ For kameraer som ikke støtter Homeys native snapshot-API kan en mulig workaroun
 
 ## ☕ Støtt prosjektet
 
-McCallister Guard er utviklet på fritiden og deles gratis med hele Homey-samfunnet — ingen abonnement, ingen skjulte kostnader, ingen reklame.
+Homey Alone Guard er utviklet på fritiden og deles gratis med hele Homey-samfunnet — ingen abonnement, ingen skjulte kostnader, ingen reklame.
 
 Hvis appen beskytter hjemmet ditt, gir deg tryggere netter, eller bare sparer deg for hodepine du ellers ville fått — vurder å sende en liten takk. **Selv $5 / €5 monner og motiverer til videre utvikling**, nye funksjoner og raskere feilretting.
 

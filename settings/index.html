@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>McCallister Guard</title>
+  <title>Homey Alone Guard</title>
   <script type="text/javascript" src="/homey.js" data-origin="settings"></script>
   <style>
     body {
@@ -830,7 +830,7 @@
 </head>
 
 <body>
-  <h2>McCallister Guard</h2>
+  <h2>Homey Alone Guard</h2>
 
   <div class="tabs">
     <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
@@ -960,7 +960,7 @@
 
   <section class="tab-panel" id="tab-docs">
     <div class="docs">
-      <h3>Hva er McCallister Guard?</h3>
+      <h3>Hva er Homey Alone Guard?</h3>
       <p>Et sikkerhetssystem inspirert av <em>Alene Hjemme</em>: i stedet for å bare utløse en alarm, prøver appen
         å <strong>avskrekke</strong> tyver med psykologiske triks — blålys i naborommet, sirener, bjeffende hunder,
         eller videoklipp av en stor person i vinduet. Målet er at tyven snur før noe skjer.</p>
@@ -989,7 +989,7 @@
         sette i gang sirenen. Anbefales for hoveddør og bakdør med kodelås.
       </p>
       <p>Tips: kombiner med en flow som <em>automatisk</em> deaktiverer systemet når smartlåsen din rapporterer
-        en autorisert opplåsing (NÅR «smart-låsen ble låst opp med kode X» → SÅ «sett McCallister Guard til
+        en autorisert opplåsing (NÅR «smart-låsen ble låst opp med kode X» → SÅ «sett Homey Alone Guard til
         Hjemme»). Da rekker systemet å gå i Hjemme-modus før døren åpnes, og ingen alarm utløses i det hele
         tatt. Inngangsforsinkelsen er fallback hvis flowen feiler eller låsen ikke rapporterer riktig.</p>
 
@@ -1082,7 +1082,7 @@
 
       <h3>Eksempel: vakthund-bjeffing på Sonos overalt</h3>
       <ol>
-        <li><strong>NÅR:</strong> McCallister Guard → Avskrekking startet i sone</li>
+        <li><strong>NÅR:</strong> Homey Alone Guard → Avskrekking startet i sone</li>
         <li><strong>SÅ:</strong> Sonos → <code>Play a URL</code> (på gruppen «Hele huset») → URL:
           <code>[url_guard_dog]</code>, volum: 80 %
         </li>

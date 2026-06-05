@@ -1,5 +1,5 @@
 {
-  "id": "com.mccallister.guard",
+  "id": "com.homeyalone.guard",
   "version": "0.5.0",
   "compatibility": ">=12.4.0",
   "sdk": 3,
@@ -8,8 +8,8 @@
     "local"
   ],
   "name": {
-    "en": "McCallister Guard",
-    "no": "McCallister Guard"
+    "en": "Homey Alone Guard",
+    "no": "Homey Alone Guard"
   },
   "description": {
     "en": "Home Alone inspired smart security: psychological deterrence for intruders.",

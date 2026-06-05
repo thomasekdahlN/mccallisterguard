@@ -1,4 +1,4 @@
-Dette er et spennende utviklingsprosjekt! For å implementere **McCallister Guard** på dagens Homey-plattform (Homey Pro 2023 og nyere firmware), må vi bygge appen etter **Homey Apps SDK v3**-standarden.
+Dette er et spennende utviklingsprosjekt! For å implementere **Homey Alone Guard** på dagens Homey-plattform (Homey Pro 2023 og nyere firmware), må vi bygge appen etter **Homey Apps SDK v3**-standarden.
 
 Siden appen skal kontrollere enheter *dynamisk på tvers av soner* uten at brukeren må lage 100 manuelle flows, må vi bruke **Homey Web API** internt i appen. Dette gir appen full tilgang til å se hvilke enheter (lys, høyttalere, kameraer) som befinner seg i de ulike rommene.
 
@@ -30,13 +30,13 @@ Her er utkastet til den tekniske arkitekturen.
 
 ## 2. Prosjektstruktur (Directory Tree)
 
-Appen er scaffoldet med `homey app create` og ligger i undermappen `com.mccallister.guard/` (workspace-relativt). Faktisk struktur:
+Appen er scaffoldet med `homey app create` og ligger i undermappen `com.homeyalone.guard/` (workspace-relativt). Faktisk struktur:
 
 ```text
 McAllisterAlarm/                       # workspace-rot
 ├── spesification.md
 ├── architecture.md
-└── com.mccallister.guard/             # Homey-appen
+└── com.homeyalone.guard/             # Homey-appen
     ├── app.json                       # GENERERT — ikke editér direkte
     ├── app.ts                         # Hovedinngang og livssyklus (Lifecycle)
     ├── package.json
@@ -84,9 +84,9 @@ Eksempel `.homeycompose/app.json`:
 
 ```json
 {
-  "id": "com.mccallister.guard",
+  "id": "com.homeyalone.guard",
   "sdk": 3,
-  "name": { "en": "McCallister Guard", "no": "McCallister Guard" },
+  "name": { "en": "Homey Alone Guard", "no": "Homey Alone Guard" },
   "description": { "en": "Kevin-modus inspirert sikkerhetssystem for Homey", "no": "Kevin-modus inspirert sikkerhetssystem for Homey" },
   "version": "1.0.0",
   "compatibility": ">=12.4.0",
@@ -110,7 +110,7 @@ Eksempel `.homeycompose/flow/actions/set_mode.json`:
 ```json
 {
   "id": "set_mode",
-  "title": { "no": "Sett McCallister modus til [[mode]]", "en": "Set McCallister mode to [[mode]]" },
+  "title": { "no": "Sett Homey Alone Guard modus til [[mode]]", "en": "Set Homey Alone Guard mode to [[mode]]" },
   "args": [
     {
       "name": "mode",
@@ -143,7 +143,7 @@ Eksempel `.homeycompose/flow/triggers/deterrence_started.json`:
 
 ### 4.0. Tilstandsmaskin (5-modus)
 
-McCallister Guard bruker en strikt tilstandsmaskin med fem modi. Alle overganger valideres mot `VALID_TRANSITIONS`-tabellen i `lib/types.ts`.
+Homey Alone Guard bruker en strikt tilstandsmaskin med fem modi. Alle overganger valideres mot `VALID_TRANSITIONS`-tabellen i `lib/types.ts`.
 
 ```
 Mode = 'disarmed' | 'armed' | 'armed_perimeter' | 'deterrence' | 'alarm'
@@ -212,13 +212,13 @@ Initialiserer appen, kobler seg til Homey API-en og lytter på globale bevegelse
 Håndterer svingningene mellom sonene. Blålys-effekten castes fra lokal asset (`/assets/media/blue-lights.mp4`) eller faller tilbake til blinkende blå smartpærer hvis ingen skjerm finnes i sonen (se §6.1 i spec).
 
 ```typescript
-import type McCallisterApp from '../app';
+import type HomeyAloneGuardApp from '../app';
 
 export default class DeterrenceEngine {
   private activeDeterrenceZone: string | null = null;
   private cooldownTimer: NodeJS.Timeout | null = null;
 
-  constructor(private readonly app: McCallisterApp) {}
+  constructor(private readonly app: HomeyAloneGuardApp) {}
 
   async handleMotion(zoneId: string, deviceId: string): Promise<void> {
     const mode = this.app.stateMachine.getMode();
@@ -275,10 +275,10 @@ module.exports = DeterrenceEngine;
 For at Dashboardet (HTML-siden) skal vite status på sonene i sanntid, eksponerer vi et internt API. Endepunktene registreres i `.homeycompose/app.json` under `api`-feltet.
 
 ```typescript
-import type McCallisterApp from './app';
+import type HomeyAloneGuardApp from './app';
 import type { Mode } from './app';
 
-interface ApiCtx { homey: { app: McCallisterApp } }
+interface ApiCtx { homey: { app: HomeyAloneGuardApp } }
 interface SetModeBody { mode: Mode }
 
 module.exports = {
@@ -317,7 +317,7 @@ Homey bruker standard HTML/JS for app-innstillinger og tilpassede skjermbilder. 
   </style>
 </head>
 <body>
-  <h2>McCallister Guard Dashboard</h2>
+  <h2>Homey Alone Guard Dashboard</h2>
   <div id="mode-status">Laster status...</div>
   
   <h3>Soneovervåking</h3>

@@ -15,7 +15,7 @@ import {
   AlarmType, DEFAULT_SETTINGS, GuardSettings, Mode, SETTINGS_KEYS,
 } from './lib/types';
 
-class McCallisterGuardApp extends Homey.App {
+class HomeyAloneGuardApp extends Homey.App {
 
   public homeyApi!: any;
   public eventLog!: EventLog;
@@ -44,7 +44,7 @@ class McCallisterGuardApp extends Homey.App {
   private static readonly MOTION_RECENT_MS = 60_000;
   private static readonly ZONE_CACHE_REFRESH_MS = 60_000;
   async onInit(): Promise<void> {
-    this.log('McCallister Guard starter opp…');
+    this.log('Homey Alone Guard starter opp…');
 
     this.homeyApi = await (HomeyAPI as any).createAppAPI({ homey: this.homey });
 
@@ -53,7 +53,7 @@ class McCallisterGuardApp extends Homey.App {
     await this.refreshZoneNameCache();
     this.zoneCacheTimer = this.homey.setInterval(
       () => { this.refreshZoneNameCache().catch(() => { /* best-effort */ }); },
-      McCallisterGuardApp.ZONE_CACHE_REFRESH_MS,
+      HomeyAloneGuardApp.ZONE_CACHE_REFRESH_MS,
     );
     this.stateMachine = new StateMachine(this.homey, this.eventLog);
     this.media = new MediaCaster(this.homey, this.homeyApi, this.eventLog, () => this.getSettings());
@@ -106,7 +106,7 @@ class McCallisterGuardApp extends Homey.App {
     if (this.stateMachine.getMode() === 'armed') this.simulation.start();
 
     this.startArmedStayScheduler();
-    this.log('McCallister Guard initialisert.');
+    this.log('Homey Alone Guard initialisert.');
   }
 
   getSettings(): GuardSettings {
@@ -193,7 +193,7 @@ class McCallisterGuardApp extends Homey.App {
   async testDeterrence(zoneId: string): Promise<void> {
     this.clearTestStopTimer();
     this.clearDeterrenceTimer();
-    const seconds = Math.round(McCallisterGuardApp.TEST_DURATION_MS / 1000);
+    const seconds = Math.round(HomeyAloneGuardApp.TEST_DURATION_MS / 1000);
     this.eventLog.add('info', `Test: avskrekking i sone ${zoneId} — auto-stopp om ${seconds}s.`, zoneId);
     const currentMode = this.stateMachine.getMode();
     if (currentMode !== 'deterrence' && currentMode !== 'alarm' && currentMode !== 'perimeter_alarm') {
@@ -210,13 +210,13 @@ class McCallisterGuardApp extends Homey.App {
       const returnMode = this.previousArmedMode ?? 'disarmed';
       this.previousArmedMode = null;
       await this.stateMachine.setMode(returnMode);
-    }, McCallisterGuardApp.TEST_DURATION_MS);
+    }, HomeyAloneGuardApp.TEST_DURATION_MS);
   }
 
   async testAlarm(): Promise<void> {
     this.clearTestStopTimer();
     this.clearDeterrenceTimer();
-    const seconds = Math.round(McCallisterGuardApp.TEST_DURATION_MS / 1000);
+    const seconds = Math.round(HomeyAloneGuardApp.TEST_DURATION_MS / 1000);
     this.eventLog.add('info', `Test: full alarm (modus=alarm) — auto-stopp om ${seconds}s.`);
     const currentMode = this.stateMachine.getMode();
     if (currentMode !== 'deterrence' && currentMode !== 'alarm' && currentMode !== 'perimeter_alarm') {
@@ -234,7 +234,7 @@ class McCallisterGuardApp extends Homey.App {
       this.previousArmedMode = null;
       this.alarmContext = null;
       await this.stateMachine.setMode(returnMode);
-    }, McCallisterGuardApp.TEST_DURATION_MS);
+    }, HomeyAloneGuardApp.TEST_DURATION_MS);
   }
 
   isTestActive(): boolean {
@@ -273,7 +273,7 @@ class McCallisterGuardApp extends Homey.App {
   }
 
   getRecentMotionZones(): string[] {
-    const cutoff = Date.now() - McCallisterGuardApp.MOTION_RECENT_MS;
+    const cutoff = Date.now() - HomeyAloneGuardApp.MOTION_RECENT_MS;
     const result: string[] = [];
     for (const [zoneId, ts] of this.motionLastSeen) {
       if (ts >= cutoff) result.push(zoneId);
@@ -850,4 +850,4 @@ class McCallisterGuardApp extends Homey.App {
 
 }
 
-module.exports = McCallisterGuardApp;
+module.exports = HomeyAloneGuardApp;
