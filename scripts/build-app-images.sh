@@ -1,5 +1,5 @@
 #!/bin/bash
-# Generates Homey App Images (small/large/xlarge PNGs) from design/appartwork.png
+# Generates Homey App Images (small/large/xlarge PNGs) from design/appartwork.jpeg
 # using macOS-native `sips` (no external dependencies).
 #
 # Homey App Store requires three exact sizes for App Images (10:7 ratio):
@@ -16,7 +16,7 @@
 
 set -euo pipefail
 
-SRC="design/appartwork.png"
+SRC="design/appartwork.jpeg"
 OUT_DIR="assets/images"
 
 if [ ! -f "$SRC" ]; then
@@ -44,7 +44,8 @@ generate() {
   new_w=$(awk -v s="$scale" -v w="$SRC_W" 'BEGIN{printf "%d", (w*s)+0.5}')
   new_h=$(awk -v s="$scale" -v h="$SRC_H" 'BEGIN{printf "%d", (h*s)+0.5}')
 
-  cp "$SRC" "$tmp"
+  # Convert source to PNG first (handles JPEG/PNG/WebP input transparently).
+  sips -s format png "$SRC" --out "$tmp" > /dev/null
   sips -z "$new_h" "$new_w" "$tmp" > /dev/null
   sips -c "$th" "$tw" "$tmp" > /dev/null
   mv "$tmp" "$out"

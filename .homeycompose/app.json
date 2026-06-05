@@ -32,6 +32,13 @@
     "name": "Thomas Ekdahl",
     "email": "thomas@ekdahl.no"
   },
+  "contributing": {
+    "donate": {
+      "paypal": {
+        "username": "ekdahlthomas"
+      }
+    }
+  },
   "api": {
     "getStatus": {
       "method": "GET",

@@ -10,16 +10,41 @@
     body {
       font-family: -apple-system, system-ui, sans-serif;
       margin: 0;
-      padding: 16px;
+      padding: 16px 16px 80px;
       color: #222;
     }
 
-    h2 {
+    /* ── Page header (title + help icon) ─────────────────────────── */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       margin: 4px 0 16px;
-      color: #1A531A;
       border-bottom: 3px solid #F2A900;
       padding-bottom: 8px;
+    }
+
+    .page-header h2 {
+      margin: 0;
+      color: #1A531A;
       font-size: 22px;
+      flex: 1;
+    }
+
+    .help-btn {
+      background: none;
+      border: none;
+      font-size: 22px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      color: #1A531A;
+      line-height: 1;
+      transition: background 0.15s;
+    }
+
+    .help-btn:hover {
+      background: #f0f7f0;
     }
 
     h3 {
@@ -237,29 +262,44 @@
       opacity: 1;
     }
 
-    .tabs {
+    /* ── Bottom navigation bar ────────────────────────────────────── */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
       display: flex;
-      border-bottom: 2px solid #ddd;
-      margin-bottom: 16px;
-      gap: 2px;
-    }
-
-    .tab-btn {
-      flex: 1;
-      padding: 10px 8px;
-      background: #f4f4f6;
-      border: 0;
-      border-bottom: 3px solid transparent;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 600;
-      color: #555;
-    }
-
-    .tab-btn.active {
-      color: #1A531A;
-      border-bottom-color: #1A531A;
       background: #fff;
+      border-top: 1px solid #ddd;
+      box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
+      z-index: 100;
+    }
+
+    .nav-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 0 14px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #888;
+      transition: color 0.15s;
+    }
+
+    .nav-btn .nav-icon {
+      font-size: 26px;
+      line-height: 1;
+    }
+
+    /* Hide text labels — icon-only bar fits all 5 items */
+    .nav-btn .nav-label {
+      display: none;
+    }
+
+    .nav-btn.active {
+      color: #1A531A;
     }
 
     .tab-panel {
@@ -268,6 +308,37 @@
 
     .tab-panel.active {
       display: block;
+    }
+
+    /* ── Docs overlay (full-screen when open) ─────────────────────── */
+    .docs-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #fff;
+      z-index: 200;
+      overflow-y: auto;
+      padding: 16px 16px 32px;
+    }
+
+    .docs-overlay.open {
+      display: block;
+    }
+
+    .docs-back-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: none;
+      font-size: 15px;
+      font-weight: 600;
+      color: #1A531A;
+      cursor: pointer;
+      padding: 8px 0 16px;
+      border-bottom: 2px solid #F2A900;
+      margin-bottom: 12px;
+      width: 100%;
     }
 
     .info-banner {
@@ -565,13 +636,7 @@
     /* ── Responsive / mobile ───────────────────────────────────────── */
     @media (max-width: 560px) {
       body {
-        padding: 8px;
-      }
-
-      /* Tab labels: smaller text so all four fit on one row */
-      .tab-btn {
-        font-size: 12px;
-        padding: 10px 4px;
+        padding: 8px 8px 80px;
       }
 
       /* Zone body: switch to single-column stacked layout */
@@ -826,20 +891,99 @@
       border: 1px solid #ccc;
       padding: 0 8px;
     }
+
+    /* ── Media URL table (docs overlay) ───────────────────────────── */
+    .media-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .media-table th {
+      text-align: left;
+      padding: 6px 8px;
+      background: #f4f4f6;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #666;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .media-table td {
+      padding: 8px;
+      border-bottom: 1px solid #eee;
+      vertical-align: middle;
+    }
+
+    .media-url-cell {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .media-url {
+      font-family: monospace;
+      font-size: 11px;
+      background: #f4f4f6;
+      padding: 3px 6px;
+      border-radius: 4px;
+      word-break: break-all;
+      flex: 1;
+      color: #333;
+    }
+
+    .copy-url-btn {
+      flex-shrink: 0;
+      background: none;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-size: 11px;
+      cursor: pointer;
+      color: #555;
+      white-space: nowrap;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .copy-url-btn:hover {
+      background: #f0f7f0;
+      border-color: #1A531A;
+      color: #1A531A;
+    }
   </style>
 </head>
 
 <body>
-  <h2>Homey Alone Guard</h2>
-
-  <div class="tabs">
-    <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
-    <button class="tab-btn" data-tab="zones">Soneoversikt</button>
-    <button class="tab-btn" data-tab="settings">Innstillinger</button>
-    <button class="tab-btn" data-tab="images">Bilder</button>
-    <button class="tab-btn" data-tab="log">Hendelseslogg</button>
-    <button class="tab-btn" data-tab="docs">Dokumentasjon</button>
+  <div class="page-header">
+    <h2>Homey Alone Guard</h2>
+    <button class="help-btn" id="btn-help" title="Hjelp og dokumentasjon">❓</button>
   </div>
+
+  <!-- Fixed bottom navigation bar (5 items — icon-only) -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-tab="dashboard" title="Dashboard">
+      <span class="nav-icon" aria-hidden="true">🏠</span>
+      <span class="nav-label">Dashboard</span>
+    </button>
+    <button class="nav-btn" data-tab="zones" title="Soneoversikt">
+      <span class="nav-icon" aria-hidden="true">🗺️</span>
+      <span class="nav-label">Soner</span>
+    </button>
+    <button class="nav-btn" data-tab="settings" title="Innstillinger">
+      <span class="nav-icon" aria-hidden="true">⚙️</span>
+      <span class="nav-label">Innstillinger</span>
+    </button>
+    <button class="nav-btn" data-tab="images" title="Bilder">
+      <span class="nav-icon" aria-hidden="true">📷</span>
+      <span class="nav-label">Bilder</span>
+    </button>
+    <button class="nav-btn" data-tab="log" title="Hendelseslogg">
+      <span class="nav-icon" aria-hidden="true">📋</span>
+      <span class="nav-label">Hendelseslogg</span>
+    </button>
+  </nav>
 
   <section class="tab-panel active" id="tab-dashboard">
 
@@ -958,8 +1102,18 @@
     <div id="lightbox-meta"></div>
   </div>
 
-  <section class="tab-panel" id="tab-docs">
+  <!-- Documentation overlay — shown via ❓ button in header, not a bottom-nav tab -->
+  <div class="docs-overlay" id="tab-docs">
+    <button class="docs-back-btn" id="btn-docs-back">← Tilbake</button>
     <div class="docs">
+      <h3>☕ Støtt prosjektet</h3>
+      <p>Homey Alone Guard er <strong>gratis og open source</strong> — utviklet på fritiden og delt med hele
+        Homey-samfunnet uten abonnement, reklame eller skjulte kostnader. Hvis appen beskytter hjemmet ditt
+        eller gir deg tryggere netter, vurder en liten donasjon via
+        <a href="https://paypal.me/ekdahlthomas" target="_blank" rel="noopener">PayPal (paypal.me/ekdahlthomas)</a> —
+        selv $5 / €5 monner og motiverer videre utvikling, nye funksjoner og raskere feilretting. Takk! 🙏
+      </p>
+
       <h3>Hva er Homey Alone Guard?</h3>
       <p>Et sikkerhetssystem inspirert av <em>Alene Hjemme</em>: i stedet for å bare utløse en alarm, prøver appen
         å <strong>avskrekke</strong> tyver med psykologiske triks — blålys i naborommet, sirener, bjeffende hunder,
@@ -1070,25 +1224,41 @@
         som kan inkluderes i SMS og push.</p>
 
       <h3>Avskrekking pr. sone — hvordan det fungerer</h3>
-      <p>Når avskrekking starter i en sone (enten utløst av bevegelse eller via «Test avskrekking»-knappen):</p>
+      <p>Når avskrekking starter i en sone:</p>
       <ol>
-        <li>Appen blinker lys i reaksjonssonen med en sakte PÅ/AV-syklus (default 15 sek hver vei,
-          justerbart pr. sone under «Lys på (sek)» / «Lys av (sek)»). Dette krever at sonen har minst én
-          enhet med <code>device.class === 'light'</code>.</li>
+        <li>Appen blinker lys i reaksjonssonen med en sakte PÅ/AV-syklus (default 15 sek hver vei).
+          Dette krever at sonen har minst én enhet med <code>device.class === 'light'</code>.</li>
         <li>Hendelsen logges til Event Log og Homey Timeline.</li>
       </ol>
       <p>💡 i sone-overskriften viser at <em>Kevin-modus</em> er aktiv for sonen (Borte-modus lys-simulering).
-        «Test avskrekking»-knappen er deaktivert hvis reaksjonssonen ikke har lys.</p>
+        Soner uten lys får ikke Kevin-modus-valg.</p>
+
+      <h3>Inkluderte mediafiler</h3>
+      <p>Disse filene er pakket inn i appen og kan brukes direkte som URL i Homey-flows (f.eks. Sonos
+        «Spill URL», Chromecast, VLC). Kopier URLen og lim den inn i ønsket flow-kort.</p>
+      <table class="media-table">
+        <thead>
+          <tr>
+            <th>Fil</th>
+            <th>URL (klikk Kopier)</th>
+          </tr>
+        </thead>
+        <tbody id="media-url-tbody">
+          <tr>
+            <td colspan="2" style="color:#888;font-style:italic;padding:8px;">Laster…</td>
+          </tr>
+        </tbody>
+      </table>
 
       <h3>Eksempel: vakthund-bjeffing på Sonos overalt</h3>
       <ol>
         <li><strong>NÅR:</strong> Homey Alone Guard → Avskrekking startet i sone</li>
-        <li><strong>SÅ:</strong> Sonos → <code>Play a URL</code> (på gruppen «Hele huset») → URL:
-          <code>[url_guard_dog]</code>, volum: 80 %
+        <li><strong>SÅ:</strong> Sonos → <code>Spill URL</code> (på gruppen «Hele huset») →
+          kopier URL for <strong>guard-dog.ogg</strong> fra tabellen over, volum: 80 %
         </li>
       </ol>
     </div>
-  </section>
+  </div>
 
   <script>
     function onHomeyReady(Homey) {
@@ -1112,14 +1282,76 @@
 
       const esc = (v) => String(v ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 
-      document.querySelectorAll('.tab-btn').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          document.querySelectorAll('.tab-btn').forEach((b) => b.classList.remove('active'));
-          document.querySelectorAll('.tab-panel').forEach((p) => p.classList.remove('active'));
-          btn.classList.add('active');
-          $('tab-' + btn.dataset.tab).classList.add('active');
-        });
+      // ── Tab navigation ──────────────────────────────────────────────
+      function openTab(tabId) {
+        document.querySelectorAll('.nav-btn').forEach((b) => b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach((p) => p.classList.remove('active'));
+        const btn = document.querySelector(`.nav-btn[data-tab="${tabId}"]`);
+        if (btn) btn.classList.add('active');
+        const panel = $('tab-' + tabId);
+        if (panel) panel.classList.add('active');
+        if (tabId === 'images') loadImages();
+      }
+
+      document.querySelectorAll('.nav-btn').forEach((btn) => {
+        btn.addEventListener('click', () => openTab(btn.dataset.tab));
       });
+
+      // ── Help / docs overlay ─────────────────────────────────────────
+      $('btn-help').addEventListener('click', () => {
+        $('tab-docs').classList.add('open');
+        populateMediaUrls();
+      });
+
+      $('btn-docs-back').addEventListener('click', () => {
+        $('tab-docs').classList.remove('open');
+      });
+
+      // ── Inkluderte mediafiler — bygg URL-tabell dynamisk ────────────
+      let mediaUrlsPopulated = false;
+      function populateMediaUrls() {
+        if (mediaUrlsPopulated) return;
+        mediaUrlsPopulated = true;
+
+        const files = [
+          { name: 'guard-dog.ogg', emoji: '🐕', label: 'Vakthund', desc: 'Bjeffende vakthund' },
+          { name: 'police-siren.ogg', emoji: '🚨', label: 'Politisirene', desc: 'Politisirene' },
+          { name: 'fire-alarm.ogg', emoji: '🔥', label: 'Brannalarm', desc: 'Brannalarm-pip' },
+          { name: 'alarm-beep.ogg', emoji: '🔔', label: 'Advarselstone', desc: 'Kort advarselstone' },
+          { name: 'intruder-voice.m4a', emoji: '🗣️', label: 'Advarselsstemme', desc: 'Talemelding til innbruddstyv' },
+          { name: 'blue-lights.mp4', emoji: '🔵', label: 'Blålys', desc: 'Blålys-animasjon (Chromecast/TV)' },
+          { name: 'cop-silhouette.mp4', emoji: '👮', label: 'Politisilhuett', desc: 'Politisilhuett i vindu (Chromecast/TV)' },
+          { name: 'large-dog.mp4', emoji: '🐩', label: 'Stor hund', desc: 'Stor hund-video (Chromecast/TV)' },
+        ];
+
+        const base = window.location.origin + '/app/com.homeyalone.guard/assets/media/';
+        const tbody = $('media-url-tbody');
+        if (!tbody) return;
+
+        tbody.innerHTML = files.map((f) => {
+          const url = base + f.name;
+          return `<tr>
+            <td><strong>${f.emoji} ${f.label}</strong><br>
+              <em style="font-size:11px;color:#666;font-weight:normal;">${f.desc}</em></td>
+            <td><div class="media-url-cell">
+              <span class="media-url">${url}</span>
+              <button class="copy-url-btn" data-copy="${url}">Kopier</button>
+            </div></td>
+          </tr>`;
+        }).join('');
+
+        tbody.querySelectorAll('.copy-url-btn').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            try {
+              await navigator.clipboard.writeText(btn.dataset.copy);
+              btn.textContent = '✓ Kopiert';
+              setTimeout(() => { btn.textContent = 'Kopier'; }, 2000);
+            } catch {
+              prompt('Kopier URL manuelt:', btn.dataset.copy);
+            }
+          });
+        });
+      }
 
       async function loadStaticOnce() {
         try {
@@ -1249,22 +1481,8 @@
 
       function renderZoneBlocks() {
         if (!zones.length) { $('zones').innerHTML = '<em>Ingen soner funnet.</em>'; return; }
-        const byId = Object.fromEntries(zones.map((z) => [z.id, z]));
-        const blinkOn = settings.blink_on || {};
-        const blinkOff = settings.blink_off || {};
         $('zones').innerHTML = zones.map((z) => {
           const opts = zones.map((r) => `<option value="${esc(r.id)}" ${settings.zone_matrix[z.id] === r.id ? 'selected' : ''}>${esc(r.name)}</option>`).join('');
-          const reactionId = settings.zone_matrix[z.id] || z.id;
-          const reaction = byId[reactionId] || z;
-
-          let testBtn;
-          if (!reaction.hasLights) {
-            const reactionName = esc(reaction.name);
-            testBtn = `<button class="test-btn" data-test="${esc(z.id)}" disabled title="Reaksjonssone «${reactionName}» har ingen lys.">▶ Test avskrekking</button>`
-              + `<div class="info-banner warn">Reaksjonssone «${reactionName}» har ingen lys. Velg en annen reaksjonssone for å teste.</div>`;
-          } else {
-            testBtn = `<button class="test-btn" data-test="${esc(z.id)}">▶ Test avskrekking</button>`;
-          }
 
           const perimeterSet = new Set(settings.perimeter_sensors || []);
           const perimeterSeenSet = new Set(settings.perimeter_sensors_seen || []);
@@ -1322,31 +1540,21 @@
             cameraBlock = `<label>Kameraer</label><div class="sensor-list">${cameraRows}</div>`;
           }
 
+          const kevinBlock = z.hasLights
+            ? `<label>Kevin-modus</label>`
+            + `<label style="justify-self:start;"><input type="checkbox" data-kevin="${esc(z.id)}" ${settings.kevin_zones[z.id] ? 'checked' : ''}> Lys-simulering</label>`
+            : '';
+
           return `<details class="zone-block" data-zone="${esc(z.id)}">`
             + `<summary><span>${esc(z.name)}${capBadges(z)}</span>${zoneStatusPill(z.id)}</summary>`
             + `<div class="zone-body">`
             + `<label>Reaksjonssone</label>`
             + `<select data-matrix="${esc(z.id)}"><option value="">— ingen —</option>${opts}</select>`
-            + `<label>Kevin-modus</label>`
-            + `<label style="justify-self:start;"><input type="checkbox" data-kevin="${esc(z.id)}" ${settings.kevin_zones[z.id] ? 'checked' : ''}> Lys-simulering</label>`
+            + kevinBlock
             + sensorBlock
             + cameraBlock
-            + testBtn
             + `</div></details>`;
         }).join('');
-        document.querySelectorAll('[data-test]').forEach((btn) => {
-          if (btn.disabled) return;
-          btn.addEventListener('click', async (ev) => {
-            ev.preventDefault();
-            const zoneId = btn.dataset.test;
-            btn.disabled = true;
-            try {
-              await Homey.api('POST', '/test-deterrence', { zoneId });
-            } finally {
-              setTimeout(() => { btn.disabled = false; }, 2000);
-            }
-          });
-        });
       }
 
       function updateZoneStatusPills(s) {
@@ -1626,13 +1834,6 @@
         renderSnapshotGrid('grid-alarm', 'more-alarm-wrap', list.alarm || [], 'alarm');
         renderSnapshotGrid('grid-motion', 'more-motion-wrap', list.motion || [], 'motion');
       }
-
-      // Load images when the Bilder tab is activated.
-      document.querySelectorAll('.tab-btn').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          if (btn.dataset.tab === 'images') loadImages();
-        });
-      });
 
       /** Two-step confirm: first click arms the button, second click within 3 s confirms. */
       function withConfirm(btn, label, confirmLabel, action) {

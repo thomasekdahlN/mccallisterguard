@@ -1,0 +1,5 @@
+Homey Alone Guard turns your Homey Pro into a smart security system inspired by the movie Home Alone. Instead of just sounding a siren when an intruder breaks in, it tells them the house is occupied and that someone is watching — through dog barks, sirens, flashing blue light on screens, silhouettes in the windows and lighting patterns that mimic a home in full activity. The goal is simple: make them turn around at the door, before anything bad happens.
+
+Configure rooms as zones, define which zone reacts when another is breached, choose perimeter sensors for a quiet night-time mode, and let the app simulate presence while you are away. If the deterrence is not enough, the system escalates automatically to a full alarm with sirens and light strobes on every connected lamp. Built natively for Homey Pro with full Homey Flow integration, no subscription and no cloud dependency.
+
+Free and open source. If the app protects your home, please consider a small donation via PayPal to thomas@ekdahl.no (paypal.me/thomasekdahl) — even a few dollars motivates further development. Thank you!

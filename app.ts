@@ -372,7 +372,9 @@ class HomeyAloneGuardApp extends Homey.App {
     this.eventLog.add('alarm', `**Perimeter** sensor utløst: ${deviceName} i ${zoneName}.`, zoneId, deviceId);
 
     this.previousArmedMode = 'armed_perimeter';
-    this.alarmContext = { zoneId, zoneName, deviceId, deviceName, sensorType, alarmType: 'perimeter' };
+    this.alarmContext = {
+      zoneId, zoneName, deviceId, deviceName, sensorType, alarmType: 'perimeter',
+    };
 
     // Transition to perimeter_alarm — handleModeChange skips the generic push for this mode.
     await this.stateMachine.setMode('perimeter_alarm');

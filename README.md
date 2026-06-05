@@ -6,6 +6,8 @@
 
 Homey Alone Guard er ikke enda et passivt alarmsystem. I stedet for å bare tute når noen bryter seg inn, **forteller den tyven at huset er bebodd og at noen følger med** — gjennom lyder (bjeffing, sirener), video (blålys, store hunder, silhuetter i vinduet) og lysmønstre som etterligner et hjem i full aktivitet. Inspirasjonen er Kevin McCallister fra *Alene Hjemme* (1990): vinn ved å få tyven til å snu i døra.
 
+> ☕ **Gratis og open source.** Hvis appen beskytter hjemmet ditt, vurder en liten donasjon via [PayPal](https://paypal.me/ekdahlthomas) — selv $5 / €5 motiverer videre utvikling. Se [Støtt prosjektet](#-støtt-prosjektet) for detaljer.
+
 ## Funksjoner
 
 - **Seks moduser** — `Hjemme` / `disarmed` (deaktivert), `Borte` / `armed` (full overvåking + Kevin-simulering), `Skallsikring` / `armed_perimeter` (kun valgte perimeter-sensorer aktive — typisk når du sover), `Skallsikring alarm` / `perimeter_alarm` (perimeter-sensor utløst mens du er hjemme — push + flow-kort, ingen sirene), `Avskrekking` / `deterrence` (lys-blink i reaksjonssone — advarselsfase), `Alarm` / `alarm` (full krise — sirene og strobe)
@@ -908,9 +910,9 @@ Homey Alone Guard er utviklet på fritiden og deles gratis med hele Homey-samfun
 
 Hvis appen beskytter hjemmet ditt, gir deg tryggere netter, eller bare sparer deg for hodepine du ellers ville fått — vurder å sende en liten takk. **Selv $5 / €5 monner og motiverer til videre utvikling**, nye funksjoner og raskere feilretting.
 
-> 💳 **PayPal:** [thomas@ekdahl.no](https://www.paypal.com/paypalme/thomasekdahl)
+> 💳 **PayPal:** [thomas@ekdahl.no](https://paypal.me/ekdahlthomas)
 >
-> Alle bidrag går direkte til kaffe, utviklingstid og Homey-hardware for testing. 🙏
+> Alle bidrag går direkte til AI-Credits og utviklingstid. 🙏
 
 ---
 
