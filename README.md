@@ -113,7 +113,7 @@ stateDiagram-v2
   Skallsikring --> Hjemme: dashboard setMode(disarmed)\n[force=true, alltid OK]\neller scheduler (06:00)
   Skallsikring --> Hjemme: flow-kort setMode(disarmed)\n[uten force: ignoreres]
   Skallsikring --> Borte: setMode(armed)
-  Skallsikring --> Avskrekking: perimeter-sensor utløst\n(ikke i sensorsnap)
+  Skallsikring --> Skallsikring: perimeter-sensor utløst\n→ push + alarm_perimeter_triggered\n(ingen modus-endring)
   Skallsikring --> Alarm: testAlarm()
 
   Avskrekking --> Alarm: escalation_minutes timer
@@ -144,15 +144,16 @@ flowchart TD
   ED1 -- ja --> DELAY[startEntryDelay\nentry_delay sek]
   ED1 -- nei --> MOTION_AWAY{Sensor type?}
   ED2 -- ja --> DELAY
-  ED2 -- nei --> ENTER_DET_STAY[enterDeterrence\nalarm_perimeter_triggered]
+  ED2 -- nei --> NOTIFY_STAY[Log + push\nalarm_perimeter_triggered\nmodus forblir armed_perimeter\nBruker-flow reagerer]
   MOTION_AWAY -- motion --> MOT_DELAY[startEntryDelay\nentry_delay sek]
   MOTION_AWAY -- contact --> CONFIRM[handleConfirmedMotion\nvia false-alarm-filter]
   DELAY --> WAIT{Bruker deaktiverer\ni tide?}
   MOT_DELAY --> WAIT
   WAIT -- ja --> X6[cancelEntryDelay\nIngen alarm]
-  WAIT -- nei, timer utløpt --> CONFIRM
+  WAIT -- nei, timer utløpt --> CONFIRM2{Modus nå?}
+  CONFIRM2 -- armed_perimeter --> NOTIFY_STAY
+  CONFIRM2 -- armed --> CONFIRM[handleConfirmedMotion\nvia false-alarm-filter]
   CONFIRM --> ENTER_DET[enterDeterrence\nmode = deterrence\nalarm_triggered\nblink i reaksjonssone]
-  ENTER_DET_STAY --> ENTER_DET
   ENTER_DET --> TIMER{escalation_minutes timer}
   TIMER -- utløpt --> ALARM[enterAlarm\nmode = alarm\nEscalationManager.triggerCrisis]
   TIMER -- bruker stopper --> STOP[stopAlarm\nreturn til previousArmedMode]
@@ -197,7 +198,7 @@ sequenceDiagram
   else entry_delay sek passerer uten deaktivering
     SM->>App: handleConfirmedContact()
     App->>F: trigger alarm_perimeter_triggered
-    App->>SM: setMode(deterrence)
+    Note over App,F: Modus forblir armed_perimeter\nIngen deterrence, ingen sirene\nBruker-flow reagerer (lyd, lys, push)
   end
 ```
 
@@ -279,35 +280,39 @@ sequenceDiagram
 | `set_camera_motion` | Aktiver / deaktiver bevegelsesutløst kamera-opptak |
 
 
-## Alarmtyper — to trigger-kort, én condition for forgrening
+## Alarmtyper — to trigger-kort
 
-| Situasjon | Trigger-kort å bruke |
-|---|---|
-| Dør/vindu/sensor åpnet i **Skallsikring** | `alarm_perimeter_triggered` |
-| Innendørs bevegelse/kontakt i **Borte** | `alarm_triggered` |
-| Under aktiv `alarm`- eller `deterrence`-fase — differensier reaksjon | `alarm_triggered_from` (condition) |
+| Situasjon | Trigger-kort | Modus-endring |
+|---|---|---|
+| Perimeter-sensor utløst i **Skallsikring** (du er hjemme) | `alarm_perimeter_triggered` | **Ingen** — forblir `armed_perimeter` |
+| Bevegelse/kontakt i **Borte** (ingen hjemme) | `alarm_triggered` | → `deterrence` → `alarm` (eskalering) |
+
+> **Viktig designvalg — Skallsikring:**
+> `armed_perimeter` er for når du er **hjemme og sover**. Automatisk lysstyring, sirener eller
+> avskrekking ville vekke deg unødvendig. Appen sender kun push og fyrer flow-kortet — du bestemmer
+> selv hva som skal skje via dine egne Homey-flows. Det gir full kontroll uten støy.
 
 ### Typisk reaksjon per kilde
 
 | Kilde | Typisk flow-reaksjon |
 |---|---|
-| `alarm_perimeter_triggered` | Lokal varsling (lyd i gangen, blink ute), push kun til deg — du er antakelig hjemme og sover |
-| `alarm_triggered` | Full push til alle i husstanden, kamera-snapshot, kraftig avskrekking, ring nødkontakt |
-| Under `alarm` + condition `alarm_triggered_from = armed_perimeter` | Mild eskalering — vekk beboerne, ingen politimelding |
-| Under `alarm` + condition `alarm_triggered_from = armed` | Full eskalering — sirene, politimelding, push med høyest prioritet |
+| `alarm_perimeter_triggered` | Spill forsiktig lyd/chime på gang-høyttaler, push til deg alene, skru på ett lys — du er hjemme og kan reagere selv |
+| `alarm_triggered` | Full push til alle i husstanden, kamera-snapshot, start sirene/blink i hele huset, ring nødkontakt |
 
 ### Eksempel-flows — alarmreaksjon
 
-> **Merk:** Appen sender allerede automatisk push til Homey-tidslinje for alle alarm-hendelser.
-> Flowene nedenfor er for tilleggsreaksjoner (lyd, SMS, Pushover med bilde, naboalarmer, o.l.)
+> **Merk:** Appen sender allerede automatisk push til Homey-appen for alle alarm-hendelser.
+> Flowene nedenfor er for tilleggsreaksjoner (lyd, lys, Pushover med bilde, naboalarmer, o.l.)
 
 ```
 NÅR  Skallsikring-brudd oppdaget (alarm_perimeter_triggered)
-SÅ   Pushover: Send melding med bilde [[snapshot]] og høy prioritet lyd
-     Skru på alle lys i 1. etasje
-     Spill bjeffende hund på gang-høyttaler
+     — du er hjemme, lav-støy varsling
+SÅ   Spill forsiktig chime på gang-høyttaler
+     Skru sakte opp lys i gangen (10 % lysstyrke)
+     Pushover: Send push med bilde [[snapshot]] til deg alene
 
 NÅR  Alarm aktivert (alarm_triggered — Borte-modus)
+     — ingen hjemme, full respons
 SÅ   Pushover: Send melding med bilde [[snapshot]] til ALLE i husstanden
      Start sirene + blink i hele huset
      Ring nødkontakt via IFTTT/SMS
@@ -315,10 +320,6 @@ SÅ   Pushover: Send melding med bilde [[snapshot]] til ALLE i husstanden
 NÅR  Modus endret (mode_changed, mode_new = alarm)
 OG   Alarm ble utløst fra [Borte (armed)]   ← alarm_triggered_from condition
 SÅ   Send SMS til politiet / nødkontakt
-
-NÅR  Modus endret (mode_changed, mode_new = alarm)
-OG   Alarm ble utløst fra [Skallsikring]    ← alarm_triggered_from condition
-SÅ   Vekk beboerne (intern sirene) — ingen ekstern varsling
 ```
 
 ### Anbefalte flows — deaktivering og aktivering
@@ -477,9 +478,9 @@ Push-notifikasjoner sendes i tillegg til tidslinje-oppføringene for alle kritis
 
 | Hendelse | Push-melding |
 |---|---|
-| Sensor utløser avskrekking | `🚨 Avskrekking: [sensor] i [sone]` |
-| Perimetersensor utløser alarm | `🚨 Skallsikring alarm: [sensor] i [sone]` |
-| Avskrekking eskalerer | `🚨 ALARM utløst i [sone] — [sensor]` |
+| Perimeter-sensor utløst (Skallsikring) | `🚨 Skallsikring: [sensor] i [sone]` |
+| Sensor utløser avskrekking (Borte) | `🚨 Avskrekking: [sensor] i [sone]` |
+| Avskrekking eskalerer til full alarm | `🚨 ALARM utløst i [sone] — [sensor]` |
 | Åpne sensorer (Borte-modus) | `⚠️ N dør/vindu åpen(e) ved aktivering: [navn]` |
 | Åpne sensorer (Skallsikring) | `ℹ️ Skallsikring aktivert: N sensor(er) åpen — ignoreres: [navn]` |
 | Sensorer offline | `⚠️ Aktivert, men N sensor(er) rapporterer ikke: [navn]` |

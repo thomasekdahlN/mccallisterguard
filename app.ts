@@ -309,10 +309,7 @@ class McCallisterGuardApp extends Homey.App {
     };
     const alarmLabel = alarmType === 'perimeter' ? '**Perimeter**' : '**Alarm**';
     this.eventLog.add('alarm', `${alarmLabel} Avskrekking i ${zoneName} — ${deviceName}.`, zoneId, deviceId);
-    const pushMsg = alarmType === 'perimeter'
-      ? `🚨 Skallsikring: ${deviceName} i ${zoneName}`
-      : `🚨 Avskrekking: ${deviceName} i ${zoneName}`;
-    this.pushTimeline(pushMsg);
+    this.pushTimeline(`🚨 Avskrekking: ${deviceName} i ${zoneName}`);
 
     await this.stateMachine.setMode('deterrence');
 
@@ -343,12 +340,35 @@ class McCallisterGuardApp extends Homey.App {
 
   /**
    * Triggered by a perimeter sensor in armed_perimeter mode.
-   * Routes through enterDeterrence (perimeter type) so that the escalation
-   * timer (escalation_minutes) is respected before full alarm fires.
-   * Full alarm is NEVER triggered directly from armed_perimeter mode.
+   *
+   * Design intent: armed_perimeter is used when occupants are HOME (sleeping).
+   * Automatically activating lights/sirens/deterrence would be disruptive and
+   * unnecessary — the occupant will react. We therefore only:
+   *   1. Log the event to the internal event log.
+   *   2. Send a push notification to the Homey app.
+   *   3. Fire the alarm_perimeter_triggered flow card so the user's own
+   *      Homey flows can react (e.g. play a chime, send Pushover, turn on
+   *      a hall light, etc.).
+   *
+   * The mode stays at armed_perimeter — no deterrence blink, no sirens,
+   * no escalation timer. The user decides what happens next via flows.
    */
   private async enterPerimeterAlarm(zoneId: string, deviceId: string, sensorType: 'motion' | 'contact'): Promise<void> {
-    await this.enterDeterrence(zoneId, deviceId, sensorType, 'perimeter');
+    const { zoneName, deviceName } = await this.resolveNames(zoneId, deviceId);
+    this.eventLog.add('alarm', `**Perimeter** sensor utløst: ${deviceName} i ${zoneName}.`, zoneId, deviceId);
+    this.pushTimeline(`🚨 Skallsikring: ${deviceName} i ${zoneName}`);
+    const baseTokens: Record<string, unknown> = {
+      zone: zoneName,
+      sensor: deviceName,
+      sensor_type: sensorType,
+      mode: 'armed_perimeter',
+      timestamp: new Date().toISOString(),
+    };
+    if (this.latestSnapshot !== null) baseTokens.snapshot = this.latestSnapshot;
+    try {
+      await this.homey.flow.getTriggerCard('alarm_perimeter_triggered').trigger(baseTokens);
+    } catch { /* best-effort */ }
+    // No mode change — mode stays armed_perimeter. User flows handle the rest.
   }
 
   /**
@@ -711,7 +731,7 @@ class McCallisterGuardApp extends Homey.App {
     if (mode === 'disarmed') return;
     if (this.stateMachine.isExitDelayActive()) return;
     if (mode === 'armed_perimeter') {
-      // In perimeter mode: skip deterrence — go directly to alarm for perimeter sensors.
+      // Perimeter mode: notify only — fire flow card, no mode change, no deterrence/alarm.
       if (!this.isPerimeterSensor(deviceId)) return;
       if (this.isPerimeterBypassed()) return;
       await this.enterPerimeterAlarm(zoneId, deviceId, 'motion');
