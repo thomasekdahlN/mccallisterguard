@@ -109,6 +109,7 @@ class HomeyAloneGuardApp extends Homey.App {
     });
 
     await this.registerFlowActions();
+    await this.registerMediaTokens();
     await this.initListeners();
 
     if (this.stateMachine.getMode() === 'armed') this.simulation.start();
@@ -739,6 +740,33 @@ class HomeyAloneGuardApp extends Homey.App {
       }
       return results;
     });
+  }
+
+  private async registerMediaTokens(): Promise<void> {
+    const rawBase: string = await (this.homey as any).api.getLocalUrl();
+    const baseUrl = rawBase.replace(/\/$/, '');
+
+    const files = [
+      { id: 'media_alarm_beep', file: 'alarm-beep.ogg', title: 'Media: Alarm beep' },
+      { id: 'media_fire_alarm', file: 'fire-alarm.ogg', title: 'Media: Fire alarm' },
+      { id: 'media_guard_dog', file: 'guard-dog.ogg', title: 'Media: Guard dog (audio)' },
+      { id: 'media_intruder_voice', file: 'intruder-voice.m4a', title: 'Media: Intruder warning (voice)' },
+      { id: 'media_police_siren', file: 'police-siren.ogg', title: 'Media: Police siren' },
+      { id: 'media_blue_lights', file: 'blue-lights.mp4', title: 'Media: Blue lights (video)' },
+      { id: 'media_cop_silhouette', file: 'cop-silhouette.mp4', title: 'Media: Cop silhouette (video)' },
+      { id: 'media_large_dog', file: 'large-dog.mp4', title: 'Media: Large dog (video)' },
+    ];
+
+    for (const entry of files) {
+      const url = `${baseUrl}/app/com.homeyalone.guard/assets/media/${entry.file}`;
+      const token = await this.homey.flow.createToken(entry.id, {
+        type: 'string',
+        title: entry.title,
+        value: url,
+      });
+      await token.setValue(url);
+      this.log(`Media token registered: ${entry.id} = ${url}`);
+    }
   }
 
   private async initListeners(): Promise<void> {
