@@ -298,7 +298,30 @@ sequenceDiagram
 | `trigger_alarm` | Test full alarm (escalation, stops after 15 s) |
 | `bypass_perimeter` | Temporarily disable perimeter sensors (number of minutes) |
 | `set_camera_motion` | Enable / disable motion-triggered camera recording |
-| `get_media_url` | Returns a `Media URL` tag for a bundled media file (police siren, dog bark, blue lights video, etc.). Use the token directly in the next card — e.g. Chromecast "Cast video", Sonos "Play URL". |
+| `get_media_url` | Returns a `Media URL` tag for a selected bundled media file. Alternative to global tokens when you need to choose the file dynamically at runtime in a flow. |
+
+### Global flow tokens — bundled media
+
+All bundled media files are registered as **permanent global flow tokens** when the app starts. They appear as pills in the Homey flow editor under **Homey Alone Guard** and can be inserted directly into any action field that accepts a URL or string — without running any intermediate action card first.
+
+| Token | Description |
+|---|---|
+| `Media: Alarm beep` | Short repeating beep — general alert |
+| `Media: Fire alarm` | Fire alarm tone |
+| `Media: Guard dog (audio)` | Barking dog — audio only |
+| `Media: Intruder warning (voice)` | Spoken intruder warning |
+| `Media: Police siren` | Police siren sound |
+| `Media: Blue lights (video)` | Flashing blue lights video loop |
+| `Media: Cop silhouette (video)` | Police officer silhouette video |
+| `Media: Large dog (video)` | Large barking dog video |
+
+**How to use in a flow:**
+1. Open a flow action that has a URL or text field (e.g. Chromecast "Cast video", Sonos "Play URL").
+2. Click the field, then click the **pills icon** (tag icon) in the input bar.
+3. Under **Homey Alone Guard** select the media token you want.
+4. The token resolves to the correct local URL automatically — always pointing to your Homey Pro regardless of IP changes.
+
+> The `get_media_url` action card is still available for flows where you need to select the file dynamically (e.g. from a variable or condition result). For static use, prefer the global tokens.
 
 
 ## Alarm types — two trigger cards
@@ -346,19 +369,19 @@ THEN  Send SMS to police / emergency contact
 
 ### Recommended flows — per-zone deterrence
 
-Use the `alarm_triggered_in_zone` condition to run different reactions depending on which zone triggered the alarm:
+Use the `alarm_triggered_in_zone` condition to run different reactions depending on which zone triggered the alarm. Use the **global media token pills** directly in the URL field of any Chromecast or speaker action:
 
 ```
 WHEN  Alarm triggered (alarm_triggered)
 
 IF    Alarm was triggered in zone [Living room]
-THEN  Get media URL for 🚔 Blue lights (video)    → [Media URL]
-      Chromecast (living room TV): Cast video [Media URL]
+THEN  Chromecast (living room TV): Cast video [Media: Blue lights (video)]
 
 IF    Alarm was triggered in zone [Hallway]
-THEN  Get media URL for 🐕 Guard dog (sound)      → [Media URL]
-      Sonos (hallway): Play URL [Media URL]
+THEN  Sonos (hallway): Play URL [Media: Guard dog (audio)]
 ```
+
+The `[Media: Blue lights (video)]` and `[Media: Guard dog (audio)]` items are global token pills — select them from the pill picker (tag icon) in the action's URL field under **Homey Alone Guard**.
 
 ### Recommended flows — disarming and arming
 
@@ -665,17 +688,16 @@ The app fires `mode_changed` (mode_new = deterrence) and `alarm_triggered` / `al
 as integration points. Light deterrence (blink in reaction zone) always runs automatically —
 sound and video must be set up as user flows.
 
+Insert the bundled media files as **global token pills** (tag icon → Homey Alone Guard) directly into any URL field:
+
 ```
 WHEN  Mode changed (mode_changed)
 AND   mode_new = deterrence
-THEN  Get media URL for 🐕 Guard dog (sound)    → [Media URL]
-      Sonos / speaker: Play URL [Media URL] at volume 80%
-      Get media URL for 🚔 Blue lights (video)  → [Media URL]
-      Chromecast: Cast video [Media URL] to living room TV
+THEN  Sonos / speaker: Play URL [Media: Guard dog (audio)] at volume 80%
+      Chromecast: Cast video [Media: Blue lights (video)] to living room TV
 
 WHEN  Alarm triggered (alarm_perimeter_triggered)
-THEN  Get media URL for 🚨 Police siren         → [Media URL]
-      [Hallway speaker]: Play URL [Media URL]
+THEN  [Hallway speaker]: Play URL [Media: Police siren]
       Push to YOU: "Someone at [[sensor]]"
 
 WHEN  Mode changed (mode_changed)
@@ -871,9 +893,9 @@ Along the way we have removed functionality that **seemed right on paper, but wh
 
 | Feature we tried | Why it does not work on Homey | What we do instead |
 |---|---|---|
-| **Direct cast of audio/video to Chromecast / Nest Hub / Samsung TV from app code** | Third-party apps' flow actions (`Cast a URL`, `Cast a video`, `sendKey`) are only exposed via the Flow editor's internal interface, not via Web API, HomeyScript or app-to-app calls. | User builds a flow that listens on `mode_changed` (mode_new = deterrence) and routes to the Chromecast action themselves. |
-| **Per-zone audio URL and video URL in settings (`zone_audio_urls`, `zone_video_urls`)** | There was no reliable way to play these at runtime — `cast_url` capability is almost never exposed on Chromecast/Samsung devices. The fields were just a promise we could not keep. | Removed entirely. User enters the URL in their own flow action. |
-| **Global "Default audio URL" field (`custom_audio_url`)** | Same limitation — we could not call any action to play it. | Removed entirely. |
+| **Direct cast of audio/video to Chromecast / Nest Hub / Samsung TV from app code** | Third-party apps' flow actions (`Cast a URL`, `Cast a video`, `sendKey`) are only exposed via the Flow editor's internal interface, not via Web API, HomeyScript or app-to-app calls. | User builds a flow that listens on `mode_changed` (mode_new = deterrence) or `alarm_triggered` and routes to the Chromecast action themselves. All bundled media files are available as **global flow token pills** — no URL typing needed. |
+| **Per-zone audio URL and video URL in settings (`zone_audio_urls`, `zone_video_urls`)** | There was no reliable way to play these at runtime — `cast_url` capability is almost never exposed on Chromecast/Samsung devices. The fields were just a promise we could not keep. | Removed entirely. User selects a media token pill in their own flow action. |
+| **Global "Default audio URL" field (`custom_audio_url`)** | Same limitation — we could not call any action to play it. | Removed entirely. Bundled media is now available as global token pills. |
 | **Cast device prioritisation per zone (`cast_devices`, `CastPriority` module)** | We could rank devices, but not actually push content to them programmatically. Pure UI with no effect. | Removed entirely. The `Capabilities` module still reports that a zone has a screen/speaker in the info badge, but no longer selects the "best" device. |
 | **Auto-generate Homey flows programmatically from app code** | `homey:manager:api` permission gives custom apps only `homey.flow.readonly` — no `create`/`update` on flows. | User must manually create a deterrence flow. We document the pattern clearly in the zone UI and README. |
 | **HomeyScript bridge to call third-party app actions** (`homey.flow.runFlowCardAction({ uri, id, args })`) | Even HomeyScript with full user scopes returns `Not Found: FlowCardAction with ID …` on all 1044 tested uri/id combinations against Chromecast/Samsung. The function is effectively a dead end for custom apps. | Abandoned. Mode changes via the `mode_changed` trigger + user flow is the only working bridge. |
