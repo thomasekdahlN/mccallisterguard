@@ -201,7 +201,7 @@ Initialiserer appen, kobler seg til Homey API-en og lytter på globale bevegelse
 | `enterDeterrence()` | Setter modus=deterrence, starter blink i reaksjonssone og starter `deterrenceTimer` |
 | `enterAlarm()` | Kaller `EscalationManager.triggerCrisis()` og setter modus=alarm |
 | `clearDeterrenceTimer()` | Avbryter eskaleringstimeren (kalles fra `setMode('disarmed')`, `stopAlarm()`, test-metoder) |
-| `setMode()` | Brukerinitiiert modusbytte — rydder timere/media ved disarmed, håndterer nattvindu-redirect og sensorsnap |
+| `setMode()` | Brukerinitiiert modusbytte — rydder timere/media ved disarmed, håndterer nattvindu-redirect og sensorsnap. Logger **ikke** `"Deaktivert av"` selv — det gjøres av `registerFlowActions` sin `set_mode`-handler, som har tilgang til bruker-navn og kommentar. |
 | `stopAlarm()` | Stopper pågående alarm og returnerer til `previousArmedMode` |
 | `isInArmedPerimeterWindow()` | Returnerer `true` dersom Skallsikring-scheduleren er aktiv og klokken er innenfor nattvinduet |
 | `snapshotOpenPerimeterSensors()` | Tar øyeblikksbilde av åpne **konfigurerte** perimeter-sensorer ved aktivering av Skallsikring; disse ignoreres for resten av sesjonen (ventilasjonsmodus). Ingen snapshot hvis perimeter_sensors-listen er tom. |

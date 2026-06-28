@@ -116,7 +116,11 @@ export default class StateMachine {
     this.modeChangedAt = Date.now();
     this.homey.settings.set(SETTINGS_KEYS.MODE, next);
     this.homey.settings.set(SETTINGS_KEYS.MODE_CHANGED_AT, this.modeChangedAt);
-    this.log.add('info', `Modus: ${next}.`);
+    // Skip logging for disarmed — the set_mode flow handler always logs "Deaktivert av [who]"
+    // (with optional comment) at the same instant, making a separate "Modus: disarmed" redundant.
+    if (next !== 'disarmed') {
+      this.log.add('info', `Modus: ${next}.`);
+    }
     for (const listener of this.listeners) {
       try {
         listener(next, previous);

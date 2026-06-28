@@ -176,20 +176,24 @@ sequenceDiagram
   participant D as Dør-sensor (⏱)
   participant App as Guard App
   participant SM as StateMachine
+  participant EL as EventLog
   participant F as Flow-trigger
 
   Note over U,App: Borte-modus — smart-lås deaktiverer systemet
   U->>L: Skriv inn kode / scan fingeravtrykk
   L-->>F: Lås åpnet av [Navn]
-  F->>App: set_mode(disarmed, name="Navn")
-  App->>SM: setMode(disarmed) — modus endres FØR døren åpnes
+  F->>App: set_mode(disarmed, name="Navn", comment="valgfri tekst")
+  Note over App: Forrige modus = armed → logger i App-laget
+  App->>EL: "Deaktivert av Navn — valgfri tekst."
+  App->>SM: setMode(disarmed) — SM logger IKKE «Modus: disarmed»
+  App->>F: trigger alarm_disarmed
   U->>D: Åpne dør
   Note over App: mode = disarmed → ingen sensor-reaksjon
 
   Note over U,App: Skallsikring — hoveddør har ⏱ entry delay
   U->>L: Skriv inn kode / scan fingeravtrykk
   L-->>F: Lås åpnet
-  F->>App: set_mode(disarmed) — IGNORERT av guard\n(flow-kort uten force=true)
+  F->>App: set_mode(disarmed) — IGNORERT av guard\n(flow-kort uten force=true, ingen logg)
   Note over App: Dashboard-knapp «Hjemme» ville virket\n(force=true hopper over guard)
   U->>D: Åpne dør
   D->>App: alarm_contact = true
@@ -279,7 +283,7 @@ sequenceDiagram
 
 | Kort | Effekt |
 |---|---|
-| `set_mode` | Sett modus til Hjemme / Borte / Skallsikring (med valgfritt navn — vises i Timeline ved deaktivering) |
+| `set_mode` | Sett modus til Hjemme / Borte / Skallsikring. Valgfritt **navn** vises i Timeline ved deaktivering fra Borte-modus. Valgfri **kommentar** logges alltid i hendelsesloggen når den er satt — append til "Deaktivert av"-linjen fra Borte, eller som egen linje for andre modus-endringer. |
 | `trigger_deterrence` | Test avskrekking direkte i valgt sone |
 | `trigger_alarm` | Test full alarm (eskalering, stopp etter 15 s) |
 | `bypass_perimeter` | Deaktiver perimeter-sensorene midlertidig (antall minutter) |
@@ -508,7 +512,81 @@ Den interne loggen (Hendelseslogg-fanen i settings) inneholder all teknisk detal
 - Snapshot-aktivitet fra CameraManager
 - Alle feilmeldinger og best-effort-advarsler
 
+**Modus-endringer og logging:**
+
+| Modus-endring | Hva som logges |
+|---|---|
+| → `armed` | `Modus: armed.` |
+| → `armed_perimeter` | `Modus: armed_perimeter.` |
+| → `deterrence` | `Modus: deterrence.` |
+| → `alarm` | `Modus: alarm.` |
+| → `disarmed` (fra `armed`) | `Deaktivert av [navn] — [kommentar].` — StateMachine logger **ikke** `Modus: disarmed` separat, siden flow-handleren allerede dekker dette med mer informasjon |
+| → `disarmed` (fra andre modi) | Ingen logg — no-op eller blokkert av design |
+
 Loggen kan kopieres til utklippstavlen, lastes ned som CSV eller tømmes fra Hendelseslogg-fanen. Rullerende vindu — oppføringer eldre enn 14 dager slettes automatisk.
+
+---
+
+### Designbeslutning — logg-støy ved modus-endringer
+
+#### Problemet
+
+Tre kilder til logg-støy ble identifisert:
+
+**1. Dør-åpning i Hjemme- og Skallsikring-modus**
+
+En vanlig flow-oppskrift er å koble dør-sensorer (eller tilstedeværelse) til `set_mode`-actionen for å deaktivere systemet automatisk når noen kommer inn:
+
+```
+NÅR  Dør-sensor: Dør åpnet
+DA   Sett modus til Hjemme av [[bruker]]
+```
+
+Denne flowen fungerer riktig i **Borte**-modus — systemet deaktiveres, og hendelsen logges med riktig bruker. Men hvis flowen kjører i **Hjemme** (`disarmed`) eller **Skallsikring** (`armed_perimeter`) ble disse log-oppføringene generert på **hvert dør-åpning**:
+
+- `"Deaktivert av Thomas"` — selv om systemet allerede var deaktivert (no-op)
+- `"Skallsikring forblir aktiv — deaktivering ignorert."` — for hver dør som ble åpnet mens Skallsikring var aktiv
+
+**2. Dobbel logg ved deaktivering fra Borte-modus**
+
+Når `set_mode=disarmed` faktisk endret modus fra `armed`, produserte systemet to log-oppføringer på samme sekund:
+- `"Deaktivert av Thomas."` — fra flow-handleren
+- `"Modus: disarmed."` — fra StateMachine
+
+Samme hendelse, to linjer.
+
+**3. Én logg-linje per åpen sensor ved Skallsikring-aktivering**
+
+Når Skallsikring ble aktivert med åpne sensorer (ventilasjonsmodus), ble det logget én linje per sensor i stedet for én samlet linje.
+
+#### Alternativer som ble vurdert (problem 1)
+
+| Alternativ | Vurdering |
+|---|---|
+| **`silent`-parameter på `set_mode`-kortet** | Krever at brukeren aktivt setter parameteren på alle relevante flows — ikke fleksibelt nok, og andre brukere av appen vet ikke om konvensjonen |
+| **Eget «stille» flow-kort** | Samme problem som parameteren, pluss at det skaper unødvendig dobling av flow-kort |
+| **Bruke `"Manual"` som spesialnavn for å undertrykke logging** | Overbelaster semantikken til et navn-felt med atferdslogikk — ikke intuitivt og skjørt |
+| **Fikse rotårsaken i `set_mode`-handleren** | ✅ Ingen nye parametere, ingen nye kort, ingen spesielle strenger — fungerer automatisk for alle |
+
+#### Valgte løsninger
+
+**Problem 1 og 3 — `set_mode`-handleren og open-sensor-logging:**
+
+Log-oppføringen `"Deaktivert av [navn]"`, tidslinje-posting og `alarm_disarmed`-triggeren fyres **kun når forrige modus var `armed` (Borte)**. Den tidligere `"Skallsikring forblir aktiv — deaktivering ignorert."`-meldingen er fjernet — vakten blokkerer fremdeles, men stille. Åpne sensorer ved Skallsikring-aktivering logges som én samlet linje.
+
+**Problem 2 — `StateMachine.applyMode`:**
+
+`StateMachine` logger ikke lenger `"Modus: disarmed."` — flow-handleren produserer alltid en mer informativ oppføring (`"Deaktivert av [navn]"`) i samme øyeblikk, som gjør StateMachine-linjen til ren støy.
+
+**Samlet konsekvens for flows:**
+
+| Aktiv modus | `set_mode=disarmed` fra flow | Log-oppføringer |
+|---|---|---|
+| `armed` (Borte) | Deaktiverer systemet | `"Deaktivert av [navn] — [kommentar]."` — én linje |
+| `disarmed` (Hjemme) | No-op | — ingen |
+| `armed_perimeter` (Skallsikring) | Blokkert (design) | — ingen |
+
+Flow-en kan kjøre på alle dør-åpninger uten å støye i loggen — bare faktiske deaktiveringer fra Borte-modus produserer en logg-linje, og aldri dobbelt.
 
 ---
 

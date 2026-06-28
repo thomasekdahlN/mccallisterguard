@@ -13,6 +13,13 @@
       "type": "dropdown",
       "values": [
         {
+          "id": "off",
+          "label": {
+            "en": "Off (app disabled)",
+            "no": "Av (app deaktivert)"
+          }
+        },
+        {
           "id": "disarmed",
           "label": {
             "en": "Home",
@@ -41,6 +48,14 @@
       "placeholder": {
         "en": "Name (optional)",
         "no": "Navn (valgfritt)"
+      }
+    },
+    {
+      "name": "comment",
+      "type": "text",
+      "placeholder": {
+        "en": "Comment (optional, logged)",
+        "no": "Kommentar (valgfritt, logges)"
       }
     }
   ]

@@ -40,9 +40,17 @@ class HomeyAloneGuardApp extends Homey.App {
   private latestSnapshot: Homey.Image | null = null;
   private zoneNameCache = new Map<string, string>();
   private zoneCacheTimer: NodeJS.Timeout | null = null;
+  /** Tracks last-notification timestamps per dedup key to prevent duplicate log/timeline entries. */
+  private readonly notificationDebounce = new Map<string, number>();
+  /** Timestamp of the most recent alarm-end, used to suppress Skallsikring auto-re-activation. */
+  private lastAlarmStoppedAt: number | null = null;
   private static readonly TEST_DURATION_MS = 15_000;
   private static readonly MOTION_RECENT_MS = 60_000;
   private static readonly ZONE_CACHE_REFRESH_MS = 60_000;
+  /** Minimum interval between log/timeline entries for the same source key. */
+  private static readonly DEDUP_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+  /** How long after an alarm ends to suppress Skallsikring auto-activation. */
+  private static readonly ALARM_COOLDOWN_MS = 30 * 60 * 1000; // 30 minutes
   async onInit(): Promise<void> {
     this.log('Homey Alone Guard starter opp…');
 
@@ -130,8 +138,9 @@ class HomeyAloneGuardApp extends Homey.App {
     // A smart-lock "authorised unlock" flow must not automatically disable perimeter mode —
     // residents can come home late without disarming the night guard.
     // The auto-scheduler bypasses this guard via { force: true }.
+    // No log entry here: the set_mode flow card only logs when previous mode was armed, so
+    // door-open flows that send set_mode=disarmed in perimeter mode produce no log noise.
     if (mode === 'disarmed' && current === 'armed_perimeter' && !force) {
-      this.eventLog.add('info', 'Skallsikring forblir aktiv — deaktivering ignorert.');
       return;
     }
 
@@ -139,10 +148,16 @@ class HomeyAloneGuardApp extends Homey.App {
     // perimeter mode instead of fully disarming. This covers the case where a resident comes
     // home at night and their smart-lock flow sends set_mode=disarmed — the house switches to
     // night guard rather than going fully unarmed. Scheduler and force=true bypass this.
+    // Exception: if an alarm ended recently, let the user fully disarm without re-arming perimeter.
     if (mode === 'disarmed' && current === 'armed' && !force && this.isInArmedPerimeterWindow()) {
-      this.eventLog.add('info', 'Borte-modus deaktivert i skalltidsvindu — bytter til Skallsikring i stedet.');
-      await this.setMode('armed_perimeter');
-      return;
+      const recentAlarm = this.lastAlarmStoppedAt !== null
+        && (Date.now() - this.lastAlarmStoppedAt) < HomeyAloneGuardApp.ALARM_COOLDOWN_MS;
+      if (!recentAlarm) {
+        this.eventLog.add('info', 'Borte-modus deaktivert i skalltidsvindu — bytter til Skallsikring i stedet.');
+        await this.setMode('armed_perimeter');
+        return;
+      }
+      this.eventLog.add('info', 'Deaktivering etter alarm — Skallsikring-omdirigering undertrykket.');
     }
 
     // Cleanup when leaving perimeter_alarm (user dismisses or disarms the soft alert).
@@ -153,7 +168,7 @@ class HomeyAloneGuardApp extends Homey.App {
     }
 
     const settings = this.getSettings();
-    if (mode === 'disarmed') {
+    if (mode === 'disarmed' || mode === 'off') {
       // Coming from alarm: fire alarm_stopped flow cards before tearing down.
       if (current === 'alarm') {
         this.alarmStopped('Stoppet av bruker.');
@@ -409,6 +424,7 @@ class HomeyAloneGuardApp extends Homey.App {
   }
 
   private alarmStopped(reason: string): void {
+    this.lastAlarmStoppedAt = Date.now();
     const ctx = this.alarmContext;
     const alarmType = ctx?.alarmType ?? 'intrusion';
     this.pushTimeline(alarmType === 'perimeter' ? 'Skallsikring alarm stoppet' : 'Alarm stoppet');
@@ -430,7 +446,23 @@ class HomeyAloneGuardApp extends Homey.App {
     this.homey.notifications.createNotification({ excerpt }).catch(() => { /* best-effort */ });
   }
 
+  /**
+   * Returns true if the log/timeline entry for the given dedup key should be emitted now.
+   * Prevents the same source from appearing in logs or timeline more than once
+   * within DEDUP_WINDOW_MS (15 minutes). Updates the debounce timestamp when allowed.
+   *
+   * @param key - Unique identifier for the notification source (e.g. "disarm:thomas").
+   */
+  private shouldNotify(key: string): boolean {
+    const last = this.notificationDebounce.get(key);
+    const now = Date.now();
+    if (last !== undefined && now - last < HomeyAloneGuardApp.DEDUP_WINDOW_MS) return false;
+    this.notificationDebounce.set(key, now);
+    return true;
+  }
+
   private modeLabel(mode: Mode): string {
+    if (mode === 'off') return 'App deaktivert (Av-modus)';
     if (mode === 'disarmed') return 'Alarm av';
     if (mode === 'armed') return 'Alarm på';
     if (mode === 'armed_perimeter') return 'Alarm skallsikring';
@@ -547,10 +579,18 @@ class HomeyAloneGuardApp extends Homey.App {
     this.lastArmedStayWindowState = inWindow;
 
     const mode = this.stateMachine.getMode();
-    // Only activate from disarmed; never interrupt armed/alarm/deterrence.
+    // Auto-scheduler may ONLY activate armed_perimeter from 'disarmed'.
+    // It must never override 'armed' (Borte-modus) — manual mode changes are required for that.
+    // Also suppress for ALARM_COOLDOWN_MS after an alarm ends so the user can fully disarm.
     if (inWindow && mode === 'disarmed') {
-      this.eventLog.add('info', 'Skallsikring aktivert.');
-      this.setMode('armed_perimeter').catch(() => { /* best-effort */ });
+      const recentAlarm = this.lastAlarmStoppedAt !== null
+        && (Date.now() - this.lastAlarmStoppedAt) < HomeyAloneGuardApp.ALARM_COOLDOWN_MS;
+      if (recentAlarm) {
+        this.eventLog.add('info', 'Skallsikring-autostart utsatt — alarm nylig stoppet.');
+      } else {
+        this.eventLog.add('info', 'Skallsikring aktivert.');
+        this.setMode('armed_perimeter').catch(() => { /* best-effort */ });
+      }
     } else if (!inWindow && mode === 'armed_perimeter') {
       this.eventLog.add('info', 'Skallsikring deaktivert.');
       this.setMode('disarmed', { force: true }).catch(() => { /* best-effort */ });
@@ -563,7 +603,7 @@ class HomeyAloneGuardApp extends Homey.App {
     } else {
       this.simulation.stop();
     }
-    if (next !== 'disarmed' && previous === 'disarmed') {
+    if (next !== 'disarmed' && next !== 'off' && (previous === 'disarmed' || previous === 'off')) {
       this.runHealthCheck().catch(() => { /* best-effort */ });
     }
     // perimeter_alarm push is handled by enterPerimeterAlarm with sensor + zone detail.
@@ -601,15 +641,46 @@ class HomeyAloneGuardApp extends Homey.App {
 
   private async registerFlowActions(): Promise<void> {
     this.homey.flow.getActionCard('set_mode')
-      .registerRunListener(async (args: { mode: Mode; name?: string }) => {
+      .registerRunListener(async (args: { mode: Mode; name?: string; comment?: string }) => {
+        const comment = args.comment?.trim() ?? '';
+        const currentMode = this.stateMachine.getMode();
+
         if (args.mode === 'disarmed') {
-          // Always log disarm attempts — including when mode is already disarmed or
-          // when armed_perimeter guard silently ignores the request.
-          const who = (args.name?.trim() || 'ukjent').replace(/^user:\s*/i, '');
-          this.eventLog.add('info', `Deaktivert av ${who}.`);
-          this.pushTimeline(`Deaktivert av ${who}`);
+          // Only log, push timeline and fire alarm_disarmed when actually disarming from armed mode.
+          // In disarmed or armed_perimeter mode the set_mode=disarmed call is either a no-op or
+          // silently blocked — logging it creates noisy entries every time a door-open flow fires
+          // (e.g. a presence or door-sensor flow that sends disarm regardless of current mode).
+          // In armed mode a disarm is always significant and must always be logged, regardless of name.
+          if (currentMode === 'armed') {
+            const who = (args.name?.trim() || 'ukjent').replace(/^user:\s*/i, '');
+            // Dedup: log and notify at most once per 15 min per source to prevent
+            // duplicate entries when presence + door events both disarm simultaneously.
+            const dedupKey = `disarm:${who.toLowerCase()}`;
+            if (this.shouldNotify(dedupKey)) {
+              const msg = comment ? `Deaktivert av ${who} — ${comment}.` : `Deaktivert av ${who}.`;
+              this.eventLog.add('info', msg);
+              this.pushTimeline(`Deaktivert av ${who}`);
+              try {
+                await this.homey.flow.getTriggerCard('alarm_disarmed').trigger({
+                  source: 'user',
+                  name: who,
+                  previous_mode: currentMode,
+                });
+              } catch { /* best-effort */ }
+            }
+          } else if (comment) {
+            // Disarm was a no-op or blocked, but the flow explicitly set a comment — log it.
+            this.eventLog.add('info', `Kommentar: ${comment}`);
+          }
         }
+
         await this.setMode(args.mode);
+
+        // For non-disarmed modes: log comment after setMode so it follows StateMachine's "Modus: [next]".
+        if (comment && args.mode !== 'disarmed') {
+          this.eventLog.add('info', `Kommentar: ${comment}`);
+        }
+
         return true;
       });
     this.homey.flow.getActionCard('set_camera_motion')
@@ -717,14 +788,20 @@ class HomeyAloneGuardApp extends Homey.App {
         const val = device.capabilitiesObj?.alarm_contact?.value;
         if (val === true) {
           this.openSensorsAtPerimeterStart.add(device.id);
-          const name = device.name || device.id;
-          openNames.push(name);
-          this.eventLog.add('info', `Sensor åpen ved aktivering — ignoreres i skallsikring: ${name}.`, device.zone, device.id);
+          openNames.push(device.name || device.id);
         }
       }
       if (openNames.length > 0) {
-        const msg = `Skallsikring aktivert: ${openNames.length} sensor(er) åpen — ignoreres: ${openNames.join(', ')}`;
+        const msg = `Skallsikring aktivert: ${openNames.length} sensor(er) åpen ved aktivering — ignoreres: ${openNames.join(', ')}`;
+        this.eventLog.add('info', msg);
         await this.homey.notifications.createNotification({ excerpt: `ℹ️ ${msg}` });
+        try {
+          await this.homey.flow.getTriggerCard('open_sensors_at_arming').trigger({
+            count: openNames.length,
+            names: openNames.join(', '),
+            mode: 'armed_perimeter',
+          });
+        } catch { /* best-effort */ }
       }
     } catch (err) {
       this.eventLog.add('warning', `Snapshot av åpne sensorer feilet: ${(err as Error).message}`);
@@ -746,6 +823,13 @@ class HomeyAloneGuardApp extends Homey.App {
         const msg = `${open.length} dør/vindu er åpen(e) ved aktivering: ${open.join(', ')}`;
         this.eventLog.add('warning', msg);
         await this.homey.notifications.createNotification({ excerpt: `⚠️ ${msg}` });
+        try {
+          await this.homey.flow.getTriggerCard('open_sensors_at_arming').trigger({
+            count: open.length,
+            names: open.join(', '),
+            mode: 'armed',
+          });
+        } catch { /* best-effort */ }
       }
     } catch (err) {
       this.eventLog.add('warning', `Sjekk av åpne sensorer feilet: ${(err as Error).message}`);
@@ -758,8 +842,9 @@ class HomeyAloneGuardApp extends Homey.App {
     // Motion burst: use alarm-count when in deterrence or alarm mode.
     const isAlertMode = mode === 'deterrence' || mode === 'alarm';
     this.cameras.captureMotionBurst(zoneId, isAlertMode).catch(() => { /* best-effort */ });
+    // off: app fully disabled — ignore all sensor events.
     // perimeter_alarm: already alerting — ignore additional motion until dismissed.
-    if (mode === 'disarmed' || mode === 'perimeter_alarm') return;
+    if (mode === 'off' || mode === 'disarmed' || mode === 'perimeter_alarm') return;
     if (this.stateMachine.isExitDelayActive()) return;
     if (mode === 'armed_perimeter') {
       // Perimeter mode: notify only — fire flow card, no mode change, no deterrence/alarm.
@@ -793,8 +878,9 @@ class HomeyAloneGuardApp extends Homey.App {
 
   private async onContact(zoneId: string, deviceId: string): Promise<void> {
     const mode = this.stateMachine.getMode();
+    // off: app fully disabled — ignore all sensor events.
     // perimeter_alarm: already alerting — ignore additional contacts until dismissed.
-    if (mode === 'disarmed' || mode === 'deterrence' || mode === 'alarm' || mode === 'perimeter_alarm') return;
+    if (mode === 'off' || mode === 'disarmed' || mode === 'deterrence' || mode === 'alarm' || mode === 'perimeter_alarm') return;
     if (this.stateMachine.isExitDelayActive()) return;
     // In perimeter mode: silently ignore non-perimeter sensors, bypassed sensors and
     // sensors that were already open when armed_perimeter was activated.
@@ -836,7 +922,8 @@ class HomeyAloneGuardApp extends Homey.App {
   }
 
   private async handleConfirmedContact(zoneId: string, deviceId: string, mode: Mode): Promise<void> {
-    if (this.stateMachine.getMode() === 'disarmed') return;
+    const currentMode = this.stateMachine.getMode();
+    if (currentMode === 'off' || currentMode === 'disarmed') return;
     if (mode === 'armed_perimeter') {
       await this.enterPerimeterAlarm(zoneId, deviceId, 'contact');
       return;
@@ -845,7 +932,8 @@ class HomeyAloneGuardApp extends Homey.App {
   }
 
   private async handleConfirmedMotion(zoneId: string, deviceId: string, sensorType: 'motion' | 'contact', alarmType: AlarmType): Promise<void> {
-    if (this.stateMachine.getMode() === 'disarmed') return;
+    const currentMode = this.stateMachine.getMode();
+    if (currentMode === 'off' || currentMode === 'disarmed') return;
     this.falseAlarm.registerMotion(zoneId);
     await this.enterDeterrence(zoneId, deviceId, sensorType, alarmType);
   }
