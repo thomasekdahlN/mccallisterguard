@@ -287,7 +287,6 @@ sequenceDiagram
 | `alarm_active` | System is in `alarm` mode (full alarm triggered) |
 | `alarm_perimeter_active` | System is in `armed_perimeter` **or** `perimeter_alarm` — Perimeter mode active (monitoring or alarm) |
 | `get_mode` | System is in selected mode — dropdown with all 6 modes (including `perimeter_alarm`) |
-| `alarm_triggered_from` | Active alarm/deterrence was triggered from the selected mode (`armed` / `armed_perimeter`) |
 | `alarm_triggered_in_zone` | Active alarm or perimeter alert was triggered by a sensor in the selected zone — autocomplete zone picker. Use this to run different deterrence reactions per zone. |
 
 ### Actions
@@ -342,7 +341,6 @@ THEN  Pushover: Send message with image [[snapshot]] to ALL household members
       Call emergency contact via IFTTT/SMS
 
 WHEN  Mode changed (mode_changed, mode_new = alarm)
-AND   Alarm was triggered from [Away (armed)]   ← alarm_triggered_from condition
 THEN  Send SMS to police / emergency contact
 ```
 
@@ -688,7 +686,6 @@ THEN  Sonos: Stop playback
 
 **Tips:**
 - Use the `alarm_triggered_in_zone` condition to play different sounds depending on which room triggered the alarm.
-- Use the `alarm_triggered_from` condition during an active `alarm` phase to play different sounds depending on whether the alarm came from Away or Perimeter mode.
 - Your own flows can safely control lights in the reaction zone in parallel with built-in blinking.
 - Volume control on third-party speakers must be done in the same flow — the app does not have access to this from code.
 
@@ -737,7 +734,6 @@ THEN  Google Sheet → Add row: [mode_new], [mode_previous], [timestamp]
 - The **"Test alarm"** button in the Zone overview sets the system to `alarm` mode and stops after 15 seconds.
 - In the **Event Log** you always see the current mode line at each mode change.
 - Use the `get_mode` condition to check the active mode in flows without listening to `mode_changed`.
-- Use the `alarm_triggered_from` condition during the `alarm` or `deterrence` phase to distinguish between "we were home" and "we were away".
 
 
 ## Installation

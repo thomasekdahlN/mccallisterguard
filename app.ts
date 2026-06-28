@@ -728,8 +728,6 @@ class HomeyAloneGuardApp extends Homey.App {
       });
     this.homey.flow.getConditionCard('get_mode')
       .registerRunListener(async (args: { mode: Mode }) => this.stateMachine.getMode() === args.mode);
-    this.homey.flow.getConditionCard('alarm_triggered_from')
-      .registerRunListener(async (args: { mode: 'armed' | 'armed_perimeter' }) => this.previousArmedMode === args.mode);
     const zoneConditionCard = this.homey.flow.getConditionCard('alarm_triggered_in_zone');
     zoneConditionCard.registerRunListener(async (args: { zone: { id: string; name: string } }) => this.alarmContext?.zoneId === args.zone.id);
     zoneConditionCard.registerArgumentAutocompleteListener('zone', async (query: string) => {
