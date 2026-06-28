@@ -65,10 +65,6 @@
       "method": "POST",
       "path": "/mode"
     },
-    "triggerPanic": {
-      "method": "POST",
-      "path": "/panic"
-    },
     "testDeterrence": {
       "method": "POST",
       "path": "/test-deterrence"
@@ -80,6 +76,55 @@
   },
   "flow": {
     "triggers": [
+      {
+        "title": {
+          "en": "Alarm disarmed",
+          "no": "Alarm deaktivert"
+        },
+        "hint": {
+          "en": "Fires when the system is disarmed. Deduplicated: at most once per 15 minutes per source to avoid duplicate notifications from simultaneous presence and door events.",
+          "no": "Utløses når systemet deaktiveres. Deduplisert: maks én gang per 15 min per kilde for å unngå duplikate varsler fra tilstedeværelse og dørsenso."
+        },
+        "tokens": [
+          {
+            "name": "source",
+            "type": "string",
+            "title": {
+              "en": "Source",
+              "no": "Kilde"
+            },
+            "example": {
+              "en": "user",
+              "no": "user"
+            }
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "title": {
+              "en": "Name",
+              "no": "Navn"
+            },
+            "example": {
+              "en": "Thomas",
+              "no": "Thomas"
+            }
+          },
+          {
+            "name": "previous_mode",
+            "type": "string",
+            "title": {
+              "en": "Previous mode",
+              "no": "Forrige modus"
+            },
+            "example": {
+              "en": "armed",
+              "no": "armed"
+            }
+          }
+        ],
+        "id": "alarm_disarmed"
+      },
       {
         "title": {
           "en": "Perimeter breach alarm stopped",
@@ -344,6 +389,80 @@
       },
       {
         "title": {
+          "en": "Kevin mode turned lights off",
+          "no": "Kevin-modus skrudde av lys"
+        },
+        "hint": {
+          "en": "Fires once per zone when Kevin presence-simulation turns lights off. Use this to also turn off TV, radio, etc. in the same room.",
+          "no": "Utløses én gang per sone når Kevin-modus skrur av lys. Bruk dette til å slå av TV, radio osv. i samme rom."
+        },
+        "tokens": [
+          {
+            "name": "zone",
+            "type": "string",
+            "title": {
+              "en": "Zone",
+              "no": "Sone"
+            },
+            "example": {
+              "en": "Living room",
+              "no": "Stua"
+            }
+          },
+          {
+            "name": "light_names",
+            "type": "string",
+            "title": {
+              "en": "Light names",
+              "no": "Lysnavn"
+            },
+            "example": {
+              "en": "Floor lamp, Ceiling light",
+              "no": "Gulvlampe, Taklampe"
+            }
+          }
+        ],
+        "id": "kevin_lights_off"
+      },
+      {
+        "title": {
+          "en": "Kevin mode turned lights on",
+          "no": "Kevin-modus skrudde på lys"
+        },
+        "hint": {
+          "en": "Fires once per zone when Kevin presence-simulation turns lights on. Use this to also turn on TV, radio, etc. in the same room.",
+          "no": "Utløses én gang per sone når Kevin-modus skrur på lys. Bruk dette til å slå på TV, radio osv. i samme rom."
+        },
+        "tokens": [
+          {
+            "name": "zone",
+            "type": "string",
+            "title": {
+              "en": "Zone",
+              "no": "Sone"
+            },
+            "example": {
+              "en": "Living room",
+              "no": "Stua"
+            }
+          },
+          {
+            "name": "light_names",
+            "type": "string",
+            "title": {
+              "en": "Light names",
+              "no": "Lysnavn"
+            },
+            "example": {
+              "en": "Floor lamp, Ceiling light",
+              "no": "Gulvlampe, Taklampe"
+            }
+          }
+        ],
+        "id": "kevin_lights_on"
+      },
+      {
+        "title": {
           "en": "Mode changed",
           "no": "Modus endret"
         },
@@ -378,6 +497,52 @@
           }
         ],
         "id": "mode_changed"
+      },
+      {
+        "title": {
+          "en": "Open sensors at arming",
+          "no": "Åpne sensorer ved aktivering"
+        },
+        "hint": {
+          "en": "Fires when the system is armed (Away or Skallsikring) and one or more door/window sensors are open.",
+          "no": "Utløses når systemet aktiveres (Borte eller Skallsikring) og én eller flere dør/vindu-sensorer er åpne."
+        },
+        "tokens": [
+          {
+            "name": "count",
+            "type": "number",
+            "title": {
+              "en": "Open sensor count",
+              "no": "Antall åpne sensorer"
+            },
+            "example": 2
+          },
+          {
+            "name": "names",
+            "type": "string",
+            "title": {
+              "en": "Sensor names",
+              "no": "Sensornavn"
+            },
+            "example": {
+              "en": "Front door, Garage door",
+              "no": "Inngangsdør, Garasjeport"
+            }
+          },
+          {
+            "name": "mode",
+            "type": "string",
+            "title": {
+              "en": "Active mode",
+              "no": "Aktiv modus"
+            },
+            "example": {
+              "en": "armed",
+              "no": "armed"
+            }
+          }
+        ],
+        "id": "open_sensors_at_arming"
       },
       {
         "title": {
@@ -540,6 +705,13 @@
             "type": "dropdown",
             "values": [
               {
+                "id": "off",
+                "label": {
+                  "en": "Off (app disabled)",
+                  "no": "Av (app deaktivert)"
+                }
+              },
+              {
                 "id": "disarmed",
                 "label": {
                   "en": "Home (disarmed)",
@@ -663,6 +835,13 @@
             "name": "mode",
             "type": "dropdown",
             "values": [
+              {
+                "id": "off",
+                "label": {
+                  "en": "Off (app disabled)",
+                  "no": "Av (app deaktivert)"
+                }
+              },
               {
                 "id": "disarmed",
                 "label": {

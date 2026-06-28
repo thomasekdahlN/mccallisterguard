@@ -17,6 +17,13 @@
       "type": "dropdown",
       "values": [
         {
+          "id": "off",
+          "label": {
+            "en": "Off (app disabled)",
+            "no": "Av (app deaktivert)"
+          }
+        },
+        {
           "id": "disarmed",
           "label": {
             "en": "Home (disarmed)",

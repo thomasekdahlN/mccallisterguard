@@ -11,7 +11,8 @@ export default class SimulationEngine {
 
   private tickInterval: NodeJS.Timeout | null = null;
   private cycleTimer: NodeJS.Timeout | null = null;
-  private currentZones: string[] = [];
+  /** Device IDs of lights that are currently switched ON by Kevin-mode. */
+  private currentLightIds: string[] = [];
   private running = false;
 
   constructor(
@@ -37,7 +38,7 @@ export default class SimulationEngine {
       this.cycleTimer = null;
     }
     if (this.running) {
-      this.turnOffCurrent().catch(() => { /* best-effort */ });
+      this.turnOffCurrent('Kevin-modus stoppet').catch(() => { /* best-effort */ });
     }
     this.running = false;
   }
@@ -54,12 +55,11 @@ export default class SimulationEngine {
       this.scheduleCycle();
     } else if (!within && this.running) {
       this.running = false;
-      this.log.add('info', 'Kevin-modus stoppet.');
       if (this.cycleTimer) {
         this.homey.clearTimeout(this.cycleTimer);
         this.cycleTimer = null;
       }
-      this.turnOffCurrent().catch(() => { /* best-effort */ });
+      this.turnOffCurrent('Kevin-modus stoppet (utenfor tidsvindu)').catch(() => { /* best-effort */ });
     }
   }
 
@@ -79,11 +79,11 @@ export default class SimulationEngine {
 
   private async runCycle(settings: GuardSettings): Promise<void> {
     await this.turnOffCurrent();
-    const candidates = Object.entries(settings.kevin_zones)
-      .filter(([, enabled]) => enabled)
-      .map(([zoneId]) => zoneId);
+
+    const candidates = settings.kevin_lights ?? [];
     if (candidates.length === 0) return;
 
+    // Pick 1–3 random lights from the user-configured set.
     const count = Math.min(candidates.length, 1 + Math.floor(Math.random() * 3));
     const picked: string[] = [];
     const pool = [...candidates];
@@ -91,35 +91,102 @@ export default class SimulationEngine {
       const idx = Math.floor(Math.random() * pool.length);
       picked.push(pool.splice(idx, 1)[0] as string);
     }
-    this.currentZones = picked;
 
-    const devices = await this.homeyApi.devices.getDevices();
-    const all = Object.values(devices) as any[];
+    const [devices, zones] = await Promise.all([
+      this.homeyApi.devices.getDevices(),
+      this.homeyApi.zones.getZones(),
+    ]);
+    const deviceMap = new Map<string, any>(
+      (Object.values(devices) as any[]).map((d: any) => [String(d.id), d]),
+    );
+    const zoneNameMap = new Map<string, string>(
+      (Object.values(zones) as any[]).map((z: any) => [String(z.id), String(z.name ?? z.id)]),
+    );
 
-    for (const zoneId of picked) {
-      const zoneLights = all.filter((d) => d.zone === zoneId && isLight(d));
-      for (const light of zoneLights) {
-        try {
-          await light.setCapabilityValue({ capabilityId: 'onoff', value: true });
-        } catch { /* best-effort */ }
+    /** zone ID → list of light names turned on in that zone */
+    const byZone = new Map<string, string[]>();
+    const allNames: string[] = [];
+
+    for (const deviceId of picked) {
+      const device = deviceMap.get(deviceId);
+      if (!device || !isLight(device)) continue;
+      try {
+        await device.setCapabilityValue({ capabilityId: 'onoff', value: true });
+        this.currentLightIds.push(deviceId);
+        const name = String(device.name ?? deviceId);
+        allNames.push(name);
+        const zoneId = String(device.zone ?? '');
+        const list = byZone.get(zoneId) ?? [];
+        list.push(name);
+        byZone.set(zoneId, list);
+      } catch { /* best-effort */ }
+    }
+
+    if (allNames.length > 0) {
+      this.log.add('info', `Kevin-modus: lys på — ${allNames.join(', ')}.`);
+      const onCard = this.homey.flow.getTriggerCard('kevin_lights_on');
+      for (const [zoneId, names] of byZone) {
+        const zoneName = zoneNameMap.get(zoneId) ?? zoneId;
+        onCard.trigger({ zone: zoneName, light_names: names.join(', ') })
+          .catch(() => { /* best-effort */ });
       }
     }
-    this.log.add('info', `Kevin-syklus: lys på i ${picked.length} sone(r).`);
   }
 
-  private async turnOffCurrent(): Promise<void> {
-    if (this.currentZones.length === 0) return;
-    const devices = await this.homeyApi.devices.getDevices();
-    const all = Object.values(devices) as any[];
-    for (const zoneId of this.currentZones) {
-      const zoneLights = all.filter((d) => d.zone === zoneId && isLight(d));
-      for (const light of zoneLights) {
-        try {
-          await light.setCapabilityValue({ capabilityId: 'onoff', value: false });
-        } catch { /* best-effort */ }
+  /**
+   * Turn off all lights that Kevin-mode currently has on, then clear the list.
+   *
+   * @param logPrefix - Optional message prefix for the log entry. When omitted the
+   *   entry only lists the lights that were turned off.
+   */
+  private async turnOffCurrent(logPrefix?: string): Promise<void> {
+    if (this.currentLightIds.length === 0) {
+      if (logPrefix) this.log.add('info', `${logPrefix}.`);
+      return;
+    }
+
+    const [devices, zones] = await Promise.all([
+      this.homeyApi.devices.getDevices(),
+      this.homeyApi.zones.getZones(),
+    ]);
+    const deviceMap = new Map<string, any>(
+      (Object.values(devices) as any[]).map((d: any) => [String(d.id), d]),
+    );
+    const zoneNameMap = new Map<string, string>(
+      (Object.values(zones) as any[]).map((z: any) => [String(z.id), String(z.name ?? z.id)]),
+    );
+
+    /** zone ID → list of light names turned off in that zone */
+    const byZone = new Map<string, string[]>();
+    const allNames: string[] = [];
+
+    for (const deviceId of this.currentLightIds) {
+      const device = deviceMap.get(deviceId);
+      if (!device) continue;
+      try {
+        await device.setCapabilityValue({ capabilityId: 'onoff', value: false });
+        const name = String(device.name ?? deviceId);
+        allNames.push(name);
+        const zoneId = String(device.zone ?? '');
+        const list = byZone.get(zoneId) ?? [];
+        list.push(name);
+        byZone.set(zoneId, list);
+      } catch { /* best-effort */ }
+    }
+    this.currentLightIds = [];
+
+    const lightsMsg = allNames.length > 0 ? ` — ${allNames.join(', ')}` : '';
+    const prefix = logPrefix ? `${logPrefix}: lys av` : 'Kevin-modus: lys av';
+    this.log.add('info', `${prefix}${lightsMsg}.`);
+
+    if (allNames.length > 0) {
+      const offCard = this.homey.flow.getTriggerCard('kevin_lights_off');
+      for (const [zoneId, names] of byZone) {
+        const zoneName = zoneNameMap.get(zoneId) ?? zoneId;
+        offCard.trigger({ zone: zoneName, light_names: names.join(', ') })
+          .catch(() => { /* best-effort */ });
       }
     }
-    this.currentZones = [];
   }
 
   private isWithinWindow(): boolean {

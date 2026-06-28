@@ -1,0 +1,45 @@
+{
+  "title": {
+    "en": "Open sensors at arming",
+    "no": "Åpne sensorer ved aktivering"
+  },
+  "hint": {
+    "en": "Fires when the system is armed (Away or Skallsikring) and one or more door/window sensors are open.",
+    "no": "Utløses når systemet aktiveres (Borte eller Skallsikring) og én eller flere dør/vindu-sensorer er åpne."
+  },
+  "tokens": [
+    {
+      "name": "count",
+      "type": "number",
+      "title": {
+        "en": "Open sensor count",
+        "no": "Antall åpne sensorer"
+      },
+      "example": 2
+    },
+    {
+      "name": "names",
+      "type": "string",
+      "title": {
+        "en": "Sensor names",
+        "no": "Sensornavn"
+      },
+      "example": {
+        "en": "Front door, Garage door",
+        "no": "Inngangsdør, Garasjeport"
+      }
+    },
+    {
+      "name": "mode",
+      "type": "string",
+      "title": {
+        "en": "Active mode",
+        "no": "Aktiv modus"
+      },
+      "example": {
+        "en": "armed",
+        "no": "armed"
+      }
+    }
+  ]
+}

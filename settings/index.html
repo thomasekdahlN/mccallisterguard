@@ -84,6 +84,10 @@
       background: #102A43;
     }
 
+    .mode-btn.off {
+      background: #555;
+    }
+
     .mode-btn.deterrence {
       background: #c07000;
     }
@@ -997,6 +1001,7 @@
     <div class="dash-section">
       <div class="dash-section-label">Modus</div>
       <div class="mode-seg">
+        <button class="mode-btn off" data-mode="off">Av</button>
         <button class="mode-btn disarmed" data-mode="disarmed">Hjemme</button>
         <button class="mode-btn armed" data-mode="armed">Borte</button>
         <button class="mode-btn armed_perimeter" data-mode="armed_perimeter">Skallsikring</button>
@@ -1397,6 +1402,7 @@
       }
 
       function modeLabel(mode) {
+        if (mode === 'off') return 'Av (deaktivert)';
         if (mode === 'armed') return 'Borte';
         if (mode === 'armed_perimeter') return 'Skallsikring';
         if (mode === 'deterrence') return 'Avskrekking aktiv';
@@ -1468,8 +1474,10 @@
 
       function capBadges(z) {
         const badges = [];
-        if (settings.kevin_zones?.[z.id]) {
-          const lightList = (z.lightDevices || []).join(', ') || 'ingen';
+        const kevinLights = settings.kevin_lights || [];
+        const zoneKevinLights = (z.lights || []).filter((l) => kevinLights.includes(l.id));
+        if (zoneKevinLights.length > 0) {
+          const lightList = zoneKevinLights.map((l) => l.name).join(', ') || 'ingen';
           badges.push(`<span title="Kevin-modus aktiv – lys: ${esc(lightList)}">💡</span>`);
         }
         if (z.hasCameras) {
@@ -1540,9 +1548,18 @@
             cameraBlock = `<label>Kameraer</label><div class="sensor-list">${cameraRows}</div>`;
           }
 
-          const kevinBlock = z.hasLights
+          const kevinLights = settings.kevin_lights || [];
+          const kevinBlock = (z.lights && z.lights.length > 0)
             ? `<label>Kevin-modus</label>`
-            + `<label style="justify-self:start;"><input type="checkbox" data-kevin="${esc(z.id)}" ${settings.kevin_zones[z.id] ? 'checked' : ''}> Lys-simulering</label>`
+            + `<div class="sensor-list">`
+            + z.lights.map((l) => {
+              const checked = kevinLights.includes(l.id) ? 'checked' : '';
+              return `<div class="sensor-row">`
+                + `<span class="sensor-name">💡 ${esc(l.name)}</span>`
+                + `<label class="sensor-flag" title="Inkluder i lys-simulering (Kevin-modus)"><input type="checkbox" data-kevin-light="${esc(l.id)}" ${checked}> Simuler</label>`
+                + `</div>`;
+            }).join('')
+            + `</div>`
             : '';
 
           return `<details class="zone-block" data-zone="${esc(z.id)}">`
@@ -1720,12 +1737,12 @@
       });
       $('btn-save-zones').addEventListener('click', async () => {
         const payload = {
-          kevin_zones: {}, zone_matrix: {}, perimeter_sensors: [], perimeter_sensors_seen: [],
+          kevin_zones: {}, kevin_lights: [], zone_matrix: {}, perimeter_sensors: [], perimeter_sensors_seen: [],
           entry_delay_sensors: [],
           camera_alarm_cams: {}, camera_motion_cams: {},
           camera_snapshot_urls: {},
         };
-        document.querySelectorAll('[data-kevin]').forEach((c) => { payload.kevin_zones[c.dataset.kevin] = c.checked; });
+        document.querySelectorAll('[data-kevin-light]:checked').forEach((c) => { payload.kevin_lights.push(c.dataset.kevinLight); });
         document.querySelectorAll('[data-matrix]').forEach((s) => { if (s.value) payload.zone_matrix[s.dataset.matrix] = s.value; });
         // Track every rendered perimeter checkbox as "seen" so new sensors
         // can be distinguished from explicitly-unchecked sensors on next render.

@@ -1,6 +1,6 @@
 'use strict';
 
-export type Mode = 'disarmed' | 'armed' | 'armed_perimeter' | 'perimeter_alarm' | 'deterrence' | 'alarm';
+export type Mode = 'off' | 'disarmed' | 'armed' | 'armed_perimeter' | 'perimeter_alarm' | 'deterrence' | 'alarm';
 
 export type AlarmType = 'perimeter' | 'intrusion' | 'entry_delay_timeout';
 
@@ -58,6 +58,12 @@ export interface GuardSettings {
   camera_motion_enabled: boolean;
   /** Maximum number of snapshots to retain per category (alarm / motion). Oldest are deleted first. Default: 250. */
   snapshot_max_count: number;
+  /**
+   * Device IDs of individual lights selected for Kevin-mode simulation.
+   * Replaces the coarser zone-level kevin_zones flag: users pick specific
+   * lights (e.g. "Stue-lampe") rather than enabling every light in a room.
+   */
+  kevin_lights: string[];
   /** Whether armed_perimeter should activate and deactivate automatically on a daily schedule. Default: false. */
   armed_perimeter_auto: boolean;
   /** Time to automatically enable armed_perimeter (HH:MM, 24h). Default: '22:00'. */
@@ -117,6 +123,7 @@ export const DEFAULT_SETTINGS: GuardSettings = {
   camera_motion_cams: {},
   camera_motion_enabled: true,
   snapshot_max_count: SNAPSHOT_MAX_COUNT_DEFAULT,
+  kevin_lights: [],
   armed_perimeter_auto: false,
   armed_perimeter_on: '22:00',
   armed_perimeter_off: '06:00',
@@ -126,30 +133,20 @@ export const DEFAULT_SETTINGS: GuardSettings = {
 /**
  * Allowed mode transitions.
  *
- * User-initiated (dashboard / flow):
- *   disarmed        → armed | armed_perimeter
- *   armed           → disarmed  (must disarm before switching to armed_perimeter)
- *   armed_perimeter → disarmed | armed
- *
- * System-initiated (sensor trigger):
- *   armed_perimeter → perimeter_alarm    (perimeter sensor fires — notify only, no lights)
- *   armed           → deterrence         (sensor triggers deterrence mode)
- *   deterrence      → alarm              (escalation timer fires)
- *   deterrence | alarm → armed_perimeter | armed | disarmed
- *                        (stopAlarm returns to previous armed state)
- *   perimeter_alarm → armed_perimeter | disarmed
- *                     (user dismisses or disarms the perimeter alert)
- *
- * Test-initiated (from disarmed or armed):
- *   disarmed | armed_* → deterrence | alarm  (testDeterrence / testAlarm)
+ * All transitions are permitted to give the user full manual control from any state.
+ * The auto-scheduler is responsible for only initiating transitions from 'disarmed' —
+ * it must never activate armed_perimeter when the system is already in 'armed' mode.
  */
+const ALL_MODES: readonly Mode[] = ['off', 'disarmed', 'armed', 'armed_perimeter', 'perimeter_alarm', 'deterrence', 'alarm'];
+
 export const VALID_TRANSITIONS: Readonly<Record<Mode, readonly Mode[]>> = {
-  disarmed: ['armed', 'armed_perimeter', 'deterrence', 'alarm'],
-  armed: ['disarmed', 'deterrence', 'alarm'],
-  armed_perimeter: ['disarmed', 'armed', 'perimeter_alarm', 'deterrence', 'alarm'],
-  perimeter_alarm: ['disarmed', 'armed_perimeter'],
-  deterrence: ['alarm', 'armed_perimeter', 'armed', 'disarmed'],
-  alarm: ['armed_perimeter', 'armed', 'disarmed'],
+  off: ALL_MODES,
+  disarmed: ALL_MODES,
+  armed: ALL_MODES,
+  armed_perimeter: ALL_MODES,
+  perimeter_alarm: ALL_MODES,
+  deterrence: ALL_MODES,
+  alarm: ALL_MODES,
 };
 
 export function isValidTransition(from: Mode, to: Mode): boolean {

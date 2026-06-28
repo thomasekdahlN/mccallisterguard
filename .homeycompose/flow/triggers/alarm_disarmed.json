@@ -1,0 +1,48 @@
+{
+  "title": {
+    "en": "Alarm disarmed",
+    "no": "Alarm deaktivert"
+  },
+  "hint": {
+    "en": "Fires when the system is disarmed. Deduplicated: at most once per 15 minutes per source to avoid duplicate notifications from simultaneous presence and door events.",
+    "no": "Utløses når systemet deaktiveres. Deduplisert: maks én gang per 15 min per kilde for å unngå duplikate varsler fra tilstedeværelse og dørsenso."
+  },
+  "tokens": [
+    {
+      "name": "source",
+      "type": "string",
+      "title": {
+        "en": "Source",
+        "no": "Kilde"
+      },
+      "example": {
+        "en": "user",
+        "no": "user"
+      }
+    },
+    {
+      "name": "name",
+      "type": "string",
+      "title": {
+        "en": "Name",
+        "no": "Navn"
+      },
+      "example": {
+        "en": "Thomas",
+        "no": "Thomas"
+      }
+    },
+    {
+      "name": "previous_mode",
+      "type": "string",
+      "title": {
+        "en": "Previous mode",
+        "no": "Forrige modus"
+      },
+      "example": {
+        "en": "armed",
+        "no": "armed"
+      }
+    }
+  ]
+}

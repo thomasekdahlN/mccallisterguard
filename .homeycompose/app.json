@@ -64,10 +64,6 @@
       "method": "POST",
       "path": "/mode"
     },
-    "triggerPanic": {
-      "method": "POST",
-      "path": "/panic"
-    },
     "testDeterrence": {
       "method": "POST",
       "path": "/test-deterrence"

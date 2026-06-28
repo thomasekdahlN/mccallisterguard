@@ -137,12 +137,12 @@ describe('StateMachine', () => {
     expect(ok).toHaveBeenCalledTimes(1);
   });
 
-  describe('ulovlige modusoverganger', () => {
-    it('kaster feil ved armed → armed_perimeter', async () => {
+  describe('modusoverganger', () => {
+    it('tillater armed → armed_perimeter (manuell overstyring)', async () => {
       const sm = new StateMachine(homey as never, log);
       await sm.setMode('armed');
-      await expect(sm.setMode('armed_perimeter')).rejects.toThrow('Ugyldig modusovergang');
-      expect(sm.getMode()).toBe('armed');
+      await sm.setMode('armed_perimeter');
+      expect(sm.getMode()).toBe('armed_perimeter');
     });
 
     it('tillater armed_perimeter → armed', async () => {
@@ -150,18 +150,6 @@ describe('StateMachine', () => {
       await sm.setMode('armed_perimeter');
       await sm.setMode('armed');
       expect(sm.getMode()).toBe('armed');
-    });
-
-    it('modus er uendret etter avvist overgang', async () => {
-      const sm = new StateMachine(homey as never, log);
-      const listener = vi.fn();
-      sm.onModeChange(listener);
-      await sm.setMode('armed');
-      listener.mockClear();
-
-      await sm.setMode('armed_perimeter').catch(() => { /* expected */ });
-      expect(sm.getMode()).toBe('armed');
-      expect(listener).not.toHaveBeenCalled();
     });
 
     it('tillater disarmed → armed → disarmed → armed_perimeter → armed → disarmed', async () => {
@@ -238,19 +226,19 @@ describe('StateMachine', () => {
       expect(sm.getMode()).toBe('disarmed');
     });
 
-    it('kaster feil ved perimeter_alarm → deterrence (ugyldig overgang)', async () => {
+    it('tillater perimeter_alarm → deterrence (alle overganger er åpne)', async () => {
       const sm = new StateMachine(homey as never, log);
       await sm.setMode('armed_perimeter');
       await sm.setMode('perimeter_alarm');
-      await expect(sm.setMode('deterrence')).rejects.toThrow('Ugyldig modusovergang');
-      expect(sm.getMode()).toBe('perimeter_alarm');
+      await sm.setMode('deterrence');
+      expect(sm.getMode()).toBe('deterrence');
     });
 
-    it('kaster feil ved alarm → deterrence (ugyldig overgang)', async () => {
+    it('tillater alarm → deterrence (alle overganger er åpne)', async () => {
       const sm = new StateMachine(homey as never, log);
       await sm.setMode('alarm');
-      await expect(sm.setMode('deterrence')).rejects.toThrow('Ugyldig modusovergang');
-      expect(sm.getMode()).toBe('alarm');
+      await sm.setMode('deterrence');
+      expect(sm.getMode()).toBe('deterrence');
     });
 
     it('kaller listener ved deterrence- og alarm-overganger', async () => {
