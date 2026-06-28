@@ -244,10 +244,21 @@ export default class CameraManager {
       const maxCount = this.getSettings().snapshot_max_count ?? SNAPSHOT_MAX_COUNT_DEFAULT;
       this.cleanupSnapshots(dir, maxCount);
 
-      // Create a native Homey Image that points to the persisted file.
-      // This allows flow actions (Telegram, Dropbox, etc.) to fetch it even after capture.
+      // Create a native Homey Image backed by the persisted file.
+      // setStream() registers a lazy reader: Homey calls it when a flow action (Telegram,
+      // Dropbox, etc.) actually requests the image bytes. setPath() is not part of the
+      // official Homey SDK v3 and does not register a content provider — do not use it.
       const flowImage = await (this.homey.images as any).createImage();
-      flowImage.setPath(filepath);
+      const capturedFilepath = filepath; // capture for closure
+      (flowImage as any).setStream(async (stream: NodeJS.WritableStream) => {
+        await new Promise<void>((resolve, reject) => {
+          const readable = fs.createReadStream(capturedFilepath);
+          readable.on('error', reject);
+          stream.on('error', reject);
+          readable.on('end', resolve);
+          readable.pipe(stream);
+        });
+      });
 
       for (const listener of this.listeners) {
         try { listener(zoneId, camera.id, camera.name || zoneId, flowImage); } catch { /* best-effort */ }
