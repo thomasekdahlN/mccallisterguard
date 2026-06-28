@@ -688,6 +688,31 @@
       },
       {
         "title": {
+          "en": "Alarm !{{was|was not}} triggered in zone [[zone]]",
+          "no": "Alarm !{{ble|ble ikke}} utløst i sone [[zone]]"
+        },
+        "titleFormatted": {
+          "en": "Alarm !{{was|was not}} triggered in zone [[zone]]",
+          "no": "Alarm !{{ble|ble ikke}} utløst i sone [[zone]]"
+        },
+        "hint": {
+          "en": "True when the active alarm or perimeter alert was triggered by a sensor in the selected zone. Use this to run different deterrence reactions per zone.",
+          "no": "Sann når aktiv alarm eller skallsikringsvarsel ble utløst av en sensor i valgt sone. Bruk dette for å kjøre ulik avskrekking per sone."
+        },
+        "args": [
+          {
+            "name": "zone",
+            "type": "autocomplete",
+            "placeholder": {
+              "en": "Select zone…",
+              "no": "Velg sone…"
+            }
+          }
+        ],
+        "id": "alarm_triggered_in_zone"
+      },
+      {
+        "title": {
           "en": "Mode !{{is|is not}} [[mode]]",
           "no": "Modus !{{er|er ikke}} [[mode]]"
         },
@@ -787,6 +812,95 @@
           }
         ],
         "id": "bypass_perimeter"
+      },
+      {
+        "title": {
+          "en": "Get bundled media URL",
+          "no": "Hent innebygd media-URL"
+        },
+        "titleFormatted": {
+          "en": "Get URL for [[file]]",
+          "no": "Hent URL for [[file]]"
+        },
+        "args": [
+          {
+            "name": "file",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "alarm-beep.ogg",
+                "label": {
+                  "en": "🔔 Alarm beep",
+                  "no": "🔔 Alarm-pip"
+                }
+              },
+              {
+                "id": "fire-alarm.ogg",
+                "label": {
+                  "en": "🔥 Fire alarm",
+                  "no": "🔥 Brannalarm"
+                }
+              },
+              {
+                "id": "guard-dog.ogg",
+                "label": {
+                  "en": "🐕 Guard dog (audio)",
+                  "no": "🐕 Vaktbikkje (lyd)"
+                }
+              },
+              {
+                "id": "intruder-voice.m4a",
+                "label": {
+                  "en": "🔊 Intruder warning (voice)",
+                  "no": "🔊 Innbruddsadvarsel (stemme)"
+                }
+              },
+              {
+                "id": "police-siren.ogg",
+                "label": {
+                  "en": "🚨 Police siren",
+                  "no": "🚨 Politisirene"
+                }
+              },
+              {
+                "id": "blue-lights.mp4",
+                "label": {
+                  "en": "🚔 Blue lights (video)",
+                  "no": "🚔 Blålys (video)"
+                }
+              },
+              {
+                "id": "cop-silhouette.mp4",
+                "label": {
+                  "en": "👮 Cop silhouette (video)",
+                  "no": "👮 Politisilhuett (video)"
+                }
+              },
+              {
+                "id": "large-dog.mp4",
+                "label": {
+                  "en": "🐩 Large dog (video)",
+                  "no": "🐩 Stor hund (video)"
+                }
+              }
+            ]
+          }
+        ],
+        "tokens": [
+          {
+            "name": "url",
+            "type": "string",
+            "title": {
+              "en": "Media URL",
+              "no": "Media-URL"
+            },
+            "example": {
+              "en": "http://192.168.1.100/app/com.homeyalone.guard/assets/media/police-siren.ogg",
+              "no": "http://192.168.1.100/app/com.homeyalone.guard/assets/media/police-siren.ogg"
+            }
+          }
+        ],
+        "id": "get_media_url"
       },
       {
         "title": {
@@ -911,95 +1025,6 @@
           }
         ],
         "id": "trigger_deterrence"
-      },
-      {
-        "title": {
-          "en": "Get bundled media URL",
-          "no": "Hent innebygd media-URL"
-        },
-        "titleFormatted": {
-          "en": "Get URL for [[file]]",
-          "no": "Hent URL for [[file]]"
-        },
-        "args": [
-          {
-            "name": "file",
-            "type": "dropdown",
-            "values": [
-              {
-                "id": "alarm-beep.ogg",
-                "label": {
-                  "en": "🔔 Alarm beep",
-                  "no": "🔔 Alarm-pip"
-                }
-              },
-              {
-                "id": "fire-alarm.ogg",
-                "label": {
-                  "en": "🔥 Fire alarm",
-                  "no": "🔥 Brannalarm"
-                }
-              },
-              {
-                "id": "guard-dog.ogg",
-                "label": {
-                  "en": "🐕 Guard dog (audio)",
-                  "no": "🐕 Vaktbikkje (lyd)"
-                }
-              },
-              {
-                "id": "intruder-voice.m4a",
-                "label": {
-                  "en": "🔊 Intruder warning (voice)",
-                  "no": "🔊 Innbruddsadvarsel (stemme)"
-                }
-              },
-              {
-                "id": "police-siren.ogg",
-                "label": {
-                  "en": "🚨 Police siren",
-                  "no": "🚨 Politisirene"
-                }
-              },
-              {
-                "id": "blue-lights.mp4",
-                "label": {
-                  "en": "🚔 Blue lights (video)",
-                  "no": "🚔 Blålys (video)"
-                }
-              },
-              {
-                "id": "cop-silhouette.mp4",
-                "label": {
-                  "en": "👮 Cop silhouette (video)",
-                  "no": "👮 Politisilhuett (video)"
-                }
-              },
-              {
-                "id": "large-dog.mp4",
-                "label": {
-                  "en": "🐩 Large dog (video)",
-                  "no": "🐩 Stor hund (video)"
-                }
-              }
-            ]
-          }
-        ],
-        "tokens": [
-          {
-            "name": "url",
-            "type": "string",
-            "title": {
-              "en": "Media URL",
-              "no": "Media-URL"
-            },
-            "example": {
-              "en": "http://192.168.1.100/app/com.homeyalone.guard/assets/media/police-siren.ogg",
-              "no": "http://192.168.1.100/app/com.homeyalone.guard/assets/media/police-siren.ogg"
-            }
-          }
-        ],
-        "id": "get_media_url"
       }
     ]
   }

@@ -730,6 +730,17 @@ class HomeyAloneGuardApp extends Homey.App {
       .registerRunListener(async (args: { mode: Mode }) => this.stateMachine.getMode() === args.mode);
     this.homey.flow.getConditionCard('alarm_triggered_from')
       .registerRunListener(async (args: { mode: 'armed' | 'armed_perimeter' }) => this.previousArmedMode === args.mode);
+    const zoneConditionCard = this.homey.flow.getConditionCard('alarm_triggered_in_zone');
+    zoneConditionCard.registerRunListener(async (args: { zone: { id: string; name: string } }) => this.alarmContext?.zoneId === args.zone.id);
+    zoneConditionCard.registerArgumentAutocompleteListener('zone', async (query: string) => {
+      const results: { id: string; name: string }[] = [];
+      for (const [id, name] of this.zoneNameCache) {
+        if (!query || name.toLowerCase().includes(query.toLowerCase())) {
+          results.push({ id, name });
+        }
+      }
+      return results;
+    });
   }
 
   private async initListeners(): Promise<void> {
@@ -854,10 +865,20 @@ class HomeyAloneGuardApp extends Homey.App {
     if (mode === 'off' || mode === 'disarmed' || mode === 'perimeter_alarm') return;
     if (this.stateMachine.isExitDelayActive()) return;
     if (mode === 'armed_perimeter') {
-      // Perimeter mode: notify only — fire flow card, no mode change, no deterrence/alarm.
+      // Perimeter mode: fire alarm_perimeter_triggered after entry delay, same as armed mode.
       if (!this.isPerimeterSensor(deviceId)) return;
       if (this.isPerimeterBypassed()) return;
-      await this.enterPerimeterAlarm(zoneId, deviceId, 'motion');
+      if (!this.stateMachine.isEntryDelayActive()) {
+        const settings = this.getSettings();
+        this.eventLog.add('info', `Bevegelse i perimeter-sone ${zoneId} — inngangsforsinkelse startet (${settings.entry_delay}s).`, zoneId, deviceId);
+        this.stateMachine.startEntryDelay(settings.entry_delay, () => {
+          if (this.stateMachine.getMode() === 'disarmed' || this.stateMachine.getMode() === 'off') return;
+          this.enterPerimeterAlarm(zoneId, deviceId, 'motion').catch(() => { /* best-effort */ });
+        });
+      } else {
+        // Entry delay already running — second sensor confirms intrusion, alarm immediately.
+        await this.enterPerimeterAlarm(zoneId, deviceId, 'motion');
+      }
       return;
     }
 
@@ -921,7 +942,19 @@ class HomeyAloneGuardApp extends Homey.App {
     }
 
     if (mode === 'armed_perimeter') {
-      await this.enterPerimeterAlarm(zoneId, deviceId, 'contact');
+      // Non-entry-delay perimeter sensor: apply entry delay before firing alarm_perimeter_triggered.
+      // This gives the resident time to disarm (same pattern as armed mode).
+      if (!this.stateMachine.isEntryDelayActive()) {
+        const settings = this.getSettings();
+        this.eventLog.add('info', `Perimeter-sensor åpnet i sone ${zoneId} — inngangsforsinkelse startet (${settings.entry_delay}s).`, zoneId, deviceId);
+        this.stateMachine.startEntryDelay(settings.entry_delay, () => {
+          if (this.stateMachine.getMode() === 'disarmed' || this.stateMachine.getMode() === 'off') return;
+          this.enterPerimeterAlarm(zoneId, deviceId, 'contact').catch(() => { /* best-effort */ });
+        });
+      } else {
+        // Entry delay already running — second sensor confirms intrusion, alarm immediately.
+        await this.enterPerimeterAlarm(zoneId, deviceId, 'contact');
+      }
       return;
     }
     this.falseAlarm.registerContactOpen();
