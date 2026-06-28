@@ -4,8 +4,8 @@
     "no": "Sett modus"
   },
   "titleFormatted": {
-    "en": "Set mode to [[mode]] by [[name]]",
-    "no": "Sett modus til [[mode]] av [[name]]"
+    "en": "Set mode to [[mode]] by [[name]] — [[comment]]",
+    "no": "Sett modus til [[mode]] av [[name]] — [[comment]]"
   },
   "args": [
     {
