@@ -1,28 +1,28 @@
 # Homey Alone Guard
 
-> Alene Hjemme-inspirert smart sikkerhet for Homey Pro — psykologisk avskrekking av tyver med lyd, video og lys i stedet for bare alarm-sirener.
+> Home Alone-inspired smart security for Homey Pro — psychological deterrence using sound, video and light instead of just alarm sirens.
 
 [![Homey](https://img.shields.io/badge/Homey-SDK%203-blue)](https://apps.developer.homey.app/) [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-Homey Alone Guard er ikke enda et passivt alarmsystem. I stedet for å bare tute når noen bryter seg inn, **forteller den tyven at huset er bebodd og at noen følger med** — gjennom lyder (bjeffing, sirener), video (blålys, store hunder, silhuetter i vinduet) og lysmønstre som etterligner et hjem i full aktivitet. Inspirasjonen er Kevin McCallister fra *Alene Hjemme* (1990): vinn ved å få tyven til å snu i døra.
+Homey Alone Guard is not yet another passive alarm system. Instead of just beeping when someone breaks in, **it tells the intruder that the house is occupied and that someone is watching** — through sounds (barking dogs, sirens), video (blue lights, large dogs, silhouettes in the window) and light patterns that mimic a fully active home. Inspired by Kevin McCallister from *Home Alone* (1990): win by making the burglar turn around at the door.
 
-> ☕ **Gratis og open source.** Hvis appen beskytter hjemmet ditt, vurder en liten donasjon via [PayPal](https://paypal.me/ekdahlthomas) — selv $5 / €5 motiverer videre utvikling. Se [Støtt prosjektet](#-støtt-prosjektet) for detaljer.
+> ☕ **Free and open source.** If the app protects your home, consider a small donation via [PayPal](https://paypal.me/ekdahlthomas) — even $5 / €5 motivates further development. See [Support the project](#-support-the-project) for details.
 
-## Funksjoner
+## Features
 
-- **Seks moduser** — `Hjemme` / `disarmed` (deaktivert), `Borte` / `armed` (full overvåking + Kevin-simulering), `Skallsikring` / `armed_perimeter` (kun valgte perimeter-sensorer aktive — typisk når du sover), `Skallsikring alarm` / `perimeter_alarm` (perimeter-sensor utløst mens du er hjemme — push + flow-kort, ingen sirene), `Avskrekking` / `deterrence` (lys-blink i reaksjonssone — advarselsfase), `Alarm` / `alarm` (full krise — sirene og strobe)
-- **Skallsikring med sensorvalg** — pek ut nøyaktig hvilke sensorer (ytterdører, vinduer, uteområder) som skal kunne utløse alarm ved Skallsikring; bevegelse innendørs ignoreres
-- **Inngangsforsinkelse (⏱) pr. sensor** — marker hoveddør/bakdør med ⏱ for å gi en `entry_delay`-nedtelling (default 30 s) ved åpning, slik at en autorisert bruker med kodelås/smart-lås rekker å deaktivere systemet før alarmen utløses
-- **Sone-basert avskrekking** — bevegelse i én sone trigger avskrekking i en annen «reaksjonssone» (matrise konfigurerbar per sone), så tyven aldri møter responsen sin der hen er
-- **Konfigurerbar lys-avskrekking** — appen blinker lys i reaksjonssonen med en sakte syklus (global PÅ/AV-tid konfigurerbar under Innstillinger, default 15 sek hver vei). Modus-endringer kan brukes i `mode_changed`-triggeren til å bygge egne Homey-flows
-- **Kevin-modus** — automatisk tilstedeværelses-simulering i Borte-modus (lys av/på i sannsynlig sekvens)
-- **Eskalering** — om avskrekking ikke får tyven til å snu, eskalerer systemet automatisk til Alarm-modus etter konfigurert tid (full sirene, strobe på alle lys)
-- **Falsk-alarm-filter** — flere uavhengige sensor-treff kreves før eskalering starter
-- **Flow-kort** — actions, conditions og triggers (inkl. `mode_changed` og `timestamp`-token) for full integrasjon med Homey-flows (push, SMS, kamera, naboalarmer)
-- **Automatiske push-varsler** — appen sender push-notifikasjon til Homey-appen ved kritiske hendelser: avskrekking startet, skallsikring alarm, full alarm utløst, alarm stoppet, åpne sensorer ved armering og sensorer offline. Modus-bytter postes i tillegg til Homey-tidslinje. Alt skjer via `homey.notifications.createNotification`, parallelt med appens interne event-logg
-- **Norsk-først UI** — settings-panelet på norsk med engelsk fallback
+- **Six modes** — `Home` / `disarmed`, `Away` / `armed` (full monitoring + Kevin simulation), `Perimeter` / `armed_perimeter` (only selected perimeter sensors active — typically when sleeping), `Perimeter alarm` / `perimeter_alarm` (perimeter sensor triggered while home — push + flow card, no siren), `Deterrence` / `deterrence` (light blinking in reaction zone — warning phase), `Alarm` / `alarm` (full crisis — siren and strobe)
+- **Perimeter mode with sensor selection** — specify exactly which sensors (exterior doors, windows, outdoor areas) should trigger an alarm in Perimeter mode; indoor motion is ignored
+- **Entry delay (⏱) per sensor** — mark the front door / back door with ⏱ to give an `entry_delay` countdown (default 30 s) when opened, so an authorised user with a key pad / smart lock has time to disarm before the alarm fires. All other perimeter sensors (motion and non-⏱ contact) also go through the entry delay window before firing the perimeter alarm, giving you time to disarm
+- **Zone-based deterrence** — motion in one zone triggers deterrence in another "reaction zone" (configurable matrix per zone), so the intruder never encounters the response where they are
+- **Configurable light deterrence** — the app blinks lights in the reaction zone with a slow cycle (global ON/OFF time configurable in Settings, default 15 s each way). Mode changes can be used in the `mode_changed` trigger to build custom Homey flows
+- **Kevin mode** — automatic presence simulation in Away mode (lights on/off in a plausible sequence)
+- **Escalation** — if deterrence does not make the intruder turn back, the system automatically escalates to Alarm mode after a configurable time (full siren, strobe on all lights)
+- **False alarm filter** — multiple independent sensor hits are required before escalation starts
+- **Flow cards** — actions, conditions and triggers (including `mode_changed` and `timestamp` token) for full integration with Homey flows (push, SMS, camera, neighbour alerts)
+- **Automatic push notifications** — the app sends push notifications to the Homey app for critical events: deterrence started, perimeter alarm, full alarm triggered, alarm stopped, open sensors at arming, and sensors offline. Mode changes are also posted to the Homey timeline. Everything happens via `homey.notifications.createNotification`, in parallel with the app's internal event log
+- **Multilingual UI** — settings panel in English and Norwegian
 
-## Skjermbilder
+## Screenshots
 
 <p align="center">
   <img src="design/screendumps/IMG_9057.PNG" width="30%" />
@@ -35,15 +35,15 @@ Homey Alone Guard er ikke enda et passivt alarmsystem. I stedet for å bare tute
   <img src="design/screendumps/IMG_9062.PNG" width="30%" />
 </p>
 
-## Arkitektur
+## Architecture
 
 ```mermaid
 flowchart TB
   subgraph UI[Settings UI]
-    DASH[Dashbord]
-    ZONES[Soneoversikt - sensorvalg, ⏱ entry-delay, Kevin]
-    DOCS[Dokumentasjon]
-    LOG[Hendelseslogg - 14 dager, kopier/last ned/tøm]
+    DASH[Dashboard]
+    ZONES[Zone overview - sensor selection, ⏱ entry-delay, Kevin]
+    DOCS[Documentation]
+    LOG[Event log - 14 days, copy/download/clear]
   end
 
   subgraph API[Internal HTTP API]
@@ -57,162 +57,172 @@ flowchart TB
   end
 
   subgraph APP[HomeyAloneGuardApp]
-    SM[StateMachine - 5 modi + entry/exit delay]
-    FAF[FalseAlarmFilter - 90s konfidens]
-    DE[DeterrenceEngine - reaksjonssone-matrise]
+    SM[StateMachine - 6 modes + entry/exit delay]
+    FAF[FalseAlarmFilter - 90s confidence]
+    DE[DeterrenceEngine - reaction zone matrix]
     MC[MediaCaster - global blink_on/off]
-    SIM[SimulationEngine - Kevin-modus]
-    EM[EscalationManager - krise-timer]
-    CAM[CameraManager - snapshot-loop]
-    EL[EventLog - 14-dagers rullerende logg]
+    SIM[SimulationEngine - Kevin mode]
+    EM[EscalationManager - crisis timer]
+    CAM[CameraManager - snapshot burst]
+    EL[EventLog - 14-day rolling log]
   end
 
   subgraph SETTINGS[GuardSettings]
     S1[perimeter_sensors]
     S2[entry_delay_sensors]
     S3[zone_matrix]
-    S4[blink_on / blink_off - globalt]
+    S4[blink_on / blink_off - global]
     S5[kevin_zones]
     S6[entry_delay / exit_delay / escalation_minutes]
   end
 
   subgraph HOMEY[Homey Platform]
-    DEV[Sensorer og lys]
-    FLOW[Flow-motor - bruker-bygde avskrekkings-flows]
-    TIMELINE[Homey-tidslinje\nKort modus-status]
-    PUSH[Push-notifikasjon\nKritiske alarm-hendelser]
+    DEV[Sensors and lights]
+    FLOW[Flow engine - user-built deterrence flows]
+    TIMELINE[Homey timeline\nShort mode status]
+    PUSH[Push notification\nCritical alarm events]
   end
 
   UI <--> API
   API <--> APP
-  APP -.leser.-> SETTINGS
+  APP -.reads.-> SETTINGS
   DEV -- alarm_motion / alarm_contact --> APP
   APP -- onoff blink --> DEV
   APP -- alarm_triggered / alarm_perimeter_triggered / alarm_stopped / alarm_perimeter_stopped / mode_changed / snapshot_taken / health_check_failed --> FLOW
-  APP -- modus-bytte, alarm stoppet --> TIMELINE
-  APP -- avskrekking, alarm, åpne sensorer, offline --> PUSH
+  APP -- mode change, alarm stopped --> TIMELINE
+  APP -- deterrence, alarm, open sensors, offline --> PUSH
   SM --> AS
   DE --> MC
   EM --> MC
 ```
 
-### Modus-tilstandsmaskin
+### Mode state machine
 
 ```mermaid
 stateDiagram-v2
-  [*] --> Hjemme
+  [*] --> Home
 
-  Hjemme --> Borte: setMode(armed)\n(exit delay)
-  Hjemme --> Skallsikring: setMode(armed_perimeter)\neller scheduler (22:00)
-  Hjemme --> Avskrekking: testDeterrence()
-  Hjemme --> Alarm: testAlarm()
+  Home --> Away: setMode(armed)\n(exit delay)
+  Home --> Perimeter: setMode(armed_perimeter)\nor scheduler (22:00)
+  Home --> Deterrence: testDeterrence()
+  Home --> Alarm: testAlarm()
 
-  Borte --> Hjemme: setMode(disarmed)\n(utenfor nattvindu)
-  Borte --> Skallsikring: setMode(disarmed) i nattvindu\n(auto-redirect)\neller scheduler (22:00)
-  Borte --> Avskrekking: sensor utløst\n(entry delay → confirm)
-  Borte --> Alarm: testAlarm()
+  Away --> Home: setMode(disarmed)\n(outside night window)
+  Away --> Perimeter: setMode(disarmed) in night window\n(auto-redirect)\nor scheduler (22:00)
+  Away --> Deterrence: sensor triggered\n(entry delay → confirm)
+  Away --> Alarm: testAlarm()
 
-  Skallsikring --> Hjemme: dashboard setMode(disarmed)\n[force=true, alltid OK]\neller scheduler (06:00)
-  Skallsikring --> Hjemme: flow-kort setMode(disarmed)\n[uten force: ignoreres]
-  Skallsikring --> Borte: setMode(armed)
-  Skallsikring --> SkallsikringAlarm: perimeter-sensor utløst\n→ mode=perimeter_alarm\npush + alarm_perimeter_triggered
-  Skallsikring --> Alarm: testAlarm()
+  Perimeter --> Home: dashboard setMode(disarmed)\n[force=true, always OK]\nor scheduler (06:00)
+  Perimeter --> Home: flow card setMode(disarmed)\n[without force: ignored]
+  Perimeter --> Away: setMode(armed)
+  Perimeter --> PerimeterAlarm: perimeter sensor triggered\n→ mode=perimeter_alarm\npush + alarm_perimeter_triggered
+  Perimeter --> Alarm: testAlarm()
 
-  SkallsikringAlarm: Skallsikring alarm\n(perimeter_alarm)
-  SkallsikringAlarm --> Skallsikring: bruker avviser\n(stopAlarm / dashboard)
-  SkallsikringAlarm --> Hjemme: setMode(disarmed)\n(fullt deaktivert)
+  PerimeterAlarm: Perimeter alarm\n(perimeter_alarm)
+  PerimeterAlarm --> Perimeter: user dismisses\n(stopAlarm / dashboard)
+  PerimeterAlarm --> Home: setMode(disarmed)\n(fully disarmed)
 
-  Avskrekking --> Alarm: escalation_minutes timer
-  Avskrekking --> Hjemme: stopAlarm() / setMode(disarmed)
-  Avskrekking --> Skallsikring: stopAlarm() (forrige modus)
-  Avskrekking --> Borte: stopAlarm() (forrige modus)
+  Deterrence --> Alarm: escalation_minutes timer
+  Deterrence --> Home: stopAlarm() / setMode(disarmed)
+  Deterrence --> Perimeter: stopAlarm() (previous mode)
+  Deterrence --> Away: stopAlarm() (previous mode)
 
-  Alarm --> Hjemme: stopAlarm() / setMode(disarmed)
-  Alarm --> Skallsikring: stopAlarm() (forrige modus)
-  Alarm --> Borte: stopAlarm() (forrige modus)
+  Alarm --> Home: stopAlarm() / setMode(disarmed)
+  Alarm --> Perimeter: stopAlarm() (previous mode)
+  Alarm --> Away: stopAlarm() (previous mode)
 ```
 
-### Sensor-rute — fra detektering til krise
+### Sensor routing — from detection to crisis
 
 ```mermaid
 flowchart TD
-  S[Sensor utløst] --> M{mode}
-  M -- disarmed --> X1[Ignorer]
-  M -- deterrence --> X2[Oppdater reaksjonssone\nuten ny timer]
-  M -- alarm --> X3[Ignorer]
-  M -- exit_delay aktiv --> X4[Ignorer\nbruker forlater huset]
-  M -- armed_perimeter --> SS{Perimeter-sensor\ni perimeter_sensors-liste?}
-  M -- armed --> ED1{⏱ entry-delay-markert?}
-  SS -- nei --> X5[Ignorer\ninnendørs bevegelse]
-  SS -- ja --> SNAP{I sensorsnap?\nåpen ved aktivering}
-  SNAP -- ja --> X7[Ignorer stille\nventilasjonsmodus]
-  SNAP -- nei --> ED2{⏱ entry-delay-markert?}
-  ED1 -- ja --> DELAY[startEntryDelay\nentry_delay sek]
-  ED1 -- nei --> MOTION_AWAY{Sensor type?}
-  ED2 -- ja --> DELAY
-  ED2 -- nei --> NOTIFY_STAY[Log + push\nalarm_perimeter_triggered\nmodus forblir armed_perimeter\nBruker-flow reagerer]
-  MOTION_AWAY -- motion --> MOT_DELAY[startEntryDelay\nentry_delay sek]
+  S[Sensor triggered] --> M{mode}
+  M -- disarmed --> X1[Ignore]
+  M -- deterrence --> X2[Update reaction zone\nno new timer]
+  M -- alarm --> X3[Ignore]
+  M -- exit_delay active --> X4[Ignore\nuser leaving home]
+  M -- armed_perimeter --> SS{Perimeter sensor\nin perimeter_sensors list?}
+  M -- armed --> ED1{⏱ entry-delay marked?}
+  SS -- no --> X5[Ignore\nindoor motion]
+  SS -- yes --> SNAP{In sensor snapshot?\nopen at activation}
+  SNAP -- yes --> X7[Ignore silently\nventilation mode]
+  SNAP -- no --> PDELAY[startEntryDelay\nentry_delay sec\nfor all perimeter sensors]
+  ED1 -- yes --> DELAY[startEntryDelay\nentry_delay sec]
+  ED1 -- no --> MOTION_AWAY{Sensor type?}
+  MOTION_AWAY -- motion --> MOT_DELAY[startEntryDelay\nentry_delay sec]
   MOTION_AWAY -- contact --> CONFIRM[handleConfirmedMotion\nvia false-alarm-filter]
-  DELAY --> WAIT{Bruker deaktiverer\ni tide?}
+  PDELAY --> WAIT_P{User disarms\nin time?}
+  WAIT_P -- yes --> X8[cancelEntryDelay\nNo alarm]
+  WAIT_P -- no, timer expired --> NOTIFY_STAY[alarm_perimeter_triggered\nmode stays armed_perimeter\nUser flow reacts]
+  DELAY --> WAIT{User disarms\nin time?}
   MOT_DELAY --> WAIT
-  WAIT -- ja --> X6[cancelEntryDelay\nIngen alarm]
-  WAIT -- nei, timer utløpt --> CONFIRM2{Modus nå?}
+  WAIT -- yes --> X6[cancelEntryDelay\nNo alarm]
+  WAIT -- no, timer expired --> CONFIRM2{Mode now?}
   CONFIRM2 -- armed_perimeter --> NOTIFY_STAY
   CONFIRM2 -- armed --> CONFIRM[handleConfirmedMotion\nvia false-alarm-filter]
-  CONFIRM --> ENTER_DET[enterDeterrence\nmode = deterrence\nalarm_triggered\nblink i reaksjonssone]
+  CONFIRM --> ENTER_DET[enterDeterrence\nmode = deterrence\nalarm_triggered\nblink in reaction zone]
   ENTER_DET --> TIMER{escalation_minutes timer}
-  TIMER -- utløpt --> ALARM[enterAlarm\nmode = alarm\nEscalationManager.triggerCrisis]
-  TIMER -- bruker stopper --> STOP[stopAlarm\nreturn til previousArmedMode]
-  ALARM --> STOP2[stopAlarm\nreturn til previousArmedMode]
+  TIMER -- expired --> ALARM[enterAlarm\nmode = alarm\nEscalationManager.triggerCrisis]
+  TIMER -- user stops --> STOP[stopAlarm\nreturn to previousArmedMode]
+  ALARM --> STOP2[stopAlarm\nreturn to previousArmedMode]
 ```
 
-### Inngangsforsinkelse (⏱) — autorisert inngang med kodelås
+### Entry delay (⏱) — authorised entry with smart lock
 
 ```mermaid
 sequenceDiagram
   autonumber
-  participant U as Bruker
-  participant L as Smart-lås
-  participant D as Dør-sensor (⏱)
+  participant U as User
+  participant L as Smart lock
+  participant D as Door sensor (⏱)
+  participant P as Any perimeter sensor
   participant App as Guard App
   participant SM as StateMachine
   participant EL as EventLog
-  participant F as Flow-trigger
+  participant F as Flow trigger
 
-  Note over U,App: Borte-modus — smart-lås deaktiverer systemet
-  U->>L: Skriv inn kode / scan fingeravtrykk
-  L-->>F: Lås åpnet av [Navn]
-  F->>App: set_mode(disarmed, name="Navn", comment="valgfri tekst")
-  Note over App: Forrige modus = armed → logger i App-laget
-  App->>EL: "Deaktivert av Navn — valgfri tekst."
-  App->>SM: setMode(disarmed) — SM logger IKKE «Modus: disarmed»
+  Note over U,App: Away mode — smart lock disarms the system
+  U->>L: Enter code / scan fingerprint
+  L-->>F: Lock opened by [Name]
+  F->>App: set_mode(disarmed, name="Name", comment="optional text")
+  Note over App: Previous mode = armed → logged in App layer
+  App->>EL: "Disarmed by Name — optional text."
+  App->>SM: setMode(disarmed) — SM does NOT log "Mode: disarmed"
   App->>F: trigger alarm_disarmed
-  U->>D: Åpne dør
-  Note over App: mode = disarmed → ingen sensor-reaksjon
+  U->>D: Open door
+  Note over App: mode = disarmed → no sensor reaction
 
-  Note over U,App: Skallsikring — hoveddør har ⏱ entry delay
-  U->>L: Skriv inn kode / scan fingeravtrykk
-  L-->>F: Lås åpnet
-  F->>App: set_mode(disarmed) — IGNORERT av guard\n(flow-kort uten force=true, ingen logg)
-  Note over App: Dashboard-knapp «Hjemme» ville virket\n(force=true hopper over guard)
-  U->>D: Åpne dør
+  Note over U,App: Perimeter mode — ⏱ entry-delay door (auto bypass)
+  U->>L: Enter code / scan fingerprint
+  L-->>F: Lock opened
+  F->>App: set_mode(disarmed) — IGNORED by guard\n(flow card without force=true, no log)
+  Note over App: Dashboard button "Home" would work\n(force=true skips the guard)
+  U->>D: Open door
   D->>App: alarm_contact = true
   App->>App: isEntryDelaySensor() = true + mode=armed_perimeter
-  App->>App: bypassPerimeter(entry_delay sek)
-  App->>SM: startEntryDelay(entry_delay sek)
-  Note over App,SM: Alle perimeter-sensorer ignoreres i entry_delay sek
-  alt Bruker deaktiverer manuelt i tide (dashboard/fysisk knapp)
-    U->>App: Trykk «Hjemme» på dashbord
+  App->>App: bypassPerimeter(entry_delay sec)
+  App->>SM: startEntryDelay(entry_delay sec)
+  Note over App,SM: All perimeter sensors ignored for entry_delay sec
+
+  Note over U,App: Perimeter mode — any other perimeter sensor (motion or contact)
+  U->>P: Trigger sensor (open window, motion in hallway, etc.)
+  P->>App: alarm_contact / alarm_motion = true
+  App->>App: isPerimeterSensor() = true, not bypassed
+  App->>SM: startEntryDelay(entry_delay sec)
+  Note over App,SM: Entry delay gives time to disarm manually
+
+  alt User disarms in time (dashboard / physical button)
+    U->>App: Press "Home" on dashboard
     App->>SM: cancelEntryDelay
-    Note over App: Ingen alarm — skallsikring deaktivert
-  else entry_delay sek passerer uten deaktivering
-    SM->>App: handleConfirmedContact()
+    Note over App: No alarm — perimeter disarmed
+  else entry_delay sec passes without disarming
+    SM->>App: enterPerimeterAlarm()
     App->>F: trigger alarm_perimeter_triggered
-    Note over App,F: Modus forblir armed_perimeter\nIngen deterrence, ingen sirene\nBruker-flow reagerer (lyd, lys, push)
+    Note over App,F: Mode becomes perimeter_alarm\nNo deterrence, no siren\nUser flow reacts (sound, lights, push)
   end
 ```
 
-### Avskrekkings-flow — innebygd lys-blink og modus-endring
+### Deterrence flow — built-in light blinking and mode change
 
 ```mermaid
 sequenceDiagram
@@ -221,699 +231,719 @@ sequenceDiagram
   participant SM as StateMachine
   participant DE as DeterrenceEngine
   participant MC as MediaCaster
-  participant LIGHT as Lys i reaksjonssone
-  participant F as Flow-motor (mode_changed)
-  participant UF as Bruker-bygget Homey-flow
+  participant LIGHT as Lights in reaction zone
+  participant F as Flow engine (mode_changed)
+  participant UF as User-built Homey flow
 
-  Note over App,SM: Sensor utløst ELLER «Test avskrekking» trykket
+  Note over App,SM: Sensor triggered OR "Test deterrence" pressed
   App->>SM: setMode(deterrence)
   SM->>App: handleModeChange(deterrence, previous)
   App->>F: trigger mode_changed (mode_new=deterrence, mode_previous=armed)
   App->>DE: handleMotion(zoneId) / runDirect(zoneId)
-  DE->>MC: startBlink(reaksjonssone)
+  DE->>MC: startBlink(reaction zone)
   loop Global blink_on / blink_off (default 15 s / 15 s)
     MC->>LIGHT: onoff = true
-    MC->>MC: vent blink_on sek
+    MC->>MC: wait blink_on sec
     MC->>LIGHT: onoff = false
-    MC->>MC: vent blink_off sek
+    MC->>MC: wait blink_off sec
   end
-  F->>UF: NÅR Modus endret — SÅ (mode_new = deterrence)
-  Note over App,SM: Etter escalation_minutes → setMode(alarm)
+  F->>UF: WHEN Mode changed — THEN (mode_new = deterrence)
+  Note over App,SM: After escalation_minutes → setMode(alarm)
 ```
 
-## Komponenter
+## Components
 
-| Modul | Ansvar |
+| Module | Responsibility |
 |---|---|
-| `app.ts` | Hovedklasse — orkestrering, sensor-listeners, alarm-state, entry-delay-routing for motion + ⏱-dører |
-| `StateMachine` | Modus + entry/exit delays (felles timer for både motion og ⏱-dører) |
-| `DeterrenceEngine` | Velger reaksjonssone fra `zone_matrix` og starter lys-blink i reaksjonssonen |
-| `MediaCaster` | Lys-blink i reaksjonssonen med global PÅ/AV-syklus (`blink_on`/`blink_off` i Innstillinger, default 15 s / 15 s) |
-| `EscalationManager` | Timer fra alarm til full krise + strobe-rutine på alle lys |
-| `FalseAlarmFilter` | Krever (kontakt + bevegelse) eller bevegelse i to soner innen 90 s før eskalering |
-| `SimulationEngine` | Kevin-modus: lys-mønstre i Borte-modus på markerte soner |
-| `CameraManager` | Snapshot-loop fra sone-kameraer ved alarm (hopper over soner uten kameraer). Kun kameraer med snapshot-URL støttes. |
-| `EventLog` | Strukturert intern hendelseslogg — rullerende 14-dagers vindu (vises i Hendelseslogg-fanen med kopier/last ned/tøm) |
-| `Capabilities` | Klassifiserer enheter (`isLight` krever `device.class === 'light'`) for UI-visning og blink-utvalg |
+| `app.ts` | Main class — orchestration, sensor listeners, alarm state, entry-delay routing for motion + ⏱ doors |
+| `StateMachine` | Mode + entry/exit delays (shared timer for both motion and ⏱ doors) |
+| `DeterrenceEngine` | Selects reaction zone from `zone_matrix` and starts light blinking in the reaction zone |
+| `MediaCaster` | Light blinking in the reaction zone with global ON/OFF cycle (`blink_on`/`blink_off` in Settings, default 15 s / 15 s) |
+| `EscalationManager` | Timer from deterrence to full crisis + strobe routine on all lights |
+| `FalseAlarmFilter` | Requires (contact + motion) or motion in two zones within 90 s before escalation |
+| `SimulationEngine` | Kevin mode: light patterns in Away mode on marked zones |
+| `CameraManager` | Snapshot burst from zone cameras at alarm (skips zones without cameras). Only cameras with a snapshot URL are supported. |
+| `EventLog` | Structured internal event log — rolling 14-day window (shown in Event Log tab with copy/download/clear) |
+| `Capabilities` | Classifies devices (`isLight` requires `device.class === 'light'`) for UI display and blink selection |
 
-## Flow-kort
+## Flow cards
 
 ### Triggers
 
-| Kort | Tokens | Når |
+| Card | Tokens | When |
 |---|---|---|
-| `alarm_triggered` | `zone`, `sensor`, `sensor_type`, `mode`, `timestamp`, `snapshot` (image, om tilgjengelig) | Sensor aktiverer alarm i **Borte** (`armed`) — etter entry delay |
-| `alarm_perimeter_triggered` | `zone`, `sensor`, `sensor_type`, `mode`, `timestamp`, `snapshot` (image, om tilgjengelig) | Perimeter-sensor utløst i **Skallsikring** — modus settes til `perimeter_alarm`, push sendes, bruker-flows reagerer |
-| `alarm_stopped` | `zone`, `sensor`, `reason` | Borte-alarm stoppet (av bruker, deaktivering eller automatisk) |
-| `alarm_perimeter_stopped` | `zone`, `sensor`, `reason` | Skallsikring-alarm stoppet |
-| `mode_changed` | `mode_new`, `mode_previous` | Systemet bytter modus — inkl. overgang til `deterrence` og `alarm` |
-| `snapshot_taken` | `zone`, `sensor`, `sensor_type`, `mode`, `timestamp`, `snapshot` (image) | Kamera tar snapshot ved alarm |
-| `health_check_failed` | `offline_count` | Sensorer er offline ved aktivering |
+| `alarm_triggered` | `zone`, `sensor`, `sensor_type`, `mode`, `timestamp`, `snapshot` (image, if available) | Sensor activates alarm in **Away** (`armed`) — after entry delay |
+| `alarm_perimeter_triggered` | `zone`, `sensor`, `sensor_type`, `mode`, `timestamp`, `snapshot` (image, if available) | Perimeter sensor triggered in **Perimeter** mode — mode set to `perimeter_alarm`, push sent, user flows react — after entry delay window |
+| `alarm_stopped` | `zone`, `sensor`, `reason` | Away alarm stopped (by user, disarm or automatically) |
+| `alarm_perimeter_stopped` | `zone`, `sensor`, `reason` | Perimeter alarm stopped |
+| `mode_changed` | `mode_new`, `mode_previous` | System changes mode — including transition to `deterrence` and `alarm` |
+| `snapshot_taken` | `zone`, `sensor`, `sensor_type`, `mode`, `timestamp`, `snapshot` (image) | Camera takes snapshot at alarm |
+| `health_check_failed` | `offline_count` | Sensors are offline at arming |
 
 ### Conditions
 
-| Kort | Tilstand |
+| Card | State |
 |---|---|
-| `alarm_active` | Systemet er i `alarm`-modus (full alarm utløst) |
-| `alarm_perimeter_active` | Systemet er i `armed_perimeter` **eller** `perimeter_alarm` — Skallsikring aktiv (overvåking eller alarm) |
-| `get_mode` | Systemet er i valgt modus — dropdown med alle 6 modi (inkl. `perimeter_alarm`) |
-| `alarm_triggered_from` | Pågående alarm/avskrekking ble utløst fra valgt modus (`armed` / `armed_perimeter`) |
+| `alarm_active` | System is in `alarm` mode (full alarm triggered) |
+| `alarm_perimeter_active` | System is in `armed_perimeter` **or** `perimeter_alarm` — Perimeter mode active (monitoring or alarm) |
+| `get_mode` | System is in selected mode — dropdown with all 6 modes (including `perimeter_alarm`) |
+| `alarm_triggered_from` | Active alarm/deterrence was triggered from the selected mode (`armed` / `armed_perimeter`) |
+| `alarm_triggered_in_zone` | Active alarm or perimeter alert was triggered by a sensor in the selected zone — autocomplete zone picker. Use this to run different deterrence reactions per zone. |
 
 ### Actions
 
-| Kort | Effekt |
+| Card | Effect |
 |---|---|
-| `set_mode` | Sett modus til Hjemme / Borte / Skallsikring. Valgfritt **navn** vises i Timeline ved deaktivering fra Borte-modus. Valgfri **kommentar** logges alltid i hendelsesloggen når den er satt — append til "Deaktivert av"-linjen fra Borte, eller som egen linje for andre modus-endringer. |
-| `trigger_deterrence` | Test avskrekking direkte i valgt sone |
-| `trigger_alarm` | Test full alarm (eskalering, stopp etter 15 s) |
-| `bypass_perimeter` | Deaktiver perimeter-sensorene midlertidig (antall minutter) |
-| `set_camera_motion` | Aktiver / deaktiver bevegelsesutløst kamera-opptak |
+| `set_mode` | Set mode to Home / Away / Perimeter. Optional **name** appears in Timeline when disarming from Away mode. Optional **comment** is always logged in the event log when set — appended to the "Disarmed by" line from Away, or as a separate line for other mode changes. |
+| `trigger_deterrence` | Test deterrence directly in a selected zone |
+| `trigger_alarm` | Test full alarm (escalation, stops after 15 s) |
+| `bypass_perimeter` | Temporarily disable perimeter sensors (number of minutes) |
+| `set_camera_motion` | Enable / disable motion-triggered camera recording |
+| `get_media_url` | Returns a `Media URL` tag for a bundled media file (police siren, dog bark, blue lights video, etc.). Use the token directly in the next card — e.g. Chromecast "Cast video", Sonos "Play URL". |
 
 
-## Alarmtyper — to trigger-kort
+## Alarm types — two trigger cards
 
-| Situasjon | Trigger-kort | Modus-endring |
+| Situation | Trigger card | Mode change |
 |---|---|---|
-| Perimeter-sensor utløst i **Skallsikring** (du er hjemme) | `alarm_perimeter_triggered` | `armed_perimeter` → **`perimeter_alarm`** (myk alarm — ingen sirene) |
-| Bevegelse/kontakt i **Borte** (ingen hjemme) | `alarm_triggered` | `armed` → `deterrence` → `alarm` (full eskalering) |
+| Perimeter sensor triggered in **Perimeter** mode (you are home) | `alarm_perimeter_triggered` | `armed_perimeter` → **`perimeter_alarm`** (soft alarm — no siren) |
+| Motion/contact in **Away** mode (nobody home) | `alarm_triggered` | `armed` → `deterrence` → `alarm` (full escalation) |
 
-> **Viktig designvalg — Skallsikring:**
-> `armed_perimeter` er for når du er **hjemme og sover**. Automatisk lysstyring, sirener eller
-> avskrekking ville vekke deg unødvendig. Appen setter modus til `perimeter_alarm`, sender push og
-> fyrer flow-kortet — du bestemmer selv hva som skal skje via dine egne Homey-flows. Det gir full
-> kontroll uten støy. Alarmen avvises ved å trykke «Stopp alarm» i dashboard — systemet returnerer
-> til `armed_perimeter` (Skallsikring fortsetter).
+> **Key design decision — Perimeter mode:**
+> `armed_perimeter` is for when you are **home and sleeping**. Automatic lighting, sirens or
+> deterrence would wake you unnecessarily. The app sets the mode to `perimeter_alarm`, sends push and
+> fires the flow card — you decide what happens via your own Homey flows. This gives full
+> control without noise. Dismiss the alarm by pressing "Stop alarm" in the dashboard — the system returns
+> to `armed_perimeter` (Perimeter mode continues).
 
-### Typisk reaksjon per kilde
+### Typical reaction per source
 
-| Kilde | Typisk flow-reaksjon |
+| Source | Typical flow reaction |
 |---|---|
-| `alarm_perimeter_triggered` | Spill forsiktig lyd/chime på gang-høyttaler, push til deg alene, skru på ett lys — du er hjemme og kan reagere selv |
-| `alarm_triggered` | Full push til alle i husstanden, kamera-snapshot, start sirene/blink i hele huset, ring nødkontakt |
+| `alarm_perimeter_triggered` | Play a soft chime on the hallway speaker, push to you alone, turn on one light — you are home and can react yourself |
+| `alarm_triggered` | Full push to all household members, camera snapshot, start siren/blink throughout the house, call emergency contact |
 
-### Eksempel-flows — alarmreaksjon
+### Example flows — alarm reaction
 
-> **Merk:** Appen sender allerede automatisk push til Homey-appen for alle alarm-hendelser.
-> Flowene nedenfor er for tilleggsreaksjoner (lyd, lys, Pushover med bilde, naboalarmer, o.l.)
-
-```
-NÅR  Skallsikring-brudd oppdaget (alarm_perimeter_triggered)
-     — du er hjemme, lav-støy varsling
-SÅ   Spill forsiktig chime på gang-høyttaler
-     Skru sakte opp lys i gangen (10 % lysstyrke)
-     Pushover: Send push med bilde [[snapshot]] til deg alene
-
-NÅR  Alarm aktivert (alarm_triggered — Borte-modus)
-     — ingen hjemme, full respons
-SÅ   Pushover: Send melding med bilde [[snapshot]] til ALLE i husstanden
-     Start sirene + blink i hele huset
-     Ring nødkontakt via IFTTT/SMS
-
-NÅR  Modus endret (mode_changed, mode_new = alarm)
-OG   Alarm ble utløst fra [Borte (armed)]   ← alarm_triggered_from condition
-SÅ   Send SMS til politiet / nødkontakt
-```
-
-### Anbefalte flows — deaktivering og aktivering
-
-#### Deaktivering via smart-lås (anbefalt)
-
-Koble deaktivering til **autorisert opplåsing av smart-lås** med brukerens navn som token.
-Ikke bruk presence-sensorer (GPS/Bluetooth) til å deaktivere — de er for upresise og kan
-skru av alarmen mens du er på nabobesøk.
+> **Note:** The app already automatically sends push to the Homey app for all alarm events.
+> The flows below are for additional reactions (sound, lights, Pushover with image, neighbour alerts, etc.)
 
 ```
-NÅR  Smart-lås: Lås åpnet av [bruker]       ← smart-lås-trigger med navn-token
-DA   Sett modus til Hjemme av [[bruker]]    ← set_mode action (name = låsens bruker-token)
+WHEN  Perimeter breach detected (alarm_perimeter_triggered)
+      — you are home, low-noise notification
+THEN  Play soft chime on hallway speaker
+      Slowly raise hallway light (10% brightness)
+      Pushover: Send push with image [[snapshot]] to you alone
+
+WHEN  Alarm triggered (alarm_triggered — Away mode)
+      — nobody home, full response
+THEN  Pushover: Send message with image [[snapshot]] to ALL household members
+      Start siren + blink throughout house
+      Call emergency contact via IFTTT/SMS
+
+WHEN  Mode changed (mode_changed, mode_new = alarm)
+AND   Alarm was triggered from [Away (armed)]   ← alarm_triggered_from condition
+THEN  Send SMS to police / emergency contact
 ```
 
-**Hva skjer i ulike modi:**
+### Recommended flows — per-zone deterrence
 
-| Aktiv modus | Resultat |
+Use the `alarm_triggered_in_zone` condition to run different reactions depending on which zone triggered the alarm:
+
+```
+WHEN  Alarm triggered (alarm_triggered)
+
+IF    Alarm was triggered in zone [Living room]
+THEN  Get media URL for 🚔 Blue lights (video)    → [Media URL]
+      Chromecast (living room TV): Cast video [Media URL]
+
+IF    Alarm was triggered in zone [Hallway]
+THEN  Get media URL for 🐕 Guard dog (sound)      → [Media URL]
+      Sonos (hallway): Play URL [Media URL]
+```
+
+### Recommended flows — disarming and arming
+
+#### Disarming via smart lock (recommended)
+
+Connect disarming to **authorised unlocking of a smart lock** with the user's name as a token.
+Do not use presence sensors (GPS/Bluetooth) to disarm — they are too imprecise and can
+turn off the alarm while you are visiting neighbours.
+
+```
+WHEN  Smart lock: Lock opened by [user]         ← smart lock trigger with name token
+THEN  Set mode to Home by [[user]]              ← set_mode action (name = lock's user token)
+```
+
+**What happens in different modes:**
+
+| Active mode | Result |
 |---|---|
-| `armed` (Borte) — utenfor nattvindu | Systemet deaktiveres normalt før døren åpnes — ingen alarm |
-| `armed` (Borte) — **i nattvindu** | `set_mode=disarmed` omdirigeres automatisk til `armed_perimeter` — huset går til Skallsikring i stedet for å deaktiveres helt. Forhindrer at en smart-lås-flow lar huset stå ubeskyttet om natten. |
-| `armed_perimeter` (Skallsikring) | `set_mode=disarmed` fra **dashboard** virker alltid (force=true). `set_mode=disarmed` fra **flow-kort uten force** ignoreres — hoveddøren har entry delay som starter perimeter-bypass automatisk. |
-| `disarmed` | Ingen effekt |
+| `armed` (Away) — outside night window | System disarms normally before the door opens — no alarm |
+| `armed` (Away) — **in night window** | `set_mode=disarmed` is automatically redirected to `armed_perimeter` — the house goes to Perimeter mode instead of fully disarming. Prevents a smart lock flow from leaving the house unprotected at night. |
+| `armed_perimeter` (Perimeter) | `set_mode=disarmed` from the **dashboard** always works (force=true). `set_mode=disarmed` from a **flow card without force** is ignored — the front door has an entry delay that starts perimeter bypass automatically. |
+| `disarmed` | No effect |
 
-> **Nattvindu-redirect:** Omdirigering fra `armed` til `armed_perimeter` gjelder kun når den innebygde Skallsikring-scheduleren er aktivert (Innstillinger → Skallsikring auto) og klokken er innenfor det konfigurerte tidsrommet (f.eks. 22:00–06:00). Automatisk scheduler og `force=true` fra interne flows går forbi denne logikken.
+> **Night window redirect:** Redirection from `armed` to `armed_perimeter` only applies when the built-in Perimeter scheduler is enabled (Settings → Perimeter auto) and the clock is within the configured time window (e.g. 22:00–06:00). The automatic scheduler and `force=true` from internal flows bypass this logic.
 
-#### Aktivering — anbefalt strategi
+#### Arming — recommended strategy
 
-> ⚠️ **Viktig om presence-basert aktivering og deaktivering**
+> ⚠️ **Important about presence-based arming and disarming**
 >
-> WiFi- og GPS-basert tilstedeværelse (Homey presence, mobil-GPS) er *upålitelig* som alene-kilde
-> for å styre alarmen. Et svakt WiFi-signal — f.eks. på verandaen, i garasjen eller i kjelleren — kan
-> feilaktig registrere deg som «ikke hjemme», aktivere alarmen, og utløse den igjen i det du kommer
-> innendørs og signalet kommer tilbake. Dette er en kjent feilkilde og kan gi falske alarmer selv om
-> du har vært hjemme hele tiden.
+> WiFi- and GPS-based presence (Homey presence, mobile GPS) is *unreliable* as a sole source
+> for controlling the alarm. A weak WiFi signal — e.g. on the terrace, in the garage or in the basement — can
+> incorrectly register you as "away", activate the alarm, and trigger it again when you come
+> indoors and the signal returns. This is a known failure mode and can cause false alarms even if
+> you have been home the whole time.
 >
-> **Anbefaling:**
-> - Bruk presence til å **aktivere** (armere) alarmen — men alltid med en exit-delay og gjerne i
->   kombinasjon med en fysisk knapp eller app som override
-> - **Deaktiver aldri alarmen automatisk basert kun på presence** — bruk alltid smart-lås eller
->   manuell deaktivering via dashboard/app
-> - Legg til en **fysisk knapp ved inngangsdøren** som aktiverer/deaktiverer alarmen — pålitelig,
->   rask og fungerer uten internett
-> - Bruk **Homey Alone Guard-appen** (dashboard) for manuell kontroll når knappen ikke er tilgjengelig
+> **Recommendation:**
+> - Use presence to **activate** (arm) the alarm — but always with an exit delay and preferably in
+>   combination with a physical button or app as an override
+> - **Never disarm automatically based solely on presence** — always use a smart lock or
+>   manual disarming via dashboard/app
+> - Add a **physical button at the entrance** that activates/deactivates the alarm — reliable,
+>   fast and works without internet
+> - Use the **Homey Alone Guard app** (dashboard) for manual control when the button is not available
 
-**Anbefalt oppsett: presence aktiverer, men knapp/lås deaktiverer**
-
-```
-NÅR  Tilstedeværelse: Ingen hjemme          ← Homey presence / zone-trigger
-OG   Modus er [Hjemme (disarmed)]           ← get_mode condition
-DA   Sett modus til Borte                   ← set_mode = armed
-
-NÅR  Smart-lås: Lås åpnet av [bruker]       ← pålitelig inngangs-trigger
-DA   Sett modus til Hjemme av [[bruker]]    ← set_mode action — deaktiverer alltid
-
-NÅR  Knapp trykket (ved inngangsdør)        ← fysisk Zigbee/Z-Wave-knapp
-DA   Sett modus til Hjemme                  ← rask manuell deaktivering
-```
-
-> **Merk:** Bruk `get_mode = disarmed` som condition på presence-flowen for å unngå at den
-> overskriver en aktiv `armed_perimeter` (nattmodus) når alle forlater huset om morgenen.
-
-#### Aktivering av Skallsikring (nattmodus)
+**Recommended setup: presence arms, but button/lock disarms**
 
 ```
-NÅR  Klokken er 22:00
-OG   Modus er [Hjemme (disarmed)]
-DA   Sett modus til Skallsikring
+WHEN  Presence: Nobody home                     ← Homey presence / zone trigger
+AND   Mode is [Home (disarmed)]                 ← get_mode condition
+THEN  Set mode to Away                          ← set_mode = armed
+
+WHEN  Smart lock: Lock opened by [user]         ← reliable entry trigger
+THEN  Set mode to Home by [[user]]              ← set_mode action — always disarms
+
+WHEN  Button pressed (at entrance)              ← physical Zigbee/Z-Wave button
+THEN  Set mode to Home                          ← quick manual disarming
 ```
 
-Alternativt: bruk den innebygde tidsplanleggeren i appen (Innstillinger → Skallsikring auto).
+> **Note:** Use `get_mode = disarmed` as a condition on the presence flow to avoid it
+> overriding an active `armed_perimeter` (night mode) when everyone leaves in the morning.
 
-> **Scheduleren aktiverer kun ved overganger.** Aktivering skjer nøyaktig når klokken passerer ON-tidspunktet (f.eks. 22:00) og deaktivering ved OFF-tidspunktet (f.eks. 06:00). Ved appstart gjøres ingen automatisk aktivering/deaktivering — den lagrede modusen beholdes som den er.
-
-#### Ventilasjonsmodus — Skallsikring med åpne vinduer
-
-Når Skallsikring aktiveres tar appen et øyeblikksbilde av hvilke **konfigurerte perimeter-sensorer** som allerede er åpne. Disse sensorene ignoreres stille for resten av sesjonen — du kan sove med et vindu på gløtt uten å utløse alarm. Nye åpninger (vinduer/dører som åpnes *etter* aktivering) reagerer normalt.
-
-> **Merk:** Øyeblikksbildet bruker kun sensorer som eksplisitt er konfigurert som perimeter-sensorer i Soneoversikten. Hvis ingen sensorer er konfigurert, tas det ikke noe øyeblikksbilde.
+#### Activating Perimeter mode (night mode)
 
 ```
-Eksempel:
-  22:00 — Skallsikring aktiveres
-          Vindu bad: alarm_contact = true  ← allerede åpent → ignoreres
-          Hoveddør:  alarm_contact = false ← lukket → normal beskyttelse
-
-  23:15 — Noen åpner kjøkkendøren
-          alarm_contact = true (ny åpning) → inngangsforsinkelse starter → alarm
+WHEN  Time is 22:00
+AND   Mode is [Home (disarmed)]
+THEN  Set mode to Perimeter
 ```
 
-Øyeblikksbildet nullstilles automatisk når Skallsikring deaktiveres.
+Alternatively: use the built-in scheduler in the app (Settings → Perimeter auto).
 
-#### Automatiske push-varsler — oversikt
+> **The scheduler only activates at transitions.** Activation occurs exactly when the clock passes the ON time (e.g. 22:00) and deactivation at the OFF time (e.g. 06:00). On app start, no automatic activation/deactivation is done — the saved mode is kept as-is.
 
-Appen sender push-notifikasjoner til Homey-appen for alle kritiske hendelser uten at brukeren trenger å sette opp flows:
+#### Ventilation mode — Perimeter mode with open windows
 
-| Hendelse | Push-melding / Tidslinje |
+When Perimeter mode is activated the app takes a snapshot of which **configured perimeter sensors** are already open. These sensors are silently ignored for the rest of the session — you can sleep with a window ajar without triggering an alarm. New openings (windows/doors opened *after* activation) react normally.
+
+> **Note:** The snapshot only uses sensors explicitly configured as perimeter sensors in the Zone overview. If no sensors are configured, no snapshot is taken.
+
+```
+Example:
+  22:00 — Perimeter mode activated
+          Bathroom window: alarm_contact = true  ← already open → ignored
+          Front door:      alarm_contact = false ← closed → normal protection
+
+  23:15 — Someone opens the kitchen door
+          alarm_contact = true (new opening) → entry delay starts → alarm
+```
+
+The snapshot is automatically reset when Perimeter mode is deactivated.
+
+#### Automatic push notifications — overview
+
+The app sends push notifications to the Homey app for all critical events without the user needing to set up flows:
+
+| Event | Push message / Timeline |
 |---|---|
-| Systemet deaktiveres | `Alarm av` |
-| Borte-modus aktivert | `Alarm på` |
-| Skallsikring aktivert | `Alarm skallsikring` |
-| Deaktivert av navngitt bruker | `Deaktivert av [navn]` |
-| Bevegelse/kontakt utløser avskrekking (Borte) | `🚨 Avskrekking: [sensor] i [sone]` |
-| Perimetersensor utløser direkte alarm (Skallsikring) | `🚨 Skallsikring alarm: [sensor] i [sone]` |
-| Avskrekking eskalerer til full alarm | `🚨 ALARM utløst i [sone] — [sensor]` |
-| Alarm stoppet | `Alarm stoppet` |
-| Åpne sensorer ved armering | Se tabellen nedenfor |
-| Sensorer offline ved helsesjekk | `⚠️ Aktivert, men N sensor(er) rapporterer ikke: [navn]` |
+| System disarmed | `Alarm off` |
+| Away mode activated | `Alarm on` |
+| Perimeter mode activated | `Alarm perimeter` |
+| Disarmed by named user | `Disarmed by [name]` |
+| Motion/contact triggers deterrence (Away) | `🚨 Deterrence: [sensor] in [zone]` |
+| Perimeter sensor triggers alarm (Perimeter) | `🚨 Perimeter alarm: [sensor] in [zone]` |
+| Deterrence escalates to full alarm | `🚨 ALARM triggered in [zone] — [sensor]` |
+| Alarm stopped | `Alarm stopped` |
+| Open sensors at arming | See table below |
+| Sensors offline at health check | `⚠️ Armed, but N sensor(s) not reporting: [name]` |
 
-Push-varsler er best-effort — alle hendelser logges alltid i intern event-logg uavhengig av nettverksstatus.
+Push notifications are best-effort — all events are always logged in the internal event log regardless of network status.
 
-#### Åpne sensorer ved aktivering — push-varsel
+#### Open sensors at activation — push notification
 
-Begge armeringmodiene sender push-varsel til Homey-appen hvis det er åpne dør-/vindussensorer ved aktivering:
+Both arming modes send a push notification to the Homey app if there are open door/window sensors at activation:
 
-| Modus | Sensor-sjekk | Varsling |
+| Mode | Sensor check | Notification |
 |---|---|---|
-| **Borte** (`armed`) | Alle kontaktsensorer | Push: «N dør/vindu åpen(e) ved aktivering: [navn]» |
-| **Skallsikring** (`armed_perimeter`) | Kun konfigurerte perimetersensorer | Push: «Skallsikring aktivert: N sensor(er) åpen — ignoreres: [navn]» |
+| **Away** (`armed`) | All contact sensors | Push: "N door/window open at activation: [name]" |
+| **Perimeter** (`armed_perimeter`) | Only configured perimeter sensors | Push: "Perimeter armed: N sensor(s) open — ignored: [name]" |
 
-Armering stoppes ikke — varslingen er informativ. I Skallsikring ignoreres allerede-åpne perimetersensorer automatisk (ventilasjonsmodus).
+Arming is not stopped — the notification is informational. In Perimeter mode, already-open perimeter sensors are automatically ignored (ventilation mode).
 
-#### Helsesjekk ved Borte-aktivering
+#### Health check at Away activation
 
-Appen sjekker i tillegg om noen sensorer er offline (utilgjengelige). Er noen utilgjengelige, sendes en separat push-notifikasjon og en advarsel logges.
+The app also checks whether any sensors are offline (unavailable). If any are unavailable, a separate push notification is sent and a warning is logged.
 
 ---
 
-## Hva logges hvor
+## What is logged where
 
-Homey Alone Guard bruker tre separate loggkanaler med ulike formål:
+Homey Alone Guard uses three separate log channels with different purposes:
 
-| Kanal | Hva | Detalj-nivå | Varighet |
+| Channel | What | Detail level | Duration |
 |---|---|---|---|
-| **Homey-tidslinje** | Modus-bytter og kritiske alarm-hendelser | Kort og konsist — kun det brukeren trenger å se | Styrast av Homey |
-| **Push-notifikasjon** | Alle kritiske hendelser (avskrekking, alarm, åpne sensorer, offline sensorer) | Kort melding med sensor og sone | Umiddelbar, best-effort |
-| **Intern hendelseslogg** (Hendelseslogg-fanen) | Full teknisk detalj for alle hendelser | Sensor-ID, sone-ID, årsak, tidsstempel, modus | 14 dagers rullerende vindu |
+| **Homey timeline** | Mode changes and critical alarm events | Short and concise — only what the user needs to see | Managed by Homey |
+| **Push notification** | All critical events (deterrence, alarm, open sensors, offline sensors) | Short message with sensor and zone | Immediate, best-effort |
+| **Internal event log** (Event Log tab) | Full technical detail for all events | Sensor ID, zone ID, reason, timestamp, mode | 14-day rolling window |
 
-### Homey-tidslinje — hva som postes
+### Homey timeline — what is posted
 
-Tidslinjen viser bare høy-nivå modus-endringer. Ikoner/app-logo vises automatisk — appen legger ikke til eget app-navn i teksten.
+The timeline only shows high-level mode changes. Icons/app logo appear automatically — the app does not add its own app name to the text.
 
-| Hendelse | Tidslinje-tekst |
+| Event | Timeline text |
 |---|---|
-| Systemet deaktiveres | `Alarm av` |
-| Borte-modus aktivert | `Alarm på` |
-| Skallsikring aktivert | `Alarm skallsikring` |
-| Perimeter-sensor utløst (Skallsikring alarm) | `🚨 Skallsikring: [sensor] i [sone]` |
-| Skallsikring alarm stoppet | `Skallsikring alarm stoppet` |
-| Avskrekking startet (som modus) | `Avskrekking` |
-| Full alarm (som modus) | `🚨 ALARM` |
-| Deaktivert av navngitt bruker | `Deaktivert av [navn]` |
-| Alarm stoppet manuelt | `Alarm stoppet` |
+| System disarmed | `Alarm off` |
+| Away mode activated | `Alarm on` |
+| Perimeter mode activated | `Alarm perimeter` |
+| Perimeter sensor triggered (Perimeter alarm) | `🚨 Perimeter: [sensor] in [zone]` |
+| Perimeter alarm stopped | `Perimeter alarm stopped` |
+| Deterrence started (as mode) | `Deterrence` |
+| Full alarm (as mode) | `🚨 ALARM` |
+| Disarmed by named user | `Disarmed by [name]` |
+| Alarm stopped manually | `Alarm stopped` |
 
-### Push-notifikasjoner — hva som sendes
+### Push notifications — what is sent
 
-Push-notifikasjoner sendes i tillegg til tidslinje-oppføringene for alle kritiske hendelser:
+Push notifications are sent in addition to timeline entries for all critical events:
 
-| Hendelse | Push-melding |
+| Event | Push message |
 |---|---|
-| Perimeter-sensor utløst (Skallsikring) | `🚨 Skallsikring: [sensor] i [sone]` |
-| Sensor utløser avskrekking (Borte) | `🚨 Avskrekking: [sensor] i [sone]` |
-| Avskrekking eskalerer til full alarm | `🚨 ALARM utløst i [sone] — [sensor]` |
-| Åpne sensorer (Borte-modus) | `⚠️ N dør/vindu åpen(e) ved aktivering: [navn]` |
-| Åpne sensorer (Skallsikring) | `ℹ️ Skallsikring aktivert: N sensor(er) åpen — ignoreres: [navn]` |
-| Sensorer offline | `⚠️ Aktivert, men N sensor(er) rapporterer ikke: [navn]` |
+| Perimeter sensor triggered (Perimeter mode) | `🚨 Perimeter: [sensor] in [zone]` |
+| Sensor triggers deterrence (Away) | `🚨 Deterrence: [sensor] in [zone]` |
+| Deterrence escalates to full alarm | `🚨 ALARM triggered in [zone] — [sensor]` |
+| Open sensors (Away mode) | `⚠️ N door/window open at activation: [name]` |
+| Open sensors (Perimeter mode) | `ℹ️ Perimeter armed: N sensor(s) open — ignored: [name]` |
+| Sensors offline | `⚠️ Armed, but N sensor(s) not reporting: [name]` |
 
-### Intern hendelseslogg — hva som skrives
+### Internal event log — what is written
 
-Den interne loggen (Hendelseslogg-fanen i settings) inneholder all teknisk detalj som ikke passer i tidslinjen:
+The internal log (Event Log tab in settings) contains all technical detail that does not fit in the timeline:
 
-- Hvilken sensor utløste hendelsen (navn + device-ID)
-- Hvilken sone hendelsen skjedde i
-- Årsak til alarm-stopp (bruker, auto-stopp, timeout)
-- Entry-delay-nedtellinger (start, avbrytt, utløpt)
-- FalseAlarmFilter-vurderinger (konfidens-terskel, reset)
-- Lys-slukking etter alarm («N lys slukket»)
-- Snapshot-aktivitet fra CameraManager
-- Alle feilmeldinger og best-effort-advarsler
+- Which sensor triggered the event (name + device ID)
+- Which zone the event occurred in
+- Reason for alarm stop (user, auto-stop, timeout)
+- Entry delay countdowns (start, cancelled, expired)
+- FalseAlarmFilter assessments (confidence threshold, reset)
+- Light switching off after alarm ("N lights turned off")
+- Snapshot activity from CameraManager
+- All error messages and best-effort warnings
 
-**Modus-endringer og logging:**
+**Mode changes and logging:**
 
-| Modus-endring | Hva som logges |
+| Mode change | What is logged |
 |---|---|
-| → `armed` | `Modus: armed.` |
-| → `armed_perimeter` | `Modus: armed_perimeter.` |
-| → `deterrence` | `Modus: deterrence.` |
-| → `alarm` | `Modus: alarm.` |
-| → `disarmed` (fra `armed`) | `Deaktivert av [navn] — [kommentar].` — StateMachine logger **ikke** `Modus: disarmed` separat, siden flow-handleren allerede dekker dette med mer informasjon |
-| → `disarmed` (fra andre modi) | Ingen logg — no-op eller blokkert av design |
+| → `armed` | `Mode: armed.` |
+| → `armed_perimeter` | `Mode: armed_perimeter.` |
+| → `deterrence` | `Mode: deterrence.` |
+| → `alarm` | `Mode: alarm.` |
+| → `disarmed` (from `armed`) | `Disarmed by [name] — [comment].` — StateMachine does **not** log `Mode: disarmed` separately, since the flow handler already covers this with more information |
+| → `disarmed` (from other modes) | No log — no-op or blocked by design |
 
-Loggen kan kopieres til utklippstavlen, lastes ned som CSV eller tømmes fra Hendelseslogg-fanen. Rullerende vindu — oppføringer eldre enn 14 dager slettes automatisk.
+The log can be copied to the clipboard, downloaded as CSV or cleared from the Event Log tab. Rolling window — entries older than 14 days are automatically deleted.
 
 ---
 
-### Designbeslutning — logg-støy ved modus-endringer
+### Design decision — log noise from mode changes
 
-#### Problemet
+#### The problem
 
-Tre kilder til logg-støy ble identifisert:
+Three sources of log noise were identified:
 
-**1. Dør-åpning i Hjemme- og Skallsikring-modus**
+**1. Door opening in Home and Perimeter mode**
 
-En vanlig flow-oppskrift er å koble dør-sensorer (eller tilstedeværelse) til `set_mode`-actionen for å deaktivere systemet automatisk når noen kommer inn:
+A common flow recipe is to connect door sensors (or presence) to the `set_mode` action to automatically disarm when someone enters:
 
 ```
-NÅR  Dør-sensor: Dør åpnet
-DA   Sett modus til Hjemme av [[bruker]]
+WHEN  Door sensor: Door opened
+THEN  Set mode to Home by [[user]]
 ```
 
-Denne flowen fungerer riktig i **Borte**-modus — systemet deaktiveres, og hendelsen logges med riktig bruker. Men hvis flowen kjører i **Hjemme** (`disarmed`) eller **Skallsikring** (`armed_perimeter`) ble disse log-oppføringene generert på **hvert dør-åpning**:
+This flow works correctly in **Away** mode — the system disarms, and the event is logged with the correct user. But if the flow runs in **Home** (`disarmed`) or **Perimeter** (`armed_perimeter`), these log entries were generated **on every door opening**:
 
-- `"Deaktivert av Thomas"` — selv om systemet allerede var deaktivert (no-op)
-- `"Skallsikring forblir aktiv — deaktivering ignorert."` — for hver dør som ble åpnet mens Skallsikring var aktiv
+- `"Disarmed by Thomas"` — even though the system was already disarmed (no-op)
+- `"Perimeter remains active — disarm ignored."` — for every door opened while Perimeter was active
 
-**2. Dobbel logg ved deaktivering fra Borte-modus**
+**2. Double log when disarming from Away mode**
 
-Når `set_mode=disarmed` faktisk endret modus fra `armed`, produserte systemet to log-oppføringer på samme sekund:
-- `"Deaktivert av Thomas."` — fra flow-handleren
-- `"Modus: disarmed."` — fra StateMachine
+When `set_mode=disarmed` actually changed the mode from `armed`, the system produced two log entries at the same second:
+- `"Disarmed by Thomas."` — from the flow handler
+- `"Mode: disarmed."` — from StateMachine
 
-Samme hendelse, to linjer.
+Same event, two lines.
 
-**3. Én logg-linje per åpen sensor ved Skallsikring-aktivering**
+**3. One log line per open sensor at Perimeter activation**
 
-Når Skallsikring ble aktivert med åpne sensorer (ventilasjonsmodus), ble det logget én linje per sensor i stedet for én samlet linje.
+When Perimeter was activated with open sensors (ventilation mode), one line was logged per sensor instead of one combined line.
 
-#### Alternativer som ble vurdert (problem 1)
+#### Alternatives considered (problem 1)
 
-| Alternativ | Vurdering |
+| Alternative | Assessment |
 |---|---|
-| **`silent`-parameter på `set_mode`-kortet** | Krever at brukeren aktivt setter parameteren på alle relevante flows — ikke fleksibelt nok, og andre brukere av appen vet ikke om konvensjonen |
-| **Eget «stille» flow-kort** | Samme problem som parameteren, pluss at det skaper unødvendig dobling av flow-kort |
-| **Bruke `"Manual"` som spesialnavn for å undertrykke logging** | Overbelaster semantikken til et navn-felt med atferdslogikk — ikke intuitivt og skjørt |
-| **Fikse rotårsaken i `set_mode`-handleren** | ✅ Ingen nye parametere, ingen nye kort, ingen spesielle strenger — fungerer automatisk for alle |
+| **`silent` parameter on the `set_mode` card** | Requires the user to actively set the parameter on all relevant flows — not flexible enough, and other users of the app don't know about the convention |
+| **Separate "silent" flow card** | Same problem as the parameter, plus it creates unnecessary duplication of flow cards |
+| **Using `"Manual"` as a special name to suppress logging** | Overloads the semantics of a name field with behaviour logic — not intuitive and fragile |
+| **Fix the root cause in the `set_mode` handler** | ✅ No new parameters, no new cards, no special strings — works automatically for everyone |
 
-#### Valgte løsninger
+#### Chosen solutions
 
-**Problem 1 og 3 — `set_mode`-handleren og open-sensor-logging:**
+**Problems 1 and 3 — `set_mode` handler and open sensor logging:**
 
-Log-oppføringen `"Deaktivert av [navn]"`, tidslinje-posting og `alarm_disarmed`-triggeren fyres **kun når forrige modus var `armed` (Borte)**. Den tidligere `"Skallsikring forblir aktiv — deaktivering ignorert."`-meldingen er fjernet — vakten blokkerer fremdeles, men stille. Åpne sensorer ved Skallsikring-aktivering logges som én samlet linje.
+The log entry `"Disarmed by [name]"`, timeline posting and the `alarm_disarmed` trigger fire **only when the previous mode was `armed` (Away)**. The former `"Perimeter remains active — disarm ignored."` message has been removed — the guard still blocks, but silently. Open sensors at Perimeter activation are logged as one combined line.
 
 **Problem 2 — `StateMachine.applyMode`:**
 
-`StateMachine` logger ikke lenger `"Modus: disarmed."` — flow-handleren produserer alltid en mer informativ oppføring (`"Deaktivert av [navn]"`) i samme øyeblikk, som gjør StateMachine-linjen til ren støy.
+`StateMachine` no longer logs `"Mode: disarmed."` — the flow handler always produces a more informative entry (`"Disarmed by [name]"`) at the same moment, making the StateMachine line pure noise.
 
-**Samlet konsekvens for flows:**
+**Combined effect on flows:**
 
-| Aktiv modus | `set_mode=disarmed` fra flow | Log-oppføringer |
+| Active mode | `set_mode=disarmed` from flow | Log entries |
 |---|---|---|
-| `armed` (Borte) | Deaktiverer systemet | `"Deaktivert av [navn] — [kommentar]."` — én linje |
-| `disarmed` (Hjemme) | No-op | — ingen |
-| `armed_perimeter` (Skallsikring) | Blokkert (design) | — ingen |
+| `armed` (Away) | Disarms the system | `"Disarmed by [name] — [comment]."` — one line |
+| `disarmed` (Home) | No-op | — none |
+| `armed_perimeter` (Perimeter) | Blocked (design) | — none |
 
-Flow-en kan kjøre på alle dør-åpninger uten å støye i loggen — bare faktiske deaktiveringer fra Borte-modus produserer en logg-linje, og aldri dobbelt.
+The flow can run on all door openings without cluttering the log — only actual disarms from Away mode produce a log line, and never double.
 
 ---
 
-### Anbefalte flows — kameraopptak ved alarm
+### Recommended flows — camera snapshots at alarm
 
-> **Homey-begrensning:** Appen kan ikke ta bilder fra kameraer direkte. Homey tillater ikke at
-> en tredjepartsapp kaller en annen apps action-kort (f.eks. «Ta snapshot») fra koden — dette
-> er kun mulig fra Flow-editoren. Du må derfor opprette **én flow per kamera** du ønsker å trigge.
+> **Homey limitation:** The app cannot take photos from cameras directly. Homey does not allow
+> a third-party app to call another app's action card (e.g. "Take snapshot") from code — this
+> is only possible from the Flow editor. You must therefore create **one flow per camera** you want to trigger.
 
-Appen sender `zone`-tokenet med `alarm_triggered` og `alarm_perimeter_triggered`. Bruk dette
-som condition for å velge riktig kamera:
+The app sends the `zone` token with `alarm_triggered` and `alarm_perimeter_triggered`. Use this
+as a condition to select the correct camera:
 
 ```
-NÅR  Alarm utløst (alarm_triggered)
-OG   [[zone]] inneholder "Inngang"          ← Homey Logic: tekst-condition
-DA   [Kamera-app]: Ta snapshot fra [inngang-kamera]
-     Telegram: Send melding med bilde [[snapshot]]
+WHEN  Alarm triggered (alarm_triggered)
+AND   [[zone]] contains "Entrance"          ← Homey Logic: text condition
+THEN  [Camera app]: Take snapshot from [entrance camera]
+      Telegram: Send message with image [[snapshot]]
 
-NÅR  Alarm utløst (alarm_triggered)
-OG   [[zone]] inneholder "Garasje"
-DA   [Kamera-app]: Ta snapshot fra [garasje-kamera]
-     Telegram: Send melding med bilde [[snapshot]]
+WHEN  Alarm triggered (alarm_triggered)
+AND   [[zone]] contains "Garage"
+THEN  [Camera app]: Take snapshot from [garage camera]
+      Telegram: Send message with image [[snapshot]]
 ```
 
-**Forutsetning:** Kamera-appen (Reolink, Eufy, Unifi Protect, ONVIF m.fl.) må ha et
-«Ta snapshot»-action-kort i Flow-editoren som returnerer et bildetoken. Sjekk dette i
-kamera-appens dokumentasjon på Homey App Store.
+**Prerequisite:** The camera app (Reolink, Eufy, Unifi Protect, ONVIF etc.) must have a
+"Take snapshot" action card in the Flow editor that returns an image token. Check this in
+the camera app's documentation on the Homey App Store.
 
-**Tilgjengelige tokens fra appen:**
+**Available tokens from the app:**
 
-| Token | Innhold |
+| Token | Content |
 |---|---|
-| `[[zone]]` | Navn på sonen der sensoren utløste alarmen |
-| `[[sensor]]` | Navn på sensoren som utløste alarmen |
-| `[[sensor_type]]` | `motion` eller `contact` |
-| `[[mode]]` | Aktiv modus da alarmen ble utløst |
-| `[[timestamp]]` | ISO 8601-tidsstempel |
+| `[[zone]]` | Name of the zone where the sensor triggered the alarm |
+| `[[sensor]]` | Name of the sensor that triggered the alarm |
+| `[[sensor_type]]` | `motion` or `contact` |
+| `[[mode]]` | Active mode when the alarm was triggered |
+| `[[timestamp]]` | ISO 8601 timestamp |
+| `[[snapshot]]` | Image token — camera snapshot (if a camera is configured in the zone) |
 
 ---
 
-### Anbefalte flows — lyd og video ved avskrekking
+### Recommended flows — sound and video for deterrence
 
-> **Homey-begrensning:** Appen kan ikke starte lyd- eller videoavspilling på høyttalere, TV-er
-> eller Chromecast direkte fra kode. Homeys plattform eksponerer tredjepartsappers flow-kort
-> (f.eks. «Spill lyd», «Cast video») **kun via Flow-editoren** — ikke via noe API en custom app
-> kan kalle. Du må derfor opprette flows manuelt for å koble avskrekking til lyd og video.
+> **Homey limitation:** The app cannot start audio or video playback on speakers, TVs
+> or Chromecasts directly from code. Homey's platform exposes third-party apps' flow cards
+> (e.g. "Play sound", "Cast video") **only via the Flow editor** — not via any API a custom app
+> can call. You must therefore create flows manually to connect deterrence to sound and video.
 
-Appen fyrer `mode_changed` (mode_new = deterrence) og `alarm_triggered` / `alarm_perimeter_triggered`
-som integrasjonspunkter. Lys-avskrekking (blink i reaksjonssone) kjører alltid automatisk —
-lyd og video må settes opp som bruker-flows.
+The app fires `mode_changed` (mode_new = deterrence) and `alarm_triggered` / `alarm_perimeter_triggered`
+as integration points. Light deterrence (blink in reaction zone) always runs automatically —
+sound and video must be set up as user flows.
 
 ```
-NÅR  Modus endret (mode_changed)
-OG   mode_new = deterrence
-DA   Sonos / Homey-høyttaler: Spill «bjeffing.mp3» med volum 80 %
-     Chromecast: Cast video «blålys.mp4» til stue-TV
+WHEN  Mode changed (mode_changed)
+AND   mode_new = deterrence
+THEN  Get media URL for 🐕 Guard dog (sound)    → [Media URL]
+      Sonos / speaker: Play URL [Media URL] at volume 80%
+      Get media URL for 🚔 Blue lights (video)  → [Media URL]
+      Chromecast: Cast video [Media URL] to living room TV
 
-NÅR  Alarm utløst (alarm_perimeter_triggered)
-DA   [Høyttaler i gang]: Spill «advarsel.mp3»
-     Push til DEG: «Noen ved [[sensor]]»
+WHEN  Alarm triggered (alarm_perimeter_triggered)
+THEN  Get media URL for 🚨 Police siren         → [Media URL]
+      [Hallway speaker]: Play URL [Media URL]
+      Push to YOU: "Someone at [[sensor]]"
 
-NÅR  Modus endret (mode_changed)
-OG   mode_new = disarmed
-DA   Sonos: Stop avspilling
-     Chromecast: Stop avspilling
+WHEN  Mode changed (mode_changed)
+AND   mode_new = disarmed
+THEN  Sonos: Stop playback
+      Chromecast: Stop playback
 ```
 
 **Tips:**
-- Bruk `alarm_triggered_from`-condition under aktiv `alarm`-fase for å spille ulike lyder
-  avhengig av om alarmen kom fra Borte- eller Skallsikring-modus.
-- Egne flows kan trygt styre lys i reaksjonssonen parallelt med innebygd blink.
-- Volum-kontroll på tredjepartshøyttalere må gjøres i samme flow — appen har ikke tilgang
-  til dette fra koden.
+- Use the `alarm_triggered_in_zone` condition to play different sounds depending on which room triggered the alarm.
+- Use the `alarm_triggered_from` condition during an active `alarm` phase to play different sounds depending on whether the alarm came from Away or Perimeter mode.
+- Your own flows can safely control lights in the reaction zone in parallel with built-in blinking.
+- Volume control on third-party speakers must be done in the same flow — the app does not have access to this from code.
 
 
-## Sett opp flows basert på modus-endringer
+## Set up flows based on mode changes
 
-Systemet har seks modi: `disarmed` (Hjemme), `armed` (Borte), `armed_perimeter` (Skallsikring), `perimeter_alarm` (Skallsikring alarm utløst), `deterrence` (Avskrekking), `alarm` (Alarm utløst). Overganger mellom disse fyrer alltid `mode_changed`-triggeren med `mode_new` og `mode_previous` som tokens.
+The system has six modes: `disarmed` (Home), `armed` (Away), `armed_perimeter` (Perimeter), `perimeter_alarm` (Perimeter alarm triggered), `deterrence` (Deterrence), `alarm` (Alarm triggered). Transitions between these always fire the `mode_changed` trigger with `mode_new` and `mode_previous` as tokens.
 
-### Generelt mønster
+### General pattern
 
-I Flow-editoren (`Homey-appen → Flows → Ny flow`):
+In the Flow editor (Homey app → Flows → New flow):
 
-1. **NÅR** — `Homey Alone Guard → Modus endret`
-2. **OG** *(valgfritt)* — filtrer på `[mode_new]` eller `[mode_previous]` for å reagere på spesifikke overganger.
-3. **SÅ** — kjør ønsket handling (push, SMS, tenn lys, aktiver scene, o.l.)
+1. **WHEN** — `Homey Alone Guard → Mode changed`
+2. **AND** *(optional)* — filter on `[mode_new]` or `[mode_previous]` to react to specific transitions.
+3. **THEN** — run desired action (push, SMS, turn on lights, activate scene, etc.)
 
-### Eksempel 1 — push når avskrekking starter
-
-```text
-NÅR  Homey Alone Guard → Modus endret
-OG   mode_new = deterrence
-SÅ   Homey → Send a push notification
-       Tittel:  Avskrekking aktiv
-       Tekst:   Lys blinker. Sjekk kamera i Homey-appen.
-```
-
-### Eksempel 2 — ring nødkontakt ved full alarm
+### Example 1 — push when deterrence starts
 
 ```text
-NÅR  Homey Alone Guard → Modus endret
-OG   mode_new = alarm
-SÅ   Ring nødkontakt via IFTTT/SMS
-     Send push med høyest prioritet til alle
+WHEN  Homey Alone Guard → Mode changed
+AND   mode_new = deterrence
+THEN  Homey → Send a push notification
+        Title:  Deterrence active
+        Text:   Lights blinking. Check camera in the Homey app.
 ```
 
-### Eksempel 3 — logg modus-historikk
+### Example 2 — call emergency contact at full alarm
 
 ```text
-NÅR  Homey Alone Guard → Modus endret
-SÅ   Google Sheet → Legg til rad: [mode_new], [mode_previous], [tidspunkt]
+WHEN  Homey Alone Guard → Mode changed
+AND   mode_new = alarm
+THEN  Call emergency contact via IFTTT/SMS
+      Send push with highest priority to all
 ```
 
-### Test og feilsøking
+### Example 3 — log mode history
 
-- **«Test avskrekking»-knappen** i Soneoversikten setter systemet i `deterrence`-modus direkte — bruk den for å verifisere at flows som lytter på `mode_changed` (mode_new = deterrence) fungerer.
-- **«Test alarm»-knappen** i Soneoversikten setter systemet i `alarm`-modus og stopper etter 15 sekunder.
-- I **Event Log** ser du alltid aktuell modus-linje ved hvert modus-bytte.
-- Bruk `get_mode`-condition for å sjekke aktiv modus i flows uten å lytte på `mode_changed`.
-- Bruk `alarm_triggered_from`-condition under `alarm`- eller `deterrence`-fasen for å skille mellom «vi var hjemme» og «vi var borte».
+```text
+WHEN  Homey Alone Guard → Mode changed
+THEN  Google Sheet → Add row: [mode_new], [mode_previous], [timestamp]
+```
+
+### Testing and troubleshooting
+
+- The **"Test deterrence"** button in the Zone overview sets the system to `deterrence` mode directly — use it to verify that flows listening on `mode_changed` (mode_new = deterrence) work.
+- The **"Test alarm"** button in the Zone overview sets the system to `alarm` mode and stops after 15 seconds.
+- In the **Event Log** you always see the current mode line at each mode change.
+- Use the `get_mode` condition to check the active mode in flows without listening to `mode_changed`.
+- Use the `alarm_triggered_from` condition during the `alarm` or `deterrence` phase to distinguish between "we were home" and "we were away".
 
 
-## Installasjon
+## Installation
 
-### Krav
+### Requirements
 
-- Homey Pro (Early 2023 eller nyere) med firmware ≥ 12.4.0
-- Node.js 18+ og npm for utvikling
+- Homey Pro (Early 2023 or newer) with firmware ≥ 12.4.0
+- Node.js 18+ and npm for development
 - [Homey CLI](https://apps.developer.homey.app/the-basics/getting-started/cli)
 
-### Bygg og installer på Homey
+### Build and install on Homey
 
 ```bash
-git clone https://github.com/thomasekdahlN/mcallisteralarm.git
-cd mcallisteralarm/com.homeyalone.guard
+git clone https://github.com/thomasekdahlN/homeyaloneguard.git
+cd homeyaloneguard
 npm install
 homey app install
 ```
 
-### Konfigurasjon
+### Configuration
 
-1. Åpne **Innstillinger → Apper → Homey Alone Guard → Konfigurer app**.
-2. Under **Soneoversikt**, utvid hver sone og se hvilke kapabiliteter (🔊 lyd, 📺 skjerm, 💡 lys) og sensorer
-   (🚪 dør/vindu, 👁️ bevegelse) som er oppdaget.
-3. Definer **reaksjonssone-matrise** per sone — f.eks. «bevegelse på loft → spill avskrekking i stua».
-4. **Skallsikring:** i hver sone listes alle dør-/vindu- og bevegelses-sensorer. Den første avkrysningsboksen
-   markerer sensoren som aktiv i Skallsikring-modus (typisk ytterdører, vinduer, uteområder). Andre sensorer
-   ignoreres når Skallsikring er aktiv.
-5. **Inngangsforsinkelse (⏱):** for dør-/vindu-sensorer kan du krysse av **⏱** for å gi sensoren en
-   inngangsforsinkelse. Når en slik dør åpnes (i Borte eller Skallsikring), starter en nedtelling på
-   `entry_delay` sekunder (default 30) før alarmen utløses — slik at en autorisert bruker som kommer inn med
-   kodelås/smart-lås rekker å deaktivere systemet uten å sette i gang sirenen. Anbefales for hoveddør og
-   bakdør med kodelås. Kombiner gjerne med en flow som automatisk sender `set_mode = Hjemme` når smartlåsen
-   rapporterer autorisert opplåsing — da utløses ingen alarm i det hele tatt, og inngangsforsinkelsen er
-   fallback hvis flowen feiler.
+1. Open **Settings → Apps → Homey Alone Guard → Configure app**.
+2. Under **Zone overview**, expand each zone and see which capabilities (🔊 audio, 📺 screen, 💡 lights) and sensors
+   (🚪 door/window, 👁️ motion) have been detected.
+3. Define the **reaction zone matrix** per zone — e.g. "motion in attic → play deterrence in living room".
+4. **Perimeter mode:** in each zone all door/window and motion sensors are listed. The first checkbox
+   marks the sensor as active in Perimeter mode (typically exterior doors, windows, outdoor areas). Other sensors
+   are ignored when Perimeter mode is active.
+5. **Entry delay (⏱):** for door/window sensors you can check **⏱** to give the sensor an
+   entry delay. When such a door is opened (in Away or Perimeter mode), a countdown of
+   `entry_delay` seconds (default 30) starts before the alarm fires — so an authorised user entering with
+   a key pad/smart lock has time to disarm without triggering the siren. Recommended for the front door and
+   back door with a key pad. Combine with a flow that automatically sends `set_mode = Home` when the smart lock
+   reports authorised unlocking — then no alarm fires at all, and the entry delay is the fallback if the flow fails.
 
-   > **Merk:** `set_mode = Hjemme` ignoreres hvis systemet er i **Skallsikring**. Noen som kommer hjem sent
-   > deaktiverer ikke nattmodus automatisk — endre modus manuelt på dashbordet om nødvendig.
-   > Sendes `set_mode = Hjemme` mens systemet er i **Alarm**, stoppes alarmen og systemet deaktiveres helt.
-6. **Global lys-avskrekking:** appen blinker lys i reaksjonssonen med en sakte PÅ/AV-syklus (default
-   15 sek hver vei, justerbart globalt under **Innstillinger → Avskrekking lys på/av (sek)**). Egne flows kan trygt
-   styre lys i sonen parallelt med innebygd blink. Bruk `mode_changed`-triggeren (mode_new = deterrence)
-   for flows som reagerer på avskrekking.
-7. Sett **Borte-modus** når du forlater huset, eller bruk `set_mode`-actionen fra en flow (geofence, bryter,
-   stemme). Bruk `mode_changed`-trigger til logging eller automatikk rundt modus-bytter.
+   > **Note:** `set_mode = Home` is ignored if the system is in **Perimeter** mode. Someone coming home late
+   > does not automatically deactivate night mode — change mode manually on the dashboard if needed.
+   > Sending `set_mode = Home` while the system is in **Alarm** stops the alarm and fully disarms the system.
+6. **Global light deterrence:** the app blinks lights in the reaction zone with a slow ON/OFF cycle (default
+   15 s each way, adjustable globally under **Settings → Deterrence light on/off (sec)**). Your own flows can safely
+   control lights in the zone in parallel with built-in blinking. Use the `mode_changed` trigger (mode_new = deterrence)
+   for flows that react to deterrence.
+7. Set **Away mode** when you leave the house, or use the `set_mode` action from a flow (geofence, button,
+   voice). Use the `mode_changed` trigger for logging or automation around mode changes.
 
-## Utvikling
+## Development
 
 ```bash
-npm test              # Vitest unit-tests (39 tester)
-npx tsc --noEmit      # TypeScript type-check
+npm test              # Vitest unit tests (41 tests)
+npx tsc --noEmit      # TypeScript type check
 npm run lint          # ESLint (Athom config)
-npm run build:images  # Regenerer App Images (250×175 / 500×350 / 1000×700) fra design/appartwork.png
+npm run build:images  # Regenerate App Images (250×175 / 500×350 / 1000×700) from design/appartwork.png
 homey app validate --level publish  # Athom App Store validation
-homey app run         # Kjør lokalt mot Homey for live testing
+homey app run         # Run locally against Homey for live testing
 ```
 
-### Grafikk og master-filer
+### Graphics and master files
 
-Athom skiller mellom to typer app-grafikk; vi følger samme terminologi.
+Athom distinguishes between two types of app graphics; we follow the same terminology.
 
-| Type | Master (`design/`) | Distribusjon (`assets/`) | Krav |
+| Type | Master (`design/`) | Distribution (`assets/`) | Requirements |
 |---|---|---|---|
-| **App Icon** (lite, rundt monokromt badge) | `design/appicon.svg` (og `appicon.png` for forhåndsvisning) | `assets/icon.svg` | Vektor, viewBox 0 0 1024 1024 |
-| **App Images** (fargerikt App Store-artwork) | `design/appartwork.png` | `assets/images/small.png` (250×175), `large.png` (500×350), `xlarge.png` (1000×700) | PNG, eksakte dimensjoner (10:7) |
+| **App Icon** (small, round monochrome badge) | `design/appicon.svg` (and `appicon.png` for preview) | `assets/icon.svg` | Vector, viewBox 0 0 1024 1024 |
+| **App Images** (colourful App Store artwork) | `design/appartwork.png` | `assets/images/small.png` (250×175), `large.png` (500×350), `xlarge.png` (1000×700) | PNG, exact dimensions (10:7) |
 
-App-ikonet kopieres direkte (samme SVG som master). App Images regenereres fra `design/appartwork.png` med `npm run build:images` — skriptet bruker macOS-native `sips` og fit-cover + center-crop for å bevare aspekt-forhold uten distorsjon.
+The app icon is copied directly (same SVG as master). App Images are regenerated from `design/appartwork.png` with `npm run build:images` — the script uses macOS-native `sips` and fit-cover + center-crop to preserve the aspect ratio without distortion.
 
-### Mappestruktur
+### Folder structure
 
 ```
-com.homeyalone.guard/
-├── app.ts                  # Hovedklasse
-├── api.ts                  # Internal HTTP API for settings-UI
-├── lib/                    # Moduler (StateMachine, DeterrenceEngine, …)
-├── settings/index.html     # Settings-UI (vanilla JS)
-├── assets/icon.svg         # App Icon (badge) — kopi av design/appicon.svg
-├── assets/images/          # App Images (App Store artwork) — generert fra design/appartwork.png
-├── assets/media/           # Bundlede CC-lyder/videoer
-├── design/                 # Master-filer for grafikk (appicon, appartwork)
-├── scripts/                # Hjelpe-skript (build-app-images.sh)
-├── .homeycompose/flow/     # Flow-kort (triggers, conditions, actions)
-├── docs/                   # Spesifikasjon og arkitektur
-└── test/                   # Vitest unit-tests
+HomeyAloneGuard/
+├── app.ts                  # Main class
+├── api.ts                  # Internal HTTP API for settings UI
+├── lib/                    # Modules (StateMachine, DeterrenceEngine, …)
+├── settings/index.html     # Settings UI (vanilla JS)
+├── assets/icon.svg         # App Icon (badge) — copy of design/appicon.svg
+├── assets/images/          # App Images (App Store artwork) — generated from design/appartwork.png
+├── assets/media/           # Bundled CC audio/video files
+├── design/                 # Master files for graphics (appicon, appartwork)
+├── scripts/                # Helper scripts (build-app-images.sh)
+├── .homeycompose/flow/     # Flow cards (triggers, conditions, actions)
+├── docs/                   # Specification and architecture
+└── test/                   # Vitest unit tests
 ```
 
-### Test-strategi
+### Test strategy
 
-| Test | Dekker |
+| Test | Covers |
 |---|---|
-| `StateMachine.test.ts` | Modus-overganger, entry/exit delays |
-| `FalseAlarmFilter.test.ts` | Konfidens-terskel og reset-logikk |
-| `EventLog.test.ts` | Strukturert logging, 14-dagers rullerende vindu, clear() |
+| `StateMachine.test.ts` | Mode transitions, entry/exit delays |
+| `FalseAlarmFilter.test.ts` | Confidence threshold and reset logic |
+| `EventLog.test.ts` | Structured logging, 14-day rolling window, clear() |
 
-## Casting til Chromecast / Samsung TV — hva vi lærte
+## Casting to Chromecast / Samsung TV — what we learned
 
-Et stort mål med appen var å programmatisk spille av video («blålys i vinduet», silhuett av en stor person, bjeffende hund) på Chromecast, Google Nest Hub og Samsung TV. Det viste seg å være **vesentlig vanskeligere** enn forventet på Homey-plattformen. Disse funnene er notert her slik at vi ikke gjentar utforskningen — og fordi de utgjør en reell svakhet i Homey-økosystemet.
+A major goal of the app was to programmatically play video ("blue lights in the window", silhouette of a large person, barking dog) on Chromecast, Google Nest Hub and Samsung TV. This turned out to be **significantly harder** than expected on the Homey platform. These findings are noted here so we do not repeat the exploration — and because they represent a real weakness in the Homey ecosystem.
 
-### Hva vi prøvde
+### What we tried
 
-| # | Tilnærming | Resultat |
+| # | Approach | Result |
 |---|---|---|
-| B | Bruke `speaker_playing`-capability på cast-enheten | Begrenset — kan kun resume en tidligere cast-sesjon, ikke velge URL eller media |
-| C | Auto-generere Homey-flows programmatisk fra app-kode | ❌ Blokkert — `homey:manager:api`-permission gir kun `homey.flow.readonly` for tredjepartsapper |
-| E | HomeyScript-bro: kall `homey.flow.runFlowCardAction({ uri, id, args })` fra et script | ❌ Blokkert — selv HomeyScript med fulle bruker-scopes (`homey.flow`) får `Not Found: FlowCardAction with ID castVideo` på alle 1044 testede kombinasjoner |
-| D | Embedde `castv2-client` direkte i appen og snakke Chromecast-protokollen | Teoretisk mulig, men krever IP-discovery (vi har bare Homey-device-ID), vedlikehold når Google endrer protokollen, separat Tizen-implementasjon for Samsung — og bryter Athoms anbefalte arkitektur |
-| A | Bruker oppretter Homey-flow manuelt, appen fyrer en trigger flowen lytter på | ✅ **Fungerer** — Flow-editoren har separat tilgang til alle apper sine flow-kort |
+| B | Use `speaker_playing` capability on the cast device | Limited — can only resume a previous cast session, not select URL or media |
+| C | Auto-generate Homey flows programmatically from app code | ❌ Blocked — `homey:manager:api` permission gives only `homey.flow.readonly` for third-party apps |
+| E | HomeyScript bridge: call `homey.flow.runFlowCardAction({ uri, id, args })` from a script | ❌ Blocked — even HomeyScript with full user scopes (`homey.flow`) gets `Not Found: FlowCardAction with ID castVideo` on all 1044 tested combinations |
+| D | Embed `castv2-client` directly in the app and speak the Chromecast protocol | Theoretically possible, but requires IP discovery (we only have Homey device ID), maintenance when Google changes the protocol, separate Tizen implementation for Samsung — and breaks Athom's recommended architecture |
+| A | User manually creates a Homey flow, app fires a trigger the flow listens on | ✅ **Works** — the Flow editor has separate access to all apps' flow cards |
 
-### Hvorfor B/C/E feiler
+### Why B/C/E fail
 
-Tredjepartsapper på Homey (som Chromecast og Samsung TV) eksponerer flow-kortene sine **utelukkende via Flow-editorens interne grensesnitt**. Disse kortene er ikke tilgjengelige via:
+Third-party apps on Homey (such as Chromecast and Samsung TV) expose their flow cards **exclusively via the Flow editor's internal interface**. These cards are not available via:
 
 - Web API / `homey-api` SDK
-- HomeyScript (selv med `homey.flow`-scope)
-- App-til-app-kall innenfor en custom app
+- HomeyScript (even with `homey.flow` scope)
+- App-to-app calls within a custom app
 
-Dette er en bevisst arkitektonisk grense fra Athom — eller en bug — men resultatet er det samme: en custom app kan **ikke** programmatisk be Chromecast-appen om å spille av en URL. Selv «universelle» actions som `Cast a video` og `sendKey` returnerer konsistent `Not Found` når de kalles fra utsiden av Flow-editoren.
+This is a deliberate architectural boundary from Athom — or a bug — but the result is the same: a custom app **cannot** programmatically ask the Chromecast app to play a URL. Even "universal" actions such as `Cast a video` and `sendKey` consistently return `Not Found` when called from outside the Flow editor.
 
-Vi har også verifisert at `cast_url`-capability ikke er eksponert på Chromecast-/Samsung TV-enheter i praksis — bare på et lite knippe driver-implementasjoner (typisk LG WebOS og enkelte projektor-apper).
+We have also verified that the `cast_url` capability is not exposed on Chromecast/Samsung TV devices in practice — only on a small number of driver implementations (typically LG WebOS and some projector apps).
 
-### Hva vi gjorde i stedet — modus-basert integrasjon
+### What we did instead — mode-based integration
 
-Pivoten ble løsning A: **systemet bytter modus til `deterrence` når avskrekking starter, og brukeren bygger valgfritt sin egen flow** som reagerer på `mode_changed` (mode_new = deterrence). Flow-en kan da kjøre `Cast a video` / `Cast a website` på Chromecast eller `Send key` på Samsung TV.
+The pivot was solution A: **the system changes mode to `deterrence` when deterrence starts, and the user optionally builds their own flow** that reacts to `mode_changed` (mode_new = deterrence). The flow can then run `Cast a video` / `Cast a website` on Chromecast or `Send key` on Samsung TV.
 
-Innebygd lys-avskrekking (`MediaCaster.startBlink` — sakte PÅ/AV-syklus på lys-enheter i reaksjonssonen, global timing konfigurerbar i Innstillinger, default 15 sek hver vei) **kjører alltid** når avskrekking starter. Dette gir et fornuftig system out-of-the-box og sikrer at brukeren får visuell avskrekking selv om Chromecast-en er offline eller flowen er deaktivert.
+Built-in light deterrence (`MediaCaster.startBlink` — slow ON/OFF cycle on light devices in the reaction zone, global timing configurable in Settings, default 15 s each way) **always runs** when deterrence starts. This gives a sensible out-of-the-box system and ensures the user gets visual deterrence even if the Chromecast is offline or the flow is disabled.
 
-Egne flows kan trygt styre lys i sonen parallelt med blinkingen.
+Your own flows can safely control lights in the zone in parallel with the blinking.
 
-### Konsekvenser for fremtidige Homey-apper
+### Implications for future Homey apps
 
-Hvis du planlegger en app som trenger å styre tredjepartsenheter (særlig media) via deres «pene» flow-actions: regn med at du **må** bygge oppskriften rundt at brukeren oppretter en flow selv. Et trigger-kort fra din egen app er den eneste pålitelige broen til andre apper. Dokumenter dette tydelig i UI-en.
+If you plan an app that needs to control third-party devices (especially media) via their "nice" flow actions: assume you **must** design the solution around the user creating a flow themselves. A trigger card from your own app is the only reliable bridge to other apps. Document this clearly in the UI.
 
-## Begrensninger i Homey-plattformen — funksjoner vi har måttet fjerne eller delegere
+## Homey platform limitations — features we have had to remove or delegate
 
-Underveis har vi ryddet bort funksjonalitet som **virket riktig på papiret, men som Homey-plattformen ikke faktisk lar en custom app gjøre**. Vi lar denne listen stå eksplisitt slik at neste utvikler (og vi selv om seks måneder) ikke bruker dager på å gjenoppdage hvorfor disse veiene ikke fungerer.
+Along the way we have removed functionality that **seemed right on paper, but which the Homey platform does not actually allow a custom app to do**. We leave this list here explicitly so the next developer (and ourselves in six months) does not spend days rediscovering why these paths do not work.
 
-| Funksjon vi prøvde | Hvorfor det ikke fungerer på Homey | Hva vi gjør i stedet |
+| Feature we tried | Why it does not work on Homey | What we do instead |
 |---|---|---|
-| **Direkte cast av lyd/video til Chromecast / Nest Hub / Samsung TV fra app-kode** | Tredjepartsappers flow-actions (`Cast a URL`, `Cast a video`, `sendKey`) er kun eksponert via Flow-editorens interne grensesnitt, ikke via Web API, HomeyScript eller app-til-app-kall. | Brukeren bygger en flow som lytter på `mode_changed` (mode_new = deterrence) og ruter selv til Chromecast-actionen. |
-| **Per-sone lyd-URL og video-URL i settings (`zone_audio_urls`, `zone_video_urls`)** | Det fantes ingen pålitelig måte å spille av disse på i runtime — `cast_url`-capability er nesten aldri eksponert på Chromecast-/Samsung-enheter. Feltene ble bare et løfte vi ikke kunne innfri. | Fjernet helt. Brukeren legger URL inn i sin egen flow-action. |
-| **Globalt «Standard lyd-URL»-felt (`custom_audio_url`)** | Samme begrensning — vi kunne ikke kalle noen action for å spille den av. | Fjernet helt. |
-| **Cast-enhet-prioritering pr. sone (`cast_devices`, `CastPriority`-modul)** | Vi kunne ranke devices, men ikke faktisk pushe innhold til dem programmatisk. Ren UI uten effekt. | Fjernet helt. `Capabilities`-modulen rapporterer fortsatt at en sone har skjerm/høyttaler i info-badgen, men plukker ikke lenger ut «beste» device. |
-| **Auto-generere Homey-flows programmatisk fra app-kode** | `homey:manager:api`-permission gir custom apper kun `homey.flow.readonly` — ingen `create`/`update` på flows. | Brukeren må manuelt opprette en avskrekkings-flow. Vi dokumenterer mønsteret tydelig i sone-UI og README. |
-| **HomeyScript-bro for å kalle tredjepartsappers actions** (`homey.flow.runFlowCardAction({ uri, id, args })`) | Selv HomeyScript med fulle bruker-scopes returnerer `Not Found: FlowCardAction with ID …` på alle 1044 testede uri/id-kombinasjoner mot Chromecast/Samsung. Funksjonen er praksis dead-end for custom apper. | Forkastet. Modus-endringer via `mode_changed`-triggeren + bruker-flow er den eneste fungerende broen. |
-| **Bruke `speaker_playing`-capability for å resume cast-sesjon** | Kun å resume en eksisterende sesjon, ikke å velge URL/innhold. Ubrukelig for å starte en avskrekking. | Forkastet. |
-| **Embedde `castv2-client` / Tizen-protokoll direkte i appen** | Krever IP-discovery (vi har bare Homey-device-ID), parallell vedlikehold når Google/Samsung endrer protokollen, separat implementasjon pr. plattform — bryter Athoms anbefalte arkitektur. | Vurdert og forkastet. Ikke verdt det. |
-| **Cast-skjermer-info-banner pr. sone** (advarsel om at oppdaget skjerm ikke støtter direkte cast) | Ble misvisende — vi sa «bruk en Homey-flow» uten å gi brukeren noe sted å klikke. | Fjernet. `mode_changed`-triggeren er det offisielle integrasjonspunktet for brukerens egne flows. |
-| **Programmatisk velge / kjøre en spesifikk Homey-flow fra app-kode** (per-sone dropdown med flow-ID som ble lagret i `deterrent_flows`) | Det finnes **ingen `runFlow(flowId)`-API for tredjepartsapper** på Homey. `homey.flow.getFlows()` er `readonly`, og det finnes ingen imperativ måte å fyre en valgt flow fra koden. | Helt fjernet. Systemet endrer modus — brukerens flow lytter på `mode_changed`. `getFlows`-API-endepunktet (`/flows`) er fjernet. |
-| **«Jeg har laget en ekstern flow»-avkrysning pr. sone** (boolean i `deterrent_flows`) | Avkrysningen hadde blitt unødvendig. | Fjernet. Blink-tempoet styres nå globalt under «Avskrekking lys på/av (sek)» i Innstillinger (default 15/15). `deterrent_flows`-feltet er borte; gamle verdier ignoreres. |
-| **600 ms strobing** | Tidligere blinket lysene 600 ms av/på som en politilys-effekt. Det fungerte teknisk, men ga ofte hørbar klikke-lyd i relébaserte enheter, akselererte slitasje på Hue/IKEA-pærer og gjorde at noen sone-til-zigbee-broer droppet kommandoer pga. trafikk. | Erstattet med en sakte PÅ/AV-syklus styrt av global `blink_on`/`blink_off` (default 15 sek hver vei, justerbart i Innstillinger). |
-| **«Blinke med alle enheter som har `onoff`»** | Tidligere filter krevde bare `onoff`-capability + ikke-sensor. Resultatet var at varmekabler, panelovner, frysere, smartplugger, vifter og TV-er ble forsøkt strobet under avskrekking — uønsket og potensielt skadelig. | Strikt filter: `isLight()` krever nå `device.class === 'light'` i tillegg til `onoff`. Brukt konsekvent i `MediaCaster.startLightStrobe`/`stopZone` og `SimulationEngine` (Kevin-syklus). Hvis en smartplugg skal kunne brukes som lys (f.eks. juletre), endre `class` til `light` i Homey-enhetens innstillinger. |
-| **Lys-autorisering (`LightAuthGuard`)** | Funksjonen oppdaget lys som ble slått på av eksterne kilder mens systemet var armert, og slo dem umiddelbart av igjen. I praksis kom dette i konflikt med for mange legitime automatiske rutiner: utelys som skrus på ved solnedgang, vekkerklokke-flows som skrur på lys om morgenen (selv om man ikke er hjemme), og andre tidsbaserte lys-flows. Det fantes ingen enkel måte å hviteliste «tillatte» lys uten å pålegge brukeren manuell konfigurasjon av alle lys-automatikker. | Fjernet i sin helhet. Appen kontrollerer kun lys i reaksjonssonen under aktiv avskrekking og alarmstrobe — alt annet overlates til brukerens egne flows. |
-| **Snapshot-loop i alle soner med bevegelse** | `CameraManager.startForZone()` startet et `setInterval` i hver sone det var bevegelse i, og filtrerte først ut kamera-enheter på hvert tick. Resultatet var bortkastet planlegging og loop-logg-støy i soner uten kameraer. | `startForZone()` slår nå opp `isCamera(d)` på sonens enheter først og hopper helt over loopen hvis ingen kameraer finnes. Loggen sier «Snapshot-loop hoppes over: ingen kameraer i sone X». |
+| **Direct cast of audio/video to Chromecast / Nest Hub / Samsung TV from app code** | Third-party apps' flow actions (`Cast a URL`, `Cast a video`, `sendKey`) are only exposed via the Flow editor's internal interface, not via Web API, HomeyScript or app-to-app calls. | User builds a flow that listens on `mode_changed` (mode_new = deterrence) and routes to the Chromecast action themselves. |
+| **Per-zone audio URL and video URL in settings (`zone_audio_urls`, `zone_video_urls`)** | There was no reliable way to play these at runtime — `cast_url` capability is almost never exposed on Chromecast/Samsung devices. The fields were just a promise we could not keep. | Removed entirely. User enters the URL in their own flow action. |
+| **Global "Default audio URL" field (`custom_audio_url`)** | Same limitation — we could not call any action to play it. | Removed entirely. |
+| **Cast device prioritisation per zone (`cast_devices`, `CastPriority` module)** | We could rank devices, but not actually push content to them programmatically. Pure UI with no effect. | Removed entirely. The `Capabilities` module still reports that a zone has a screen/speaker in the info badge, but no longer selects the "best" device. |
+| **Auto-generate Homey flows programmatically from app code** | `homey:manager:api` permission gives custom apps only `homey.flow.readonly` — no `create`/`update` on flows. | User must manually create a deterrence flow. We document the pattern clearly in the zone UI and README. |
+| **HomeyScript bridge to call third-party app actions** (`homey.flow.runFlowCardAction({ uri, id, args })`) | Even HomeyScript with full user scopes returns `Not Found: FlowCardAction with ID …` on all 1044 tested uri/id combinations against Chromecast/Samsung. The function is effectively a dead end for custom apps. | Abandoned. Mode changes via the `mode_changed` trigger + user flow is the only working bridge. |
+| **Use `speaker_playing` capability to resume cast session** | Only resumes an existing session, not selecting URL/content. Useless for starting deterrence. | Abandoned. |
+| **Embed `castv2-client` / Tizen protocol directly in the app** | Requires IP discovery (we only have Homey device ID), parallel maintenance when Google/Samsung changes the protocol, separate implementation per platform — breaks Athom's recommended architecture. | Considered and abandoned. Not worth it. |
+| **Cast screen info banner per zone** (warning that detected screen does not support direct cast) | Became misleading — we said "use a Homey flow" without giving the user anywhere to click. | Removed. The `mode_changed` trigger is the official integration point for the user's own flows. |
+| **Programmatically select / run a specific Homey flow from app code** (per-zone dropdown with flow ID stored in `deterrent_flows`) | There is **no `runFlow(flowId)` API for third-party apps** on Homey. `homey.flow.getFlows()` is `readonly`, and there is no imperative way to fire a selected flow from code. | Removed entirely. The system changes mode — the user's flow listens on `mode_changed`. The `getFlows` API endpoint (`/flows`) has been removed. |
+| **"I have created an external flow" checkbox per zone** (boolean in `deterrent_flows`) | The checkbox had become unnecessary. | Removed. Blink timing is now controlled globally under "Deterrence light on/off (sec)" in Settings (default 15/15). The `deterrent_flows` field is gone; old values are ignored. |
+| **600 ms strobing** | Previously lights blinked 600 ms on/off as a police light effect. This worked technically, but often produced an audible clicking sound in relay-based devices, accelerated wear on Hue/IKEA bulbs and caused some zone-to-Zigbee bridges to drop commands due to traffic. | Replaced with a slow ON/OFF cycle controlled by global `blink_on`/`blink_off` (default 15 s each way, adjustable in Settings). |
+| **"Blink all devices with `onoff`"** | The previous filter only required `onoff` capability + not a sensor. The result was that heating cables, panel heaters, freezers, smart plugs, fans and TVs were attempted to be strobed during deterrence — unwanted and potentially harmful. | Strict filter: `isLight()` now requires `device.class === 'light'` in addition to `onoff`. Used consistently in `MediaCaster.startLightStrobe`/`stopZone` and `SimulationEngine` (Kevin cycle). If a smart plug should be usable as a light (e.g. a Christmas tree), change `class` to `light` in Homey device settings. |
+| **Light authorisation (`LightAuthGuard`)** | The feature detected lights turned on by external sources while the system was armed, and immediately turned them off again. In practice this conflicted with too many legitimate automatic routines: outdoor lights turned on at sunset, alarm clock flows that turn on lights in the morning (even when not at home), and other time-based light flows. There was no simple way to whitelist "allowed" lights without requiring the user to manually configure all light automations. | Removed entirely. The app only controls lights in the reaction zone during active deterrence and alarm strobe — everything else is left to the user's own flows. |
+| **Snapshot loop in all zones with motion** | `CameraManager.startForZone()` started a `setInterval` in each zone with motion, filtering out camera devices on each tick. The result was wasted scheduling and loop log noise in zones without cameras. | `startForZone()` now looks up `isCamera(d)` on the zone's devices first and skips the loop entirely if no cameras are found. The log says "Snapshot loop skipped: no cameras in zone X". |
 
-### Hvor vises bildene fra snapshot-loopen?
+### Where are the images from the snapshot loop shown?
 
-Bilder lagres til `/userdata/snapshots/alarm/` og `/userdata/snapshots/motion/` og vises i **Bilder**-fanen i settings-UI. Homey-platformens `notifications.createNotification`-API tar kun tekst — den støtter ikke å feste et bilde direkte til push-varselet i Homey-appen. Ønsker du å sende bildene eksternt med bilde (Telegram, Pushover, e-post, Dropbox), bruker du `snapshot`-image-tokenet som nå er tilgjengelig i `alarm_triggered`- og `alarm_perimeter_triggered`-flow-kortene, samt i `snapshot_taken`-triggeren.
+Images are saved to `/userdata/snapshots/alarm/` and `/userdata/snapshots/motion/` and shown in the **Images** tab in the settings UI. Homey's `notifications.createNotification` API only accepts text — it does not support attaching an image directly to a push notification in the Homey app. To send images externally (Telegram, Pushover, email, Dropbox), use the `snapshot` image token now available in the `alarm_triggered` and `alarm_perimeter_triggered` flow cards, and in the `snapshot_taken` trigger.
 
 ---
 
-## Kamera-snapshot — alt vi har prøvd og hvorfor det ikke fungerer
+## Camera snapshots — everything we have tried and why it does not work
 
-Et viktig mål var å ta bilder fra kameraer ved alarm og bevegelse. Det viste seg vesentlig vanskeligere enn forventet på Homey-plattformen. Alt vi har testet er dokumentert nedenfor slik at vi ikke gjentar det.
+A key goal was to take photos from cameras at alarm and motion events. This turned out to be significantly harder than expected on the Homey platform. Everything we have tested is documented below so we do not repeat it.
 
-### Oversikt over forsøk
+### Overview of attempts
 
-| # | Tilnærming | Resultat |
+| # | Approach | Result |
 |---|---|---|
-| 1 | `device.images[0].url` — lese bilde-URL direkte fra enhetsobjektet | Feiler — feltet er tomt i alle tilfeller vi har testet |
-| 2 | `homeyApi.images.getImage({ id })` — hente ett bilde via ManagerImages | Feiler — metoden eksisterer ikke i HomeyAPIV3Local |
-| 3 | `homeyApi.images.getImages()` + `ownerUri`-matching | Delvis — virker kun hvis kamera-driveren kaller `device.setCameraImage()` |
-| 4 | Direkte HTTP-nedlasting med Bearer-token | Virker teknisk, men krever en gyldig URL fra tilnærming 1–3 |
-| 5 | `image.getStream()` på bilde-objekter fra lokal API | Feiler — objektene er tomme JSON-stubs uten metoder |
+| 1 | `device.images[0].url` — read image URL directly from the device object | Fails — the field is empty in all cases we have tested |
+| 2 | `homeyApi.images.getImage({ id })` — fetch one image via ManagerImages | Fails — the method does not exist in HomeyAPIV3Local |
+| 3 | `homeyApi.images.getImages()` + `ownerUri` matching | Partial — only works if the camera driver calls `device.setCameraImage()` |
+| 4 | Direct HTTP download with Bearer token | Works technically, but requires a valid URL from approaches 1–3 |
+| 5 | `image.getStream()` on image objects from the local API | Fails — the objects are empty JSON stubs with no methods |
 
-### Detaljer per forsøk
+### Details per attempt
 
 #### 1. `device.images[0].url`
 
-Det naturlige første steget var å lese `device.images` direkte fra enhetsobjektet som `homeyApi.devices.getDevices()` returnerer.
+The natural first step was to read `device.images` directly from the device object returned by `homeyApi.devices.getDevices()`.
 
-**Hva vi fant:** `HomeyAPIV3Local`-spesifikasjonen definerer `device.images` som en array av *tomme objekter* (`properties: {}`, `additionalProperties: false`). Feltet finnes i svaret, men innholdet er alltid tomt — ingen `url`, ingen `id`, ingen noe. Dette er ikke en dokumentasjonsfeil; det er faktisk slik Web API-en serialiserer enhetens bilde-liste i lokal modus.
+**What we found:** The `HomeyAPIV3Local` specification defines `device.images` as an array of *empty objects* (`properties: {}`, `additionalProperties: false`). The field exists in the response, but the content is always empty — no `url`, no `id`, nothing. This is not a documentation error; it is actually how the Web API serialises the device's image list in local mode.
 
-**Konklusjon:** Ubrukelig for å hente URL.
+**Conclusion:** Unusable for fetching a URL.
 
 ---
 
 #### 2. `homeyApi.images.getImage({ id })`
 
-Vi forsøkte å bruke `ManagerImages.getImage()` til å hente et enkelt bilde med kjent ID (fra `device.images`-lista).
+We tried using `ManagerImages.getImage()` to fetch a single image with a known ID (from the `device.images` list).
 
-**Hva vi fant:** Metoden eksisterer ikke. `HomeyAPIV3Local.ManagerImages` har *kun* `getImages()` (flertall — henter alle). Det finnes ingen `getImage()`-metode for å hente ett og ett bilde.
+**What we found:** The method does not exist. `HomeyAPIV3Local.ManagerImages` has *only* `getImages()` (plural — fetches all). There is no `getImage()` method to fetch one image at a time.
 
-**Konklusjon:** Kan ikke brukes.
+**Conclusion:** Cannot be used.
 
 ---
 
-#### 3. `homeyApi.images.getImages()` + `ownerUri`-matching
+#### 3. `homeyApi.images.getImages()` + `ownerUri` matching
 
-Homeys standardiserte kamera-system fungerer slik:
+Homey's standardised camera system works as follows:
 
-1. Kamera-driveren kaller `device.setCameraImage(image, 'front', 'Frontkamera')`.
-2. Bildet registreres i `ManagerImages` med `ownerUri: "homey:device:{deviceId}"`.
-3. Bildet er tilgjengelig via `GET /api/manager/images/image/{imageId}`.
+1. The camera driver calls `device.setCameraImage(image, 'front', 'Front camera')`.
+2. The image is registered in `ManagerImages` with `ownerUri: "homey:device:{deviceId}"`.
+3. The image is available via `GET /api/manager/images/image/{imageId}`.
 
-Vi implementerte en oppslagstabell: hent alle bilder med `getImages()`, bygg en map `deviceId → imageUrl` basert på `ownerUri`, og bruk denne når vi vet kamera-ID-en.
+We implemented a lookup table: fetch all images with `getImages()`, build a map `deviceId → imageUrl` based on `ownerUri`, and use this when we know the camera ID.
 
-**Kode (`CameraManager.refreshZoneCache`):**
+**Code (`CameraManager.refreshZoneCache`):**
 ```typescript
 const allImages = await this.homeyApi.images.getImages();
 for (const img of Object.values(allImages)) {
@@ -922,84 +952,84 @@ for (const img of Object.values(allImages)) {
 }
 ```
 
-**Hva vi fant:** Fungerer *bare* hvis kamera-driveren faktisk kaller `device.setCameraImage()`. For kameraene vi testet (bl.a. «Kamera Hall») er det ingenting i `getImages()`-svaret som matcher enheten — driveren registrerer ingen bilder i ManagerImages. Dette er et driverproblem, ikke noe vi kan omgå fra app-koden.
+**What we found:** Only works if the camera driver actually calls `device.setCameraImage()`. For the cameras we tested, there is nothing in the `getImages()` response that matches the device — the driver does not register images in ManagerImages. This is a driver problem, not something we can work around from the app code.
 
-**Konklusjon:** Riktig tilnærming for kameraer med standard Homey-driver. Feiler stille for kameraer som ikke implementerer `setCameraImage()`.
+**Conclusion:** Correct approach for cameras with a standard Homey driver. Fails silently for cameras that do not implement `setCameraImage()`.
 
 ---
 
-#### 4. Direkte HTTP-nedlasting med Bearer-token
+#### 4. Direct HTTP download with Bearer token
 
-Siden `homeyApi`-SDK-et ikke gir oss bilde-data direkte, forsøkte vi å laste ned JPEG-en via HTTP med Homeys eget lokale API.
+Since the `homeyApi` SDK does not give us image data directly, we tried downloading the JPEG via HTTP using Homey's own local API.
 
-**Flyt:**
+**Flow:**
 ```
-1. homey.api.getLocalUrl()       → base-URL (f.eks. "http://192.168.x.x")
-2. homey.api.getOwnerApiToken()  → Bearer-token
+1. homey.api.getLocalUrl()       → base URL (e.g. "http://192.168.x.x")
+2. homey.api.getOwnerApiToken()  → Bearer token
 3. fetch(baseUrl + imageUrl, { Authorization: `Bearer ${token}` })
-4. Buffer.from(await response.arrayBuffer()) → JPEG-buffer → skriv til /userdata/
+4. Buffer.from(await response.arrayBuffer()) → JPEG buffer → write to /userdata/
 ```
 
-**Hva vi fant:** Mekanismen virker teknisk sett. Men den forutsetter at vi allerede har en gyldig `imageUrl` fra tilnærming 1, 2 eller 3 — og det har vi ikke når ingen av dem returnerer en URL. Feilmeldingen er da «ingen bilde-URL konfigurert» (før HTTP-kallet i det hele tatt skjer).
+**What we found:** The mechanism works technically. But it requires us to already have a valid `imageUrl` from approaches 1, 2 or 3 — and we do not have one when none of them return a URL. The error is then "no image URL configured" (before the HTTP call is even made).
 
-**Konklusjon:** Riktig nedlastingsmekanisme. Avhengig av at URL-en kan løses opp fra et av de andre stegene.
-
----
-
-#### 5. `image.getStream()` på bilde-objekter fra lokal API
-
-I `HomeyAPI`-SDK-et finnes det en `Image`-klasse med en `getStream()`-metode som returnerer en Node.js-stream. Vi prøvde å kalle denne på bilde-objektene vi fikk tilbake fra `getImages()`.
-
-**Hva vi fant:** Image-objektene fra `HomeyAPIV3Local` er rene JSON-stubs — de er *ikke* instanser av `Image`-klassen. De har ingen metoder; bare feltene `id`, `url`, `ownerUri` og `lastUpdated`. `getStream()` eksisterer ikke på disse objektene.
-
-`getStream()` finnes kun på `Image`-instanser du selv oppretter via `this.homey.images.createImage()` — altså bilder du produserer fra appen, ikke bilder du henter fra eksterne enheter.
-
-**Konklusjon:** Kan ikke brukes for å hente snapshot fra kamera.
+**Conclusion:** Correct download mechanism. Depends on the URL being resolved from one of the other steps.
 
 ---
 
-### Rotårsak
+#### 5. `image.getStream()` on image objects from the local API
 
-Det finnes **ingen standardisert, garantert API** i Homey Web API v3 Local for å hente et snapshot fra et vilkårlig kamera. Alt avhenger av at kamera-driveren frivillig implementerer `device.setCameraImage()`. Gjør den ikke det, er det ingenting en tredjepartsapp kan gjøre.
+The `HomeyAPI` SDK has an `Image` class with a `getStream()` method that returns a Node.js stream. We tried calling this on the image objects returned by `getImages()`.
 
-Homey App Store-siden for en kamera-app vil typisk si «støtter snapshot» eller liste `camera`-capability — sjekk dette før du velger kamera-app.
+**What we found:** The image objects from `HomeyAPIV3Local` are pure JSON stubs — they are *not* instances of the `Image` class. They have no methods; only the fields `id`, `url`, `ownerUri` and `lastUpdated`. `getStream()` does not exist on these objects.
 
-### Hva vi gjør nå
+`getStream()` only exists on `Image` instances you create yourself via `this.homey.images.createImage()` — i.e. images you produce from the app, not images you fetch from external devices.
 
-`CameraManager` bruker tilnærming 3 (ownerUri-matching) som primær kilde og tilnærming 1 (device.images fallback) som sekundær. Nedlastingen skjer via tilnærming 4 (direkte HTTP). Dersom ingen URL finnes, logges en advarsel og kameraet hoppes over stille.
-
-For kameraer som ikke støtter Homeys native snapshot-API kan en mulig workaround være å legge inn en manuell RTSP/HTTP-snapshot-URL direkte i innstillingene (ikke implementert per nå — meld fra om det er ønsket).
+**Conclusion:** Cannot be used to fetch a snapshot from a camera.
 
 ---
 
-### Kjente begrensninger som **fortsatt** gjelder (uten kjent workaround per i dag)
+### Root cause
 
-- Vi kan ikke programmatisk vite om brukerens flow faktisk lyktes — `triggerCard.trigger()` returnerer kun at triggeren ble fyrt, ikke om noen flow plukket den opp eller om Chromecast-actionen faktisk spilte av. Det er grunnen til at vi alltid kjører blink-fallback i parallell.
-- Vi kan ikke programmatisk trigge en spesifikk flow ved ID. Eneste broen til en flow er at vi fyrer en trigger og brukerens flow lytter selv (med `zone`-filter om ønskelig).
-- Volum-kontroll på tredjepartshøyttalere fra app-kode er **ikke** mulig av samme årsak som casting. Hvis flow-en din skal skru opp volum, må også dét gjøres som en handling i flow-en.
-- Vi kan ikke detektere om en Chromecast/Sonos er i bruk av noen andre når avskrekkingen starter — det er opp til brukerens flow å håndtere «interrupt»-logikk.
-- Vi kan ikke feste bilder direkte til Homey-push-notifikasjoner (`notifications.createNotification` tar kun tekst). Appen sender tekst-push automatisk ved alle alarm-hendelser. For push med bilde bruk `snapshot`-tokenet i `alarm_triggered` / `alarm_perimeter_triggered` i kombinasjon med f.eks. Pushover-appen i en flow.
+There is **no standardised, guaranteed API** in Homey Web API v3 Local for fetching a snapshot from an arbitrary camera. Everything depends on the camera driver voluntarily implementing `device.setCameraImage()`. If it does not, there is nothing a third-party app can do.
+
+The Homey App Store page for a camera app will typically say "supports snapshot" or list the `camera` capability — check this before choosing a camera app.
+
+### What we do now
+
+`CameraManager` uses approach 3 (ownerUri matching) as the primary source and approach 1 (device.images fallback) as secondary. The download happens via approach 4 (direct HTTP). If no URL is found, a warning is logged and the camera is silently skipped.
+
+For cameras that do not support Homey's native snapshot API, a possible workaround is to enter a manual RTSP/HTTP snapshot URL directly in the settings (not implemented currently — let us know if this is desired).
 
 ---
 
-## ☕ Støtt prosjektet
+### Known limitations that **still** apply (no known workaround at this time)
 
-Homey Alone Guard er utviklet på fritiden og deles gratis med hele Homey-samfunnet — ingen abonnement, ingen skjulte kostnader, ingen reklame.
+- We cannot programmatically know whether the user's flow actually succeeded — `triggerCard.trigger()` only returns that the trigger was fired, not whether any flow picked it up or whether the Chromecast action actually played. That is why we always run the blink fallback in parallel.
+- We cannot programmatically trigger a specific flow by ID. The only bridge to a flow is that we fire a trigger and the user's flow listens itself (with a `zone` filter if desired).
+- Volume control on third-party speakers from app code is **not** possible for the same reason as casting. If your flow needs to raise the volume, that must also be done as an action in the flow.
+- We cannot detect whether a Chromecast/Sonos is in use by someone else when deterrence starts — it is up to the user's flow to handle "interrupt" logic.
+- We cannot attach images directly to Homey push notifications (`notifications.createNotification` only accepts text). The app sends text push automatically for all alarm events. For push with an image, use the `snapshot` token in `alarm_triggered` / `alarm_perimeter_triggered` in combination with e.g. the Pushover app in a flow.
 
-Hvis appen beskytter hjemmet ditt, gir deg tryggere netter, eller bare sparer deg for hodepine du ellers ville fått — vurder å sende en liten takk. **Selv $5 / €5 monner og motiverer til videre utvikling**, nye funksjoner og raskere feilretting.
+---
+
+## ☕ Support the project
+
+Homey Alone Guard is developed in spare time and shared freely with the entire Homey community — no subscription, no hidden costs, no ads.
+
+If the app protects your home, gives you safer nights, or just saves you the headache you would otherwise have — consider sending a small thank-you. **Even $5 / €5 makes a difference and motivates further development**, new features and faster bug fixes.
 
 > 💳 **PayPal:** [thomas@ekdahl.no](https://paypal.me/ekdahlthomas)
 >
-> Alle bidrag går direkte til AI-Credits og utviklingstid. 🙏
+> All contributions go directly to AI credits and development time. 🙏
 
 ---
 
-## Lisens og credits
+## License and credits
 
-- **App-kode**: MIT — se [LICENSE](LICENSE)
-- **Mediafiler**: Creative Commons (CC-BY) — se `assets/media/CREDITS.md`
-- **Inspirasjon**: *Home Alone* (1990), regi John Hughes — alle Kevin-feller er rein fan-fiction
+- **App code**: MIT — see [LICENSE](LICENSE)
+- **Media files**: Creative Commons (CC-BY) — see `assets/media/CREDITS.md`
+- **Inspiration**: *Home Alone* (1990), directed by John Hughes — all Kevin traps are pure fan fiction
 
-## Bidra
+## Contributing
 
-Issues og PR-er er velkomne. Se [CONTRIBUTING.md](CONTRIBUTING.md) og [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md). For større endringer, åpne et issue først for å diskutere.
+Issues and PRs are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md). For larger changes, open an issue first to discuss.
