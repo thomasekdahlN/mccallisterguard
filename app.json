@@ -827,8 +827,8 @@
           "no": "Sett modus"
         },
         "titleFormatted": {
-          "en": "Set mode to [[mode]] by [[name]]",
-          "no": "Sett modus til [[mode]] av [[name]]"
+          "en": "Set mode to [[mode]] by [[name]] — [[comment]]",
+          "no": "Sett modus til [[mode]] av [[name]] — [[comment]]"
         },
         "args": [
           {
@@ -911,6 +911,95 @@
           }
         ],
         "id": "trigger_deterrence"
+      },
+      {
+        "title": {
+          "en": "Get bundled media URL",
+          "no": "Hent innebygd media-URL"
+        },
+        "titleFormatted": {
+          "en": "Get URL for [[file]]",
+          "no": "Hent URL for [[file]]"
+        },
+        "args": [
+          {
+            "name": "file",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "alarm-beep.ogg",
+                "label": {
+                  "en": "🔔 Alarm beep",
+                  "no": "🔔 Alarm-pip"
+                }
+              },
+              {
+                "id": "fire-alarm.ogg",
+                "label": {
+                  "en": "🔥 Fire alarm",
+                  "no": "🔥 Brannalarm"
+                }
+              },
+              {
+                "id": "guard-dog.ogg",
+                "label": {
+                  "en": "🐕 Guard dog (audio)",
+                  "no": "🐕 Vaktbikkje (lyd)"
+                }
+              },
+              {
+                "id": "intruder-voice.m4a",
+                "label": {
+                  "en": "🔊 Intruder warning (voice)",
+                  "no": "🔊 Innbruddsadvarsel (stemme)"
+                }
+              },
+              {
+                "id": "police-siren.ogg",
+                "label": {
+                  "en": "🚨 Police siren",
+                  "no": "🚨 Politisirene"
+                }
+              },
+              {
+                "id": "blue-lights.mp4",
+                "label": {
+                  "en": "🚔 Blue lights (video)",
+                  "no": "🚔 Blålys (video)"
+                }
+              },
+              {
+                "id": "cop-silhouette.mp4",
+                "label": {
+                  "en": "👮 Cop silhouette (video)",
+                  "no": "👮 Politisilhuett (video)"
+                }
+              },
+              {
+                "id": "large-dog.mp4",
+                "label": {
+                  "en": "🐩 Large dog (video)",
+                  "no": "🐩 Stor hund (video)"
+                }
+              }
+            ]
+          }
+        ],
+        "tokens": [
+          {
+            "name": "url",
+            "type": "string",
+            "title": {
+              "en": "Media URL",
+              "no": "Media-URL"
+            },
+            "example": {
+              "en": "http://192.168.1.100/app/com.homeyalone.guard/assets/media/police-siren.ogg",
+              "no": "http://192.168.1.100/app/com.homeyalone.guard/assets/media/police-siren.ogg"
+            }
+          }
+        ],
+        "id": "get_media_url"
       }
     ]
   }

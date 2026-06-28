@@ -712,6 +712,13 @@ class HomeyAloneGuardApp extends Homey.App {
         await this.testAlarm();
         return true;
       });
+    this.homey.flow.getActionCard('get_media_url')
+      .registerRunListener(async (args: { file: string }) => {
+        const rawBase: string = await (this.homey as any).api.getLocalUrl();
+        const baseUrl = rawBase.replace(/\/$/, '');
+        const url = `${baseUrl}/app/com.homeyalone.guard/assets/media/${args.file}`;
+        return { url };
+      });
     this.homey.flow.getConditionCard('alarm_active')
       .registerRunListener(async () => this.stateMachine.getMode() === 'alarm');
     this.homey.flow.getConditionCard('alarm_perimeter_active')
