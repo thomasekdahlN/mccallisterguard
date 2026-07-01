@@ -1,12 +1,12 @@
-Her er en komplett, strukturert og detaljert teknisk og funksjonell spesifikasjon for Homey-appen **"Homey Alone Guard"**. Dette dokumentet er klart til å overleveres til en utvikler eller brukes som veikart for koding.
+Her er en komplett, strukturert og detaljert teknisk og funksjonell spesifikasjon for Homey-appen **"McCallister Guard"**. Dette dokumentet er klart til å overleveres til en utvikler eller brukes som veikart for koding.
 
 ---
 
-# Teknisk og Funksjonell Spesifikasjon: Homey Alone Guard (Homey App)
+# Teknisk og Funksjonell Spesifikasjon: McCallister Guard (Homey App)
 
 ## 1. Innledning og Formål
 
-**Homey Alone Guard** er en avansert og utradisjonell sikkerhets-app for smarthussystemet Homey. Appen er inspirert av filmen *Alene Hjemme* (Home Alone). I stedet for bare å være et passivt alarmsystem som varsler etter at et innbrudd har skjedd, bruker appen psykologisk krigføring, avskrekking og "mind-games" for å skremme bort tyver *før* de gjør skade, samtidig som den gir huseieren full oversikt og bildedokumentasjon.
+**McCallister Guard** er en avansert og utradisjonell sikkerhets-app for smarthussystemet Homey. Appen er inspirert av filmen *Alene Hjemme* (Home Alone). I stedet for bare å være et passivt alarmsystem som varsler etter at et innbrudd har skjedd, bruker appen psykologisk krigføring, avskrekking og "mind-games" for å skremme bort tyver *før* de gjør skade, samtidig som den gir huseieren full oversikt og bildedokumentasjon.
 
 ---
 
@@ -119,7 +119,7 @@ Systemet er inaktivt. Ingen simulering eller avskrekkingslogikk kjører.
 
 Aktiveres manuelt fra Dashboard eller via Flow-kort (`set_mode = Borte`). Har exit delay (default 60 s).
 
-* **Ved aktivering (Helsesjekk — offline sensorer):** Appen scanner alle tilknyttede sensorer. Hvis en sensor er offline, sendes et pushvarsel: *"Homey Alone Guard aktivert, men [Sensor Navn] rapporterer ikke."* (Batterinivå sjekkes ikke.)
+* **Ved aktivering (Helsesjekk — offline sensorer):** Appen scanner alle tilknyttede sensorer. Hvis en sensor er offline, sendes et pushvarsel: *"McCallister Guard aktivert, men [Sensor Navn] rapporterer ikke."* (Batterinivå sjekkes ikke.)
 * **Ved aktivering (Helsesjekk — åpne dør/vindu):** Appen scanner alle `alarm_contact`-sensorer. Er noen åpne, sendes en push-notifikasjon med liste over åpne sensorer og en advarsel logges. Armeringen stoppes ikke — varslingen er utelukkende informativ.
 * **Utpasseringsforsinkelse (Exit Delay):** Nedtelling starter (f.eks. 60s). Alle lys slås av, og sensorer ignoreres under nedtellingen.
 * **Nattvindu-redirect:** Hvis `set_mode = Hjemme` mottas mens systemet er i Borte-modus og Skallsikring-scheduleren er aktiv innenfor det konfigurerte tidsrommet (f.eks. 22:00–06:00), omdirigeres kommandoen automatisk til `armed_perimeter` i stedet for å deaktivere. Dette forhindrer at en smart-lås-flow lar huset stå ubeskyttet om natten.
@@ -196,7 +196,7 @@ Brukes når huseier sover.
 ### Modul 5: Strikte Lysrestriksjoner (`LightAuthGuard`)
 
 * **Betingelse:** `Status = Borte` (eller `armed_perimeter`).
-* **Handling:** Hvis et lys i huset endrer tilstand til `PÅ`, gjør appen en sjekk: *Ble dette lyset slått på av Homey Alone Guard-appen (Modul 1 eller Modul 2)?*
+* **Handling:** Hvis et lys i huset endrer tilstand til `PÅ`, gjør appen en sjekk: *Ble dette lyset slått på av McCallister Guard-appen (Modul 1 eller Modul 2)?*
 * **Implementasjon:** Appen holder en intern buffer over egne `onoff=true`-kommandoer i siste ~2 sekunder. Endringer i lysstatus som *ikke* matcher en buffret kommando regnes som uautoriserte.
 * **Logging:** Oppdagelsen av uautorisert lys-på logges alltid med enhets- og sonenavn (warning-nivå). Om korreksjons-kommandoen (slå av) lykkes eller feiler loggføres **ikke** — dette for å holde hendelsesloggen fri for støy fra nettverksfeil.
 * **Konsekvens:** Hvis lyset ble slått på manuelt (f.eks. av en tyv som trykker på en fysisk veggbryter, eller etter strømbrudd-resett), sender appen en `AV`-kommando umiddelbart (< 1 sekund). *Et mørkt hus tvinger tyven til å bruke lommelykt, som gjør det lettere for bevegelsessensorer og kameraer å fange dem opp.*
@@ -399,7 +399,7 @@ DA   Sonos: Spill «advarsel-natt.mp3» — mild, vekk beboerne
 
 ## 9. Støtt prosjektet
 
-Homey Alone Guard er utviklet på fritiden og deles gratis med hele Homey-samfunnet.
+McCallister Guard er utviklet på fritiden og deles gratis med hele Homey-samfunnet.
 Ingen abonnement, ingen skjulte kostnader, ingen reklame — bare en app som gjør jobben.
 
 Hvis appen beskytter hjemmet ditt, gir deg tryggere netter, eller sparer deg for en ubehagelig oppvåkning — vurder å sende en liten takk. **Selv $10 / €10 monner og motiverer til videre utvikling**, nye funksjoner og raskere feilretting.

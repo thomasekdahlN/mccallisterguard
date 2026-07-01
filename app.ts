@@ -15,7 +15,7 @@ import {
   AlarmType, DEFAULT_SETTINGS, GuardSettings, Mode, SETTINGS_KEYS,
 } from './lib/types';
 
-class HomeyAloneGuardApp extends Homey.App {
+class McCallisterGuardApp extends Homey.App {
 
   public homeyApi!: any;
   public eventLog!: EventLog;
@@ -52,7 +52,7 @@ class HomeyAloneGuardApp extends Homey.App {
   /** How long after an alarm ends to suppress Skallsikring auto-activation. */
   private static readonly ALARM_COOLDOWN_MS = 30 * 60 * 1000; // 30 minutes
   async onInit(): Promise<void> {
-    this.log('Homey Alone Guard starter opp…');
+    this.log('McCallister Guard starter opp…');
 
     this.homeyApi = await (HomeyAPI as any).createAppAPI({ homey: this.homey });
 
@@ -61,7 +61,7 @@ class HomeyAloneGuardApp extends Homey.App {
     await this.refreshZoneNameCache();
     this.zoneCacheTimer = this.homey.setInterval(
       () => { this.refreshZoneNameCache().catch(() => { /* best-effort */ }); },
-      HomeyAloneGuardApp.ZONE_CACHE_REFRESH_MS,
+      McCallisterGuardApp.ZONE_CACHE_REFRESH_MS,
     );
     this.stateMachine = new StateMachine(this.homey, this.eventLog);
     this.media = new MediaCaster(this.homey, this.homeyApi, this.eventLog, () => this.getSettings());
@@ -115,7 +115,7 @@ class HomeyAloneGuardApp extends Homey.App {
     if (this.stateMachine.getMode() === 'armed') this.simulation.start();
 
     this.startArmedStayScheduler();
-    this.log('Homey Alone Guard initialisert.');
+    this.log('McCallister Guard initialisert.');
   }
 
   getSettings(): GuardSettings {
@@ -152,7 +152,7 @@ class HomeyAloneGuardApp extends Homey.App {
     // Exception: if an alarm ended recently, let the user fully disarm without re-arming perimeter.
     if (mode === 'disarmed' && current === 'armed' && !force && this.isInArmedPerimeterWindow()) {
       const recentAlarm = this.lastAlarmStoppedAt !== null
-        && (Date.now() - this.lastAlarmStoppedAt) < HomeyAloneGuardApp.ALARM_COOLDOWN_MS;
+        && (Date.now() - this.lastAlarmStoppedAt) < McCallisterGuardApp.ALARM_COOLDOWN_MS;
       if (!recentAlarm) {
         this.eventLog.add('info', 'Borte-modus deaktivert i skalltidsvindu — bytter til Skallsikring i stedet.');
         await this.setMode('armed_perimeter');
@@ -209,7 +209,7 @@ class HomeyAloneGuardApp extends Homey.App {
   async testDeterrence(zoneId: string): Promise<void> {
     this.clearTestStopTimer();
     this.clearDeterrenceTimer();
-    const seconds = Math.round(HomeyAloneGuardApp.TEST_DURATION_MS / 1000);
+    const seconds = Math.round(McCallisterGuardApp.TEST_DURATION_MS / 1000);
     this.eventLog.add('info', `Test: avskrekking i sone ${zoneId} — auto-stopp om ${seconds}s.`, zoneId);
     const currentMode = this.stateMachine.getMode();
     if (currentMode !== 'deterrence' && currentMode !== 'alarm' && currentMode !== 'perimeter_alarm') {
@@ -226,13 +226,13 @@ class HomeyAloneGuardApp extends Homey.App {
       const returnMode = this.previousArmedMode ?? 'disarmed';
       this.previousArmedMode = null;
       await this.stateMachine.setMode(returnMode);
-    }, HomeyAloneGuardApp.TEST_DURATION_MS);
+    }, McCallisterGuardApp.TEST_DURATION_MS);
   }
 
   async testAlarm(): Promise<void> {
     this.clearTestStopTimer();
     this.clearDeterrenceTimer();
-    const seconds = Math.round(HomeyAloneGuardApp.TEST_DURATION_MS / 1000);
+    const seconds = Math.round(McCallisterGuardApp.TEST_DURATION_MS / 1000);
     this.eventLog.add('info', `Test: full alarm (modus=alarm) — auto-stopp om ${seconds}s.`);
     const currentMode = this.stateMachine.getMode();
     if (currentMode !== 'deterrence' && currentMode !== 'alarm' && currentMode !== 'perimeter_alarm') {
@@ -250,7 +250,7 @@ class HomeyAloneGuardApp extends Homey.App {
       this.previousArmedMode = null;
       this.alarmContext = null;
       await this.stateMachine.setMode(returnMode);
-    }, HomeyAloneGuardApp.TEST_DURATION_MS);
+    }, McCallisterGuardApp.TEST_DURATION_MS);
   }
 
   isTestActive(): boolean {
@@ -289,7 +289,7 @@ class HomeyAloneGuardApp extends Homey.App {
   }
 
   getRecentMotionZones(): string[] {
-    const cutoff = Date.now() - HomeyAloneGuardApp.MOTION_RECENT_MS;
+    const cutoff = Date.now() - McCallisterGuardApp.MOTION_RECENT_MS;
     const result: string[] = [];
     for (const [zoneId, ts] of this.motionLastSeen) {
       if (ts >= cutoff) result.push(zoneId);
@@ -457,7 +457,7 @@ class HomeyAloneGuardApp extends Homey.App {
   private shouldNotify(key: string): boolean {
     const last = this.notificationDebounce.get(key);
     const now = Date.now();
-    if (last !== undefined && now - last < HomeyAloneGuardApp.DEDUP_WINDOW_MS) return false;
+    if (last !== undefined && now - last < McCallisterGuardApp.DEDUP_WINDOW_MS) return false;
     this.notificationDebounce.set(key, now);
     return true;
   }
@@ -585,7 +585,7 @@ class HomeyAloneGuardApp extends Homey.App {
     // Also suppress for ALARM_COOLDOWN_MS after an alarm ends so the user can fully disarm.
     if (inWindow && mode === 'disarmed') {
       const recentAlarm = this.lastAlarmStoppedAt !== null
-        && (Date.now() - this.lastAlarmStoppedAt) < HomeyAloneGuardApp.ALARM_COOLDOWN_MS;
+        && (Date.now() - this.lastAlarmStoppedAt) < McCallisterGuardApp.ALARM_COOLDOWN_MS;
       if (recentAlarm) {
         this.eventLog.add('info', 'Skallsikring-autostart utsatt — alarm nylig stoppet.');
       } else {
@@ -717,7 +717,7 @@ class HomeyAloneGuardApp extends Homey.App {
       .registerRunListener(async (args: { file: string }) => {
         const rawBase: string = await (this.homey as any).api.getLocalUrl();
         const baseUrl = rawBase.replace(/\/$/, '');
-        const url = `${baseUrl}/app/com.homeyalone.guard/assets/media/${args.file}`;
+        const url = `${baseUrl}/app/com.ekdahl.mccallister-guard/assets/media/${args.file}`;
         return { url };
       });
     this.homey.flow.getConditionCard('alarm_active')
@@ -758,7 +758,7 @@ class HomeyAloneGuardApp extends Homey.App {
     ];
 
     for (const entry of files) {
-      const url = `${baseUrl}/app/com.homeyalone.guard/assets/media/${entry.file}`;
+      const url = `${baseUrl}/app/com.ekdahl.mccallister-guard/assets/media/${entry.file}`;
       const token = await this.homey.flow.createToken(entry.id, {
         type: 'string',
         title: entry.title,
@@ -1006,4 +1006,4 @@ class HomeyAloneGuardApp extends Homey.App {
 
 }
 
-module.exports = HomeyAloneGuardApp;
+module.exports = McCallisterGuardApp;

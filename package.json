@@ -1,5 +1,5 @@
 {
-  "name": "com.homeyalone.guard",
+  "name": "com.ekdahl.mccallister-guard",
   "version": "0.5.0",
   "scripts": {
     "build": "tsc",

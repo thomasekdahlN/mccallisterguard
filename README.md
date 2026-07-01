@@ -1,10 +1,10 @@
-# Homey Alone Guard
+# McCallister Guard
 
 > Home Alone-inspired smart security for Homey Pro — psychological deterrence using sound, video and light instead of just alarm sirens.
 
 [![Homey](https://img.shields.io/badge/Homey-SDK%203-blue)](https://apps.developer.homey.app/) [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-Homey Alone Guard is not yet another passive alarm system. Instead of just beeping when someone breaks in, **it tells the intruder that the house is occupied and that someone is watching** — through sounds (barking dogs, sirens), video (blue lights, large dogs, silhouettes in the window) and light patterns that mimic a fully active home. Inspired by Kevin McCallister from *Home Alone* (1990): win by making the burglar turn around at the door.
+McCallister Guard is not yet another passive alarm system. Instead of just beeping when someone breaks in, **it tells the intruder that the house is occupied and that someone is watching** — through sounds (barking dogs, sirens), video (blue lights, large dogs, silhouettes in the window) and light patterns that mimic a fully active home. Inspired by Kevin McCallister from *Home Alone* (1990): win by making the burglar turn around at the door.
 
 > ☕ **Free and open source.** If the app protects your home, consider a small donation via [PayPal](https://paypal.me/ekdahlthomas) — even $10 / €10 motivates further development. See [Support the project](#-support-the-project) for details.
 
@@ -56,7 +56,7 @@ flowchart TB
     SAVE[/settings/]
   end
 
-  subgraph APP[HomeyAloneGuardApp]
+  subgraph APP[McCallisterGuardApp]
     SM[StateMachine - 6 modes + entry/exit delay]
     FAF[FalseAlarmFilter - 90s confidence]
     DE[DeterrenceEngine - reaction zone matrix]
@@ -302,7 +302,7 @@ sequenceDiagram
 
 ### Global flow tokens — bundled media
 
-All bundled media files are registered as **permanent global flow tokens** when the app starts. They appear as pills in the Homey flow editor under **Homey Alone Guard** and can be inserted directly into any action field that accepts a URL or string — without running any intermediate action card first.
+All bundled media files are registered as **permanent global flow tokens** when the app starts. They appear as pills in the Homey flow editor under **McCallister Guard** and can be inserted directly into any action field that accepts a URL or string — without running any intermediate action card first.
 
 | Token | Description |
 |---|---|
@@ -318,7 +318,7 @@ All bundled media files are registered as **permanent global flow tokens** when 
 **How to use in a flow:**
 1. Open a flow action that has a URL or text field (e.g. Chromecast "Cast video", Sonos "Play URL").
 2. Click the field, then click the **pills icon** (tag icon) in the input bar.
-3. Under **Homey Alone Guard** select the media token you want.
+3. Under **McCallister Guard** select the media token you want.
 4. The token resolves to the correct local URL automatically — always pointing to your Homey Pro regardless of IP changes.
 
 > The `get_media_url` action card is still available for flows where you need to select the file dynamically (e.g. from a variable or condition result). For static use, prefer the global tokens.
@@ -381,7 +381,7 @@ IF    Alarm was triggered in zone [Hallway]
 THEN  Sonos (hallway): Play URL [Media: Guard dog (audio)]
 ```
 
-The `[Media: Blue lights (video)]` and `[Media: Guard dog (audio)]` items are global token pills — select them from the pill picker (tag icon) in the action's URL field under **Homey Alone Guard**.
+The `[Media: Blue lights (video)]` and `[Media: Guard dog (audio)]` items are global token pills — select them from the pill picker (tag icon) in the action's URL field under **McCallister Guard**.
 
 ### Recommended flows — disarming and arming
 
@@ -424,7 +424,7 @@ THEN  Set mode to Home by [[user]]              ← set_mode action (name = lock
 >   manual disarming via dashboard/app
 > - Add a **physical button at the entrance** that activates/deactivates the alarm — reliable,
 >   fast and works without internet
-> - Use the **Homey Alone Guard app** (dashboard) for manual control when the button is not available
+> - Use the **McCallister Guard app** (dashboard) for manual control when the button is not available
 
 **Recommended setup: presence arms, but button/lock disarms**
 
@@ -511,7 +511,7 @@ The app also checks whether any sensors are offline (unavailable). If any are un
 
 ## What is logged where
 
-Homey Alone Guard uses three separate log channels with different purposes:
+McCallister Guard uses three separate log channels with different purposes:
 
 | Channel | What | Detail level | Duration |
 |---|---|---|---|
@@ -688,7 +688,7 @@ The app fires `mode_changed` (mode_new = deterrence) and `alarm_triggered` / `al
 as integration points. Light deterrence (blink in reaction zone) always runs automatically —
 sound and video must be set up as user flows.
 
-Insert the bundled media files as **global token pills** (tag icon → Homey Alone Guard) directly into any URL field:
+Insert the bundled media files as **global token pills** (tag icon → McCallister Guard) directly into any URL field:
 
 ```
 WHEN  Mode changed (mode_changed)
@@ -720,14 +720,14 @@ The system has six modes: `disarmed` (Home), `armed` (Away), `armed_perimeter` (
 
 In the Flow editor (Homey app → Flows → New flow):
 
-1. **WHEN** — `Homey Alone Guard → Mode changed`
+1. **WHEN** — `McCallister Guard → Mode changed`
 2. **AND** *(optional)* — filter on `[mode_new]` or `[mode_previous]` to react to specific transitions.
 3. **THEN** — run desired action (push, SMS, turn on lights, activate scene, etc.)
 
 ### Example 1 — push when deterrence starts
 
 ```text
-WHEN  Homey Alone Guard → Mode changed
+WHEN  McCallister Guard → Mode changed
 AND   mode_new = deterrence
 THEN  Homey → Send a push notification
         Title:  Deterrence active
@@ -737,7 +737,7 @@ THEN  Homey → Send a push notification
 ### Example 2 — call emergency contact at full alarm
 
 ```text
-WHEN  Homey Alone Guard → Mode changed
+WHEN  McCallister Guard → Mode changed
 AND   mode_new = alarm
 THEN  Call emergency contact via IFTTT/SMS
       Send push with highest priority to all
@@ -746,7 +746,7 @@ THEN  Call emergency contact via IFTTT/SMS
 ### Example 3 — log mode history
 
 ```text
-WHEN  Homey Alone Guard → Mode changed
+WHEN  McCallister Guard → Mode changed
 THEN  Google Sheet → Add row: [mode_new], [mode_previous], [timestamp]
 ```
 
@@ -769,15 +769,15 @@ THEN  Google Sheet → Add row: [mode_new], [mode_previous], [timestamp]
 ### Build and install on Homey
 
 ```bash
-git clone https://github.com/thomasekdahlN/homeyaloneguard.git
-cd homeyaloneguard
+git clone https://github.com/thomasekdahlN/mccallisterguard.git
+cd mccallisterguard
 npm install
 homey app install
 ```
 
 ### Configuration
 
-1. Open **Settings → Apps → Homey Alone Guard → Configure app**.
+1. Open **Settings → Apps → McCallister Guard → Configure app**.
 2. Under **Zone overview**, expand each zone and see which capabilities (🔊 audio, 📺 screen, 💡 lights) and sensors
    (🚪 door/window, 👁️ motion) have been detected.
 3. Define the **reaction zone matrix** per zone — e.g. "motion in attic → play deterrence in living room".
@@ -826,7 +826,7 @@ The app icon is copied directly (same SVG as master). App Images are regenerated
 ### Folder structure
 
 ```
-HomeyAloneGuard/
+McCallisterGuard/
 ├── app.ts                  # Main class
 ├── api.ts                  # Internal HTTP API for settings UI
 ├── lib/                    # Modules (StateMachine, DeterrenceEngine, …)
@@ -1032,7 +1032,7 @@ For cameras that do not support Homey's native snapshot API, a possible workarou
 
 ## ☕ Support the project
 
-Homey Alone Guard is developed in spare time and shared freely with the entire Homey community — no subscription, no hidden costs, no ads.
+McCallister Guard is developed in spare time and shared freely with the entire Homey community — no subscription, no hidden costs, no ads.
 
 If the app protects your home, gives you safer nights, or just saves you the headache you would otherwise have — consider sending a small thank-you. **Even $10 / €10 makes a difference and motivates further development**, new features and faster bug fixes.
 

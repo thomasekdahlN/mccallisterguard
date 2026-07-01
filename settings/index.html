@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Homey Alone Guard</title>
+  <title>McCallister Guard</title>
   <script type="text/javascript" src="/homey.js" data-origin="settings"></script>
   <style>
     body {
@@ -961,7 +961,7 @@
 
 <body>
   <div class="page-header">
-    <h2>Homey Alone Guard</h2>
+    <h2>McCallister Guard</h2>
     <button class="help-btn" id="btn-help" title="Hjelp og dokumentasjon">❓</button>
   </div>
 
@@ -1112,14 +1112,14 @@
     <button class="docs-back-btn" id="btn-docs-back">← Tilbake</button>
     <div class="docs">
       <h3>☕ Støtt prosjektet</h3>
-      <p>Homey Alone Guard er <strong>gratis og open source</strong> — utviklet på fritiden og delt med hele
+      <p>McCallister Guard er <strong>gratis og open source</strong> — utviklet på fritiden og delt med hele
         Homey-samfunnet uten abonnement, reklame eller skjulte kostnader. Hvis appen beskytter hjemmet ditt
         eller gir deg tryggere netter, vurder en liten donasjon via
         <a href="https://paypal.me/ekdahlthomas" target="_blank" rel="noopener">PayPal (paypal.me/ekdahlthomas)</a> —
         selv $10 / €10 monner og motiverer videre utvikling, nye funksjoner og raskere feilretting. Takk! 🙏
       </p>
 
-      <h3>Hva er Homey Alone Guard?</h3>
+      <h3>Hva er McCallister Guard?</h3>
       <p>Et sikkerhetssystem inspirert av <em>Alene Hjemme</em>: i stedet for å bare utløse en alarm, prøver appen
         å <strong>avskrekke</strong> tyver med psykologiske triks — blålys i naborommet, sirener, bjeffende hunder,
         eller videoklipp av en stor person i vinduet. Målet er at tyven snur før noe skjer.</p>
@@ -1148,7 +1148,7 @@
         sette i gang sirenen. Anbefales for hoveddør og bakdør med kodelås.
       </p>
       <p>Tips: kombiner med en flow som <em>automatisk</em> deaktiverer systemet når smartlåsen din rapporterer
-        en autorisert opplåsing (NÅR «smart-låsen ble låst opp med kode X» → SÅ «sett Homey Alone Guard til
+        en autorisert opplåsing (NÅR «smart-låsen ble låst opp med kode X» → SÅ «sett McCallister Guard til
         Hjemme»). Da rekker systemet å gå i Hjemme-modus før døren åpnes, og ingen alarm utløses i det hele
         tatt. Inngangsforsinkelsen er fallback hvis flowen feiler eller låsen ikke rapporterer riktig.</p>
 
@@ -1257,7 +1257,7 @@
 
       <h3>Eksempel: vakthund-bjeffing på Sonos overalt</h3>
       <ol>
-        <li><strong>NÅR:</strong> Homey Alone Guard → Avskrekking startet i sone</li>
+        <li><strong>NÅR:</strong> McCallister Guard → Avskrekking startet i sone</li>
         <li><strong>SÅ:</strong> Sonos → <code>Spill URL</code> (på gruppen «Hele huset») →
           kopier URL for <strong>guard-dog.ogg</strong> fra tabellen over, volum: 80 %
         </li>
@@ -1329,7 +1329,7 @@
           { name: 'large-dog.mp4', emoji: '🐩', label: 'Stor hund', desc: 'Stor hund-video (Chromecast/TV)' },
         ];
 
-        const base = window.location.origin + '/app/com.homeyalone.guard/assets/media/';
+        const base = window.location.origin + '/app/com.ekdahl.mccallister-guard/assets/media/';
         const tbody = $('media-url-tbody');
         if (!tbody) return;
 

@@ -80,8 +80,8 @@
         "no": "Media-URL"
       },
       "example": {
-        "en": "http://192.168.1.100/app/com.homeyalone.guard/assets/media/police-siren.ogg",
-        "no": "http://192.168.1.100/app/com.homeyalone.guard/assets/media/police-siren.ogg"
+        "en": "http://192.168.1.100/app/com.ekdahl.mccallister-guard/assets/media/police-siren.ogg",
+        "no": "http://192.168.1.100/app/com.ekdahl.mccallister-guard/assets/media/police-siren.ogg"
       }
     }
   ]
