@@ -1,4 +1,4 @@
-# Homey Alone Guard — Design og visuell identitet
+# McCallister Guard — Design og visuell identitet
 
 Et forslag til fargepalett og ikoner for appen. Konseptet er proaktiv
 avskrekking i *Alene Hjemme*-stil, og designet bør balansere **trygghet**
@@ -34,7 +34,7 @@ ikonene er lesbare også i liten størrelse.
 
 ### A. App-ikon (hovedikonet)
 
-Ikonet i Homey-oversikten. Må fange essensen av «Homey Alone Guard».
+Ikonet i Homey-oversikten. Må fange essensen av «McCallister Guard».
 
 * **Konsept:** kombinasjon av et beskyttende skjold og Kevin McCallisters
   ikoniske silhuett.
@@ -85,7 +85,7 @@ Forenklede versjoner av modus-ikonene, i Homeys standard sirkulære format.
 
 * **Trigger (Når…):** sensor (f.eks. en dør som åpnes) med en liten rød prikk
   i hjørnet.
-* **Betingelse (Og…):** vekt-skål i balanse, med Homey Alone Guard-skjoldet
+* **Betingelse (Og…):** vekt-skål i balanse, med McCallister Guard-skjoldet
   på den ene siden.
 * **Handling (Så…):** løpende mann-silhuett (tyven) som snur og løper i
   motsatt retning.

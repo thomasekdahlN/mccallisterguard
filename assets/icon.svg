@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Homey Alone Guard — App Icon
+  McCallister Guard — App Icon
   Homey icon contract: white monochrome paths on transparent background.
   Homey renders this on a circle filled with brandColor (#1A531A).
   No CSS classes, no background rect — inline fill attributes only.
