@@ -801,6 +801,26 @@ homey app install
 7. Set **Away mode** when you leave the house, or use the `set_mode` action from a flow (geofence, button,
    voice). Use the `mode_changed` trigger for logging or automation around mode changes.
 
+## Permissions
+
+The app requests one permission: `homey:manager:api`.
+
+### Why is this needed?
+
+McCallister Guard is a **driver-less orchestrator** — it has no paired devices of its own. Instead, it monitors and controls devices that belong to other apps (Z-Wave sensors, Zigbee motion detectors, Philips Hue lights, Chromecast, cameras, etc.). The standard Homey SDK only gives an app access to devices it has paired itself. `homey:manager:api` grants access to the full `HomeyAPI`, which is required for:
+
+| What | Why |
+|---|---|
+| **Listen to all motion and contact sensors** | `makeCapabilityInstance()` on sensors from third-party apps — the only way to react in real time to any sensor already in Homey |
+| **Control lights in any zone** | Turn lights on/off for deterrence, Kevin simulation and escalation strobe — lights belong to other apps' drivers |
+| **Take camera snapshots** | Camera devices belong to third-party apps; the API is needed to reach their `camera_image` capability |
+| **Resolve zone and device names** | `homeyApi.zones.getZones()` and `homeyApi.devices.getDevice()` — translate IDs to human-readable names for notifications and the event log |
+| **Populate the settings UI zone overview** | The settings page lists all zones with their sensors, lights, audio and video devices so the user can configure the deterrence zone matrix |
+
+> **No data leaves your home.** The permission is used exclusively for local device communication on your Homey Pro. Nothing is sent to any external server.
+
+---
+
 ## Development
 
 ```bash
