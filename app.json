@@ -550,8 +550,8 @@
           "no": "Snapshot tatt"
         },
         "titleFormatted": {
-          "en": "A snapshot was taken in [[zone]]",
-          "no": "Et snapshot ble tatt i [[zone]]"
+          "en": "A snapshot was taken",
+          "no": "Et snapshot ble tatt"
         },
         "tokens": [
           {

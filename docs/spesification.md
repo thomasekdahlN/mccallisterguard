@@ -397,13 +397,7 @@ DA   Sonos: Spill «advarsel-natt.mp3» — mild, vekk beboerne
 
 ---
 
-## 9. Støtt prosjektet
+## 9. Om prosjektet
 
 McCallister Guard er utviklet på fritiden og deles gratis med hele Homey-samfunnet.
 Ingen abonnement, ingen skjulte kostnader, ingen reklame — bare en app som gjør jobben.
-
-Hvis appen beskytter hjemmet ditt, gir deg tryggere netter, eller sparer deg for en ubehagelig oppvåkning — vurder å sende en liten takk. **Selv $10 / €10 monner og motiverer til videre utvikling**, nye funksjoner og raskere feilretting.
-
-> 💳 **PayPal:** [thomas@ekdahl.no](https://www.paypal.com/paypalme/thomasekdahl)
->
-> Alle bidrag går direkte til kaffe, utviklingstid og Homey-hardware for testing. 🙏
