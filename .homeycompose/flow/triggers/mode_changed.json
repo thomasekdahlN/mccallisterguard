@@ -1,12 +1,32 @@
 {
   "title": {
-    "en": "Mode changed",
-    "no": "Modus endret"
+    "en": "Mode changed to",
+    "no": "Modus endret til"
+  },
+  "titleFormatted": {
+    "en": "Mode changed to [[mode_new]]",
+    "no": "Modus endret til [[mode_new]]"
   },
   "hint": {
-    "en": "Fires whenever the system mode changes (Hjemme / Borte / Skallsikring). Independent of alarm state.",
-    "no": "Utløses hver gang systemmodus endres (Hjemme / Borte / Skallsikring). Uavhengig av alarmtilstand."
+    "en": "Fires whenever the system mode changes. Select the new mode to filter — leave on 'Any' to fire on all mode changes.",
+    "no": "Utløses hver gang systemmodus endres. Velg ny modus for å filtrere — la stå på 'Alle' for å utløse ved alle modusendringer."
   },
+  "args": [
+    {
+      "name": "mode_new",
+      "type": "dropdown",
+      "values": [
+        { "id": "*",              "label": { "en": "Any mode",           "no": "Alle modi" } },
+        { "id": "off",            "label": { "en": "Off (app disabled)", "no": "Av (app deaktivert)" } },
+        { "id": "disarmed",       "label": { "en": "Home (disarmed)",    "no": "Hjemme (deaktivert)" } },
+        { "id": "armed",          "label": { "en": "Away (armed)",       "no": "Borte (armed)" } },
+        { "id": "armed_perimeter","label": { "en": "Perimeter",          "no": "Skallsikring" } },
+        { "id": "perimeter_alarm","label": { "en": "Perimeter alarm",    "no": "Skallsikring alarm" } },
+        { "id": "deterrence",     "label": { "en": "Deterrence",         "no": "Avskrekking" } },
+        { "id": "alarm",          "label": { "en": "Alarm",              "no": "Alarm" } }
+      ]
+    }
+  ],
   "tokens": [
     {
       "name": "mode_new",

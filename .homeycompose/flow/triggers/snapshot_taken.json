@@ -1,12 +1,23 @@
 {
   "title": {
-    "en": "Snapshot taken",
-    "no": "Snapshot tatt"
+    "en": "Snapshot taken in zone",
+    "no": "Snapshot tatt i sone"
   },
   "titleFormatted": {
-    "en": "A snapshot was taken",
-    "no": "Et snapshot ble tatt"
+    "en": "Snapshot taken in zone [[zone]]",
+    "no": "Snapshot tatt i sone [[zone]]"
   },
+  "hint": {
+    "en": "Fires when a camera captures a snapshot. Filter by zone to route images from specific cameras to different services (Telegram, Pushover, etc.).",
+    "no": "Utløses når et kamera tar et snapshot. Filtrer på sone for å rute bilder fra bestemte kameraer til ulike tjenester (Telegram, Pushover osv.)."
+  },
+  "args": [
+    {
+      "name": "zone",
+      "type": "autocomplete",
+      "placeholder": { "en": "Select zone…", "no": "Velg sone…" }
+    }
+  ],
   "tokens": [
     {
       "name": "zone",

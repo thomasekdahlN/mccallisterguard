@@ -99,7 +99,7 @@ class McCallisterGuardApp extends Homey.App {
         timestamp: new Date().toISOString(),
         snapshot: snapshotImage,
       };
-      this.homey.flow.getTriggerCard('snapshot_taken').trigger(tokens)
+      this.homey.flow.getTriggerCard('snapshot_taken').trigger(tokens, { zoneId })
         .then(() => {
           this.eventLog.add('info', `Flow-trigger «snapshot_taken» fyrt for ${cameraName} i sone ${zoneName}.`, zoneId);
         })
@@ -367,9 +367,9 @@ class McCallisterGuardApp extends Homey.App {
     if (this.latestSnapshot !== null) baseTokens.snapshot = this.latestSnapshot;
     // Fire type-specific trigger: perimeter alarms → alarm_perimeter_triggered, away alarms → alarm_triggered.
     if (alarmType === 'perimeter') {
-      try { await this.homey.flow.getTriggerCard('alarm_perimeter_triggered').trigger(baseTokens); } catch { /* best-effort */ }
+      try { await this.homey.flow.getTriggerCard('alarm_perimeter_triggered').trigger(baseTokens, { zoneId }); } catch { /* best-effort */ }
     } else {
-      try { await this.homey.flow.getTriggerCard('alarm_triggered').trigger(baseTokens); } catch { /* best-effort */ }
+      try { await this.homey.flow.getTriggerCard('alarm_triggered').trigger(baseTokens, { zoneId, sensorType }); } catch { /* best-effort */ }
     }
 
     await this.deterrence.handleMotion(zoneId);
@@ -425,7 +425,7 @@ class McCallisterGuardApp extends Homey.App {
     };
     if (this.latestSnapshot !== null) baseTokens.snapshot = this.latestSnapshot;
     try {
-      await this.homey.flow.getTriggerCard('alarm_perimeter_triggered').trigger(baseTokens);
+      await this.homey.flow.getTriggerCard('alarm_perimeter_triggered').trigger(baseTokens, { zoneId });
     } catch { /* best-effort */ }
   }
 
@@ -633,7 +633,7 @@ class McCallisterGuardApp extends Homey.App {
       this.homey.flow.getTriggerCard('mode_changed').trigger({
         mode_new: next,
         mode_previous: previous,
-      }).catch(() => { /* best-effort */ });
+      }, { mode_new: next }).catch(() => { /* best-effort */ });
     } catch { /* best-effort */ }
   }
 
@@ -738,6 +738,51 @@ class McCallisterGuardApp extends Homey.App {
         const url = `${baseUrl}/app/com.ekdahl.mccallister-guard/assets/media/${args.file}`;
         return { url };
       });
+    // Shared autocomplete for all zone-filtered trigger cards.
+    const zoneAutocomplete = async (query: string) => {
+      const results: { id: string; name: string }[] = [];
+      for (const [id, name] of this.zoneNameCache) {
+        if (!query || name.toLowerCase().includes(query.toLowerCase())) {
+          results.push({ id, name });
+        }
+      }
+      return results;
+    };
+
+    // Kevin mode — zone-filtered triggers.
+    const kevinOnCard = this.homey.flow.getTriggerCard('kevin_zone_on');
+    kevinOnCard.registerRunListener(async (args: { zone: { id: string } }, state: { zoneId: string }) => args.zone.id === state.zoneId);
+    kevinOnCard.registerArgumentAutocompleteListener('zone', zoneAutocomplete);
+    const kevinOffCard = this.homey.flow.getTriggerCard('kevin_zone_off');
+    kevinOffCard.registerRunListener(async (args: { zone: { id: string } }, state: { zoneId: string }) => args.zone.id === state.zoneId);
+    kevinOffCard.registerArgumentAutocompleteListener('zone', zoneAutocomplete);
+
+    // mode_changed — filter on mode_new; '*' means any mode.
+    const modeChangedCard = this.homey.flow.getTriggerCard('mode_changed');
+    modeChangedCard.registerRunListener(async (args: { mode_new: string }, state: { mode_new: string }) => args.mode_new === '*' || args.mode_new === state.mode_new);
+
+    // alarm_triggered — filter on zone + sensor_type; '*' means any.
+    const alarmTriggeredCard = this.homey.flow.getTriggerCard('alarm_triggered');
+    alarmTriggeredCard.registerRunListener(async (
+      args: { zone: { id: string }; sensor_type: string },
+      state: { zoneId: string; sensorType: string },
+    ) => args.zone.id === state.zoneId && (args.sensor_type === '*' || args.sensor_type === state.sensorType));
+    alarmTriggeredCard.registerArgumentAutocompleteListener('zone', zoneAutocomplete);
+
+    // alarm_perimeter_triggered — filter on zone.
+    const alarmPerimTriggeredCard = this.homey.flow.getTriggerCard('alarm_perimeter_triggered');
+    alarmPerimTriggeredCard.registerRunListener(async (args: { zone: { id: string } }, state: { zoneId: string }) => args.zone.id === state.zoneId);
+    alarmPerimTriggeredCard.registerArgumentAutocompleteListener('zone', zoneAutocomplete);
+
+    // snapshot_taken — filter on zone.
+    const snapshotCard = this.homey.flow.getTriggerCard('snapshot_taken');
+    snapshotCard.registerRunListener(async (args: { zone: { id: string } }, state: { zoneId: string }) => args.zone.id === state.zoneId);
+    snapshotCard.registerArgumentAutocompleteListener('zone', zoneAutocomplete);
+
+    // open_sensors_at_arming — filter on mode; '*' means any.
+    const openSensorsCard = this.homey.flow.getTriggerCard('open_sensors_at_arming');
+    openSensorsCard.registerRunListener(async (args: { mode: string }, state: { mode: string }) => args.mode === '*' || args.mode === state.mode);
+
     this.homey.flow.getConditionCard('alarm_active')
       .registerRunListener(async () => this.stateMachine.getMode() === 'alarm');
     this.homey.flow.getConditionCard('alarm_perimeter_active')
@@ -885,7 +930,7 @@ class McCallisterGuardApp extends Homey.App {
             count: open.length,
             names: open.join(', '),
             mode: 'armed',
-          });
+          }, { mode: 'armed' });
         } catch { /* best-effort */ }
       }
     } catch (err) {

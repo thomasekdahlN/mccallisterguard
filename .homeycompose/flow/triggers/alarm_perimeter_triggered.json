@@ -1,12 +1,23 @@
 {
   "title": {
-    "en": "Perimeter breach detected",
-    "no": "Skallsikringsbrudd oppdaget"
+    "en": "Perimeter breach detected in zone",
+    "no": "Skallsikringsbrudd oppdaget i sone"
+  },
+  "titleFormatted": {
+    "en": "Perimeter breach detected in zone [[zone]]",
+    "no": "Skallsikringsbrudd oppdaget i sone [[zone]]"
   },
   "hint": {
-    "en": "Fires when a sensor trips the alarm while in Perimeter (armed_perimeter) mode. After the entry delay expires, the alarm escalates. Use alarm_triggered for Away (armed) mode breaches.",
-    "no": "Utløses når en sensor aktiverer alarmen i Skallsikringsmodus (armed_perimeter). Etter inngangsforsinkelsen eskalerer alarmen. Bruk alarm_triggered for Borte-modusbrudd."
+    "en": "Fires when a sensor trips the alarm while in Perimeter (armed_perimeter) mode. Filter by zone. Use alarm_triggered for Away (armed) mode breaches.",
+    "no": "Utløses når en sensor aktiverer alarmen i Skallsikringsmodus. Filtrer på sone. Bruk alarm_triggered for Borte-modusbrudd."
   },
+  "args": [
+    {
+      "name": "zone",
+      "type": "autocomplete",
+      "placeholder": { "en": "Select zone…", "no": "Velg sone…" }
+    }
+  ],
   "tokens": [
     {
       "name": "zone",

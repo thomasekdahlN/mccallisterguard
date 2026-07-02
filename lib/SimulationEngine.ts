@@ -124,10 +124,10 @@ export default class SimulationEngine {
 
     if (allNames.length > 0) {
       this.log.add('info', `Kevin-modus: lys på — ${allNames.join(', ')}.`);
-      const onCard = this.homey.flow.getTriggerCard('kevin_lights_on');
+      const onCard = this.homey.flow.getTriggerCard('kevin_zone_on');
       for (const [zoneId, names] of byZone) {
         const zoneName = zoneNameMap.get(zoneId) ?? zoneId;
-        onCard.trigger({ zone: zoneName, light_names: names.join(', ') })
+        onCard.trigger({ zone: zoneName, light_names: names.join(', ') }, { zoneId })
           .catch(() => { /* best-effort */ });
       }
     }
@@ -180,10 +180,10 @@ export default class SimulationEngine {
     this.log.add('info', `${prefix}${lightsMsg}.`);
 
     if (allNames.length > 0) {
-      const offCard = this.homey.flow.getTriggerCard('kevin_lights_off');
+      const offCard = this.homey.flow.getTriggerCard('kevin_zone_off');
       for (const [zoneId, names] of byZone) {
         const zoneName = zoneNameMap.get(zoneId) ?? zoneId;
-        offCard.trigger({ zone: zoneName, light_names: names.join(', ') })
+        offCard.trigger({ zone: zoneName, light_names: names.join(', ') }, { zoneId })
           .catch(() => { /* best-effort */ });
       }
     }

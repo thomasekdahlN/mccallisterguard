@@ -1,12 +1,32 @@
 {
   "title": {
-    "en": "Alarm triggered",
-    "no": "Alarm utløst"
+    "en": "Alarm triggered in zone",
+    "no": "Alarm utløst i sone"
+  },
+  "titleFormatted": {
+    "en": "Alarm triggered in zone [[zone]] by [[sensor_type]]",
+    "no": "Alarm utløst i sone [[zone]] av [[sensor_type]]"
   },
   "hint": {
-    "en": "Fires when a sensor trips the alarm while in Away (armed) mode. After the entry delay expires, the alarm escalates. Use alarm_perimeter_triggered for perimeter (Skallsikring) breaches.",
-    "no": "Utløses når en sensor aktiverer alarmen i Borte-modus (armed). Etter inngangsforsinkelsen eskalerer alarmen. Bruk alarm_perimeter_triggered for skallsikringsbrudd."
+    "en": "Fires when a sensor trips the alarm while in Away (armed) mode. Filter by zone and/or sensor type. Use alarm_perimeter_triggered for Perimeter breaches.",
+    "no": "Utløses når en sensor aktiverer alarmen i Borte-modus. Filtrer på sone og/eller sensortype. Bruk alarm_perimeter_triggered for skallsikringsbrudd."
   },
+  "args": [
+    {
+      "name": "zone",
+      "type": "autocomplete",
+      "placeholder": { "en": "Select zone…", "no": "Velg sone…" }
+    },
+    {
+      "name": "sensor_type",
+      "type": "dropdown",
+      "values": [
+        { "id": "*",       "label": { "en": "Any sensor type",   "no": "Alle sensortyper" } },
+        { "id": "motion",  "label": { "en": "Motion",            "no": "Bevegelse" } },
+        { "id": "contact", "label": { "en": "Contact (door/window)", "no": "Kontakt (dør/vindu)" } }
+      ]
+    }
+  ],
   "tokens": [
     {
       "name": "zone",

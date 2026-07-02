@@ -1,12 +1,27 @@
 {
   "title": {
-    "en": "Open sensors at arming",
-    "no": "Åpne sensorer ved aktivering"
+    "en": "Open sensors at arming in mode",
+    "no": "Åpne sensorer ved aktivering i modus"
+  },
+  "titleFormatted": {
+    "en": "Open sensors at arming in [[mode]] mode",
+    "no": "Åpne sensorer ved aktivering i [[mode]] modus"
   },
   "hint": {
-    "en": "Fires when the system is armed (Away or Skallsikring) and one or more door/window sensors are open.",
-    "no": "Utløses når systemet aktiveres (Borte eller Skallsikring) og én eller flere dør/vindu-sensorer er åpne."
+    "en": "Fires when the system is armed and one or more door/window sensors are open. Filter by mode to react differently to Away vs. Perimeter arming.",
+    "no": "Utløses når systemet aktiveres og én eller flere dør/vindu-sensorer er åpne. Filtrer på modus for ulik respons ved Borte vs. Skallsikring."
   },
+  "args": [
+    {
+      "name": "mode",
+      "type": "dropdown",
+      "values": [
+        { "id": "*",               "label": { "en": "Any mode",  "no": "Alle modi" } },
+        { "id": "armed",           "label": { "en": "Away",      "no": "Borte" } },
+        { "id": "armed_perimeter", "label": { "en": "Perimeter", "no": "Skallsikring" } }
+      ]
+    }
+  ],
   "tokens": [
     {
       "name": "count",
