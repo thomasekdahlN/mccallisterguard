@@ -176,13 +176,27 @@
       },
       {
         "title": {
-          "en": "Perimeter breach detected",
-          "no": "Skallsikringsbrudd oppdaget"
+          "en": "Perimeter breach detected in zone",
+          "no": "Skallsikringsbrudd oppdaget i sone"
+        },
+        "titleFormatted": {
+          "en": "Perimeter breach detected in zone [[zone]]",
+          "no": "Skallsikringsbrudd oppdaget i sone [[zone]]"
         },
         "hint": {
-          "en": "Fires when a sensor trips the alarm while in Perimeter (armed_perimeter) mode. After the entry delay expires, the alarm escalates. Use alarm_triggered for Away (armed) mode breaches.",
-          "no": "Utløses når en sensor aktiverer alarmen i Skallsikringsmodus (armed_perimeter). Etter inngangsforsinkelsen eskalerer alarmen. Bruk alarm_triggered for Borte-modusbrudd."
+          "en": "Fires when a sensor trips the alarm while in Perimeter (armed_perimeter) mode. Filter by zone. Use alarm_triggered for Away (armed) mode breaches.",
+          "no": "Utløses når en sensor aktiverer alarmen i Skallsikringsmodus. Filtrer på sone. Bruk alarm_triggered for Borte-modusbrudd."
         },
+        "args": [
+          {
+            "name": "zone",
+            "type": "autocomplete",
+            "placeholder": {
+              "en": "Select zone…",
+              "no": "Velg sone…"
+            }
+          }
+        ],
         "tokens": [
           {
             "name": "zone",
@@ -298,13 +312,54 @@
       },
       {
         "title": {
-          "en": "Alarm triggered",
-          "no": "Alarm utløst"
+          "en": "Alarm triggered in zone",
+          "no": "Alarm utløst i sone"
+        },
+        "titleFormatted": {
+          "en": "Alarm triggered in zone [[zone]] by [[sensor_type]]",
+          "no": "Alarm utløst i sone [[zone]] av [[sensor_type]]"
         },
         "hint": {
-          "en": "Fires when a sensor trips the alarm while in Away (armed) mode. After the entry delay expires, the alarm escalates. Use alarm_perimeter_triggered for perimeter (Skallsikring) breaches.",
-          "no": "Utløses når en sensor aktiverer alarmen i Borte-modus (armed). Etter inngangsforsinkelsen eskalerer alarmen. Bruk alarm_perimeter_triggered for skallsikringsbrudd."
+          "en": "Fires when a sensor trips the alarm while in Away (armed) mode. Filter by zone and/or sensor type. Use alarm_perimeter_triggered for Perimeter breaches.",
+          "no": "Utløses når en sensor aktiverer alarmen i Borte-modus. Filtrer på sone og/eller sensortype. Bruk alarm_perimeter_triggered for skallsikringsbrudd."
         },
+        "args": [
+          {
+            "name": "zone",
+            "type": "autocomplete",
+            "placeholder": {
+              "en": "Select zone…",
+              "no": "Velg sone…"
+            }
+          },
+          {
+            "name": "sensor_type",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "*",
+                "label": {
+                  "en": "Any sensor type",
+                  "no": "Alle sensortyper"
+                }
+              },
+              {
+                "id": "motion",
+                "label": {
+                  "en": "Motion",
+                  "no": "Bevegelse"
+                }
+              },
+              {
+                "id": "contact",
+                "label": {
+                  "en": "Contact (door/window)",
+                  "no": "Kontakt (dør/vindu)"
+                }
+              }
+            ]
+          }
+        ],
         "tokens": [
           {
             "name": "zone",
@@ -389,13 +444,27 @@
       },
       {
         "title": {
-          "en": "Kevin mode turned lights off",
-          "no": "Kevin-modus skrudde av lys"
+          "en": "Kevin mode deactivated in zone",
+          "no": "Kevin-modus deaktivert i sone"
+        },
+        "titleFormatted": {
+          "en": "Kevin mode deactivated in zone [[zone]]",
+          "no": "Kevin-modus deaktivert i sone [[zone]]"
         },
         "hint": {
-          "en": "Fires once per zone when Kevin presence-simulation turns lights off. Use this to also turn off TV, radio, etc. in the same room.",
-          "no": "Utløses én gang per sone når Kevin-modus skrur av lys. Bruk dette til å slå av TV, radio osv. i samme rom."
+          "en": "Fires when Kevin presence-simulation turns off lights in the selected zone. Use this to also turn off TV, radio, etc. in that room.",
+          "no": "Utløses når Kevin-modus skrur av lys i den valgte sonen. Bruk dette til å slå av TV, radio osv. i samme rom."
         },
+        "args": [
+          {
+            "name": "zone",
+            "type": "autocomplete",
+            "placeholder": {
+              "en": "Select zone…",
+              "no": "Velg sone…"
+            }
+          }
+        ],
         "tokens": [
           {
             "name": "zone",
@@ -422,17 +491,31 @@
             }
           }
         ],
-        "id": "kevin_lights_off"
+        "id": "kevin_zone_off"
       },
       {
         "title": {
-          "en": "Kevin mode turned lights on",
-          "no": "Kevin-modus skrudde på lys"
+          "en": "Kevin mode activated in zone",
+          "no": "Kevin-modus aktivert i sone"
+        },
+        "titleFormatted": {
+          "en": "Kevin mode activated in zone [[zone]]",
+          "no": "Kevin-modus aktivert i sone [[zone]]"
         },
         "hint": {
-          "en": "Fires once per zone when Kevin presence-simulation turns lights on. Use this to also turn on TV, radio, etc. in the same room.",
-          "no": "Utløses én gang per sone når Kevin-modus skrur på lys. Bruk dette til å slå på TV, radio osv. i samme rom."
+          "en": "Fires when Kevin presence-simulation turns on lights in the selected zone. Use this to also turn on TV, radio, etc. in that room.",
+          "no": "Utløses når Kevin-modus skrur på lys i den valgte sonen. Bruk dette til å slå på TV, radio osv. i samme rom."
         },
+        "args": [
+          {
+            "name": "zone",
+            "type": "autocomplete",
+            "placeholder": {
+              "en": "Select zone…",
+              "no": "Velg sone…"
+            }
+          }
+        ],
         "tokens": [
           {
             "name": "zone",
@@ -459,17 +542,85 @@
             }
           }
         ],
-        "id": "kevin_lights_on"
+        "id": "kevin_zone_on"
       },
       {
         "title": {
-          "en": "Mode changed",
-          "no": "Modus endret"
+          "en": "Mode changed to",
+          "no": "Modus endret til"
+        },
+        "titleFormatted": {
+          "en": "Mode changed to [[mode_new]]",
+          "no": "Modus endret til [[mode_new]]"
         },
         "hint": {
-          "en": "Fires whenever the system mode changes (Hjemme / Borte / Skallsikring). Independent of alarm state.",
-          "no": "Utløses hver gang systemmodus endres (Hjemme / Borte / Skallsikring). Uavhengig av alarmtilstand."
+          "en": "Fires whenever the system mode changes. Select the new mode to filter — leave on 'Any' to fire on all mode changes.",
+          "no": "Utløses hver gang systemmodus endres. Velg ny modus for å filtrere — la stå på 'Alle' for å utløse ved alle modusendringer."
         },
+        "args": [
+          {
+            "name": "mode_new",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "*",
+                "label": {
+                  "en": "Any mode",
+                  "no": "Alle modi"
+                }
+              },
+              {
+                "id": "off",
+                "label": {
+                  "en": "Off (app disabled)",
+                  "no": "Av (app deaktivert)"
+                }
+              },
+              {
+                "id": "disarmed",
+                "label": {
+                  "en": "Home (disarmed)",
+                  "no": "Hjemme (deaktivert)"
+                }
+              },
+              {
+                "id": "armed",
+                "label": {
+                  "en": "Away (armed)",
+                  "no": "Borte (armed)"
+                }
+              },
+              {
+                "id": "armed_perimeter",
+                "label": {
+                  "en": "Perimeter",
+                  "no": "Skallsikring"
+                }
+              },
+              {
+                "id": "perimeter_alarm",
+                "label": {
+                  "en": "Perimeter alarm",
+                  "no": "Skallsikring alarm"
+                }
+              },
+              {
+                "id": "deterrence",
+                "label": {
+                  "en": "Deterrence",
+                  "no": "Avskrekking"
+                }
+              },
+              {
+                "id": "alarm",
+                "label": {
+                  "en": "Alarm",
+                  "no": "Alarm"
+                }
+              }
+            ]
+          }
+        ],
         "tokens": [
           {
             "name": "mode_new",
@@ -500,13 +651,46 @@
       },
       {
         "title": {
-          "en": "Open sensors at arming",
-          "no": "Åpne sensorer ved aktivering"
+          "en": "Open sensors at arming in mode",
+          "no": "Åpne sensorer ved aktivering i modus"
+        },
+        "titleFormatted": {
+          "en": "Open sensors at arming in [[mode]] mode",
+          "no": "Åpne sensorer ved aktivering i [[mode]] modus"
         },
         "hint": {
-          "en": "Fires when the system is armed (Away or Skallsikring) and one or more door/window sensors are open.",
-          "no": "Utløses når systemet aktiveres (Borte eller Skallsikring) og én eller flere dør/vindu-sensorer er åpne."
+          "en": "Fires when the system is armed and one or more door/window sensors are open. Filter by mode to react differently to Away vs. Perimeter arming.",
+          "no": "Utløses når systemet aktiveres og én eller flere dør/vindu-sensorer er åpne. Filtrer på modus for ulik respons ved Borte vs. Skallsikring."
         },
+        "args": [
+          {
+            "name": "mode",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "*",
+                "label": {
+                  "en": "Any mode",
+                  "no": "Alle modi"
+                }
+              },
+              {
+                "id": "armed",
+                "label": {
+                  "en": "Away",
+                  "no": "Borte"
+                }
+              },
+              {
+                "id": "armed_perimeter",
+                "label": {
+                  "en": "Perimeter",
+                  "no": "Skallsikring"
+                }
+              }
+            ]
+          }
+        ],
         "tokens": [
           {
             "name": "count",
@@ -546,13 +730,27 @@
       },
       {
         "title": {
-          "en": "Snapshot taken",
-          "no": "Snapshot tatt"
+          "en": "Snapshot taken in zone",
+          "no": "Snapshot tatt i sone"
         },
         "titleFormatted": {
-          "en": "A snapshot was taken",
-          "no": "Et snapshot ble tatt"
+          "en": "Snapshot taken in zone [[zone]]",
+          "no": "Snapshot tatt i sone [[zone]]"
         },
+        "hint": {
+          "en": "Fires when a camera captures a snapshot. Filter by zone to route images from specific cameras to different services (Telegram, Pushover, etc.).",
+          "no": "Utløses når et kamera tar et snapshot. Filtrer på sone for å rute bilder fra bestemte kameraer til ulike tjenester (Telegram, Pushover osv.)."
+        },
+        "args": [
+          {
+            "name": "zone",
+            "type": "autocomplete",
+            "placeholder": {
+              "en": "Select zone…",
+              "no": "Velg sone…"
+            }
+          }
+        ],
         "tokens": [
           {
             "name": "zone",
