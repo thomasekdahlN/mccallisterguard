@@ -3,6 +3,10 @@
     "en": "Kevin mode deactivated in zone",
     "no": "Kevin-modus deaktivert i sone"
   },
+  "titleFormatted": {
+    "en": "Kevin mode deactivated in zone [[zone]]",
+    "no": "Kevin-modus deaktivert i sone [[zone]]"
+  },
   "hint": {
     "en": "Fires when Kevin presence-simulation turns off lights in the selected zone. Use this to also turn off TV, radio, etc. in that room.",
     "no": "Utløses når Kevin-modus skrur av lys i den valgte sonen. Bruk dette til å slå av TV, radio osv. i samme rom."

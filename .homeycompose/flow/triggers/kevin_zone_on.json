@@ -3,6 +3,10 @@
     "en": "Kevin mode activated in zone",
     "no": "Kevin-modus aktivert i sone"
   },
+  "titleFormatted": {
+    "en": "Kevin mode activated in zone [[zone]]",
+    "no": "Kevin-modus aktivert i sone [[zone]]"
+  },
   "hint": {
     "en": "Fires when Kevin presence-simulation turns on lights in the selected zone. Use this to also turn on TV, radio, etc. in that room.",
     "no": "Utløses når Kevin-modus skrur på lys i den valgte sonen. Bruk dette til å slå på TV, radio osv. i samme rom."
