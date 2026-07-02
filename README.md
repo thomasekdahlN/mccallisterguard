@@ -15,10 +15,10 @@ McCallister Guard is not yet another passive alarm system. Instead of just beepi
 - **Entry delay (⏱) per sensor** — mark the front door / back door with ⏱ to give an `entry_delay` countdown (default 30 s) when opened, so an authorised user with a key pad / smart lock has time to disarm before the alarm fires. All other perimeter sensors (motion and non-⏱ contact) also go through the entry delay window before firing the perimeter alarm, giving you time to disarm
 - **Zone-based deterrence** — motion in one zone triggers deterrence in another "reaction zone" (configurable matrix per zone), so the intruder never encounters the response where they are
 - **Configurable light deterrence** — the app blinks lights in the reaction zone with a slow cycle (global ON/OFF time configurable in Settings, default 15 s each way). Mode changes can be used in the `mode_changed` trigger to build custom Homey flows
-- **Kevin mode** — automatic presence simulation in Away mode (lights on/off in a plausible sequence)
+- **Kevin mode** — automatic presence simulation in Away mode (lights on/off in a plausible sequence). The `kevin_zone_on` / `kevin_zone_off` triggers fire per zone with zone filtering in WHEN — use them to also control TV, radio, etc. in the same room
 - **Escalation** — if deterrence does not make the intruder turn back, the system automatically escalates to Alarm mode after a configurable time (full siren, strobe on all lights)
 - **False alarm filter** — multiple independent sensor hits are required before escalation starts
-- **Flow cards** — actions, conditions and triggers (including `mode_changed` and `timestamp` token) for full integration with Homey flows (push, SMS, camera, neighbour alerts)
+- **Flow cards** — actions, conditions and triggers with **built-in filtering directly in WHEN**: pick a zone, mode, or sensor type in the trigger card itself — no extra AND conditions needed. Includes `mode_changed`, `alarm_triggered`, `alarm_perimeter_triggered`, `snapshot_taken`, `open_sensors_at_arming` and Kevin zone triggers
 - **Automatic push notifications** — the app sends push notifications to the Homey app for critical events: deterrence started, perimeter alarm, full alarm triggered, alarm stopped, open sensors at arming, and sensors offline. Mode changes are also posted to the Homey timeline. Everything happens via `homey.notifications.createNotification`, in parallel with the app's internal event log
 - **Multilingual UI** — settings panel in English and Norwegian
 
@@ -88,7 +88,7 @@ flowchart TB
   APP -.reads.-> SETTINGS
   DEV -- alarm_motion / alarm_contact --> APP
   APP -- onoff blink --> DEV
-  APP -- alarm_triggered / alarm_perimeter_triggered / alarm_stopped / alarm_perimeter_stopped / mode_changed / snapshot_taken / health_check_failed --> FLOW
+  APP -- alarm_triggered / alarm_perimeter_triggered / alarm_stopped / alarm_perimeter_stopped / mode_changed / snapshot_taken / open_sensors_at_arming / health_check_failed / kevin_zone_on / kevin_zone_off --> FLOW
   APP -- mode change, alarm stopped --> TIMELINE
   APP -- deterrence, alarm, open sensors, offline --> PUSH
   SM --> AS
@@ -238,7 +238,7 @@ sequenceDiagram
   Note over App,SM: Sensor triggered OR "Test deterrence" pressed
   App->>SM: setMode(deterrence)
   SM->>App: handleModeChange(deterrence, previous)
-  App->>F: trigger mode_changed (mode_new=deterrence, mode_previous=armed)
+  App->>F: trigger mode_changed (mode_new=deterrence, mode_previous=armed, state={mode_new})
   App->>DE: handleMotion(zoneId) / runDirect(zoneId)
   DE->>MC: startBlink(reaction zone)
   loop Global blink_on / blink_off (default 15 s / 15 s)
@@ -247,8 +247,30 @@ sequenceDiagram
     MC->>LIGHT: onoff = false
     MC->>MC: wait blink_off sec
   end
-  F->>UF: WHEN Mode changed — THEN (mode_new = deterrence)
+  F->>UF: WHEN Mode changed to [Deterrence] — filter in WHEN, no AND needed
   Note over App,SM: After escalation_minutes → setMode(alarm)
+```
+
+### Kevin mode — zone-based presence simulation
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant SIM as SimulationEngine
+  participant DEV as Lights in zone
+  participant F as Flow trigger
+  participant UF as User-built Homey flow
+
+  Note over SIM,DEV: Away mode — Kevin cycle runs per configured zone
+  SIM->>SIM: Pick random zone + random ON duration
+  SIM->>DEV: onoff = true (lights on)
+  SIM->>F: kevin_zone_on(tokens={zone, light_names}, state={zoneId})
+  F->>UF: WHEN Kevin mode activated in [Living room]\n→ Turn on TV, radio, etc.
+  SIM->>SIM: Wait ON duration (random interval)
+  SIM->>DEV: onoff = false (lights off)
+  SIM->>F: kevin_zone_off(tokens={zone, light_names}, state={zoneId})
+  F->>UF: WHEN Kevin mode deactivated in [Living room]\n→ Turn off TV, radio, etc.
+  Note over SIM,DEV: Repeat for next zone — simulates occupancy throughout the house
 ```
 
 ## Components
@@ -270,15 +292,22 @@ sequenceDiagram
 
 ### Triggers
 
-| Card | Tokens | When |
-|---|---|---|
-| `alarm_triggered` | `zone`, `sensor`, `sensor_type`, `mode`, `timestamp`, `snapshot` (image, if available) | Sensor activates alarm in **Away** (`armed`) — after entry delay |
-| `alarm_perimeter_triggered` | `zone`, `sensor`, `sensor_type`, `mode`, `timestamp`, `snapshot` (image, if available) | Perimeter sensor triggered in **Perimeter** mode — mode set to `perimeter_alarm`, push sent, user flows react — after entry delay window |
-| `alarm_stopped` | `zone`, `sensor`, `reason` | Away alarm stopped (by user, disarm or automatically) |
-| `alarm_perimeter_stopped` | `zone`, `sensor`, `reason` | Perimeter alarm stopped |
-| `mode_changed` | `mode_new`, `mode_previous` | System changes mode — including transition to `deterrence` and `alarm` |
-| `snapshot_taken` | `zone`, `sensor`, `sensor_type`, `mode`, `timestamp`, `snapshot` (image) | Camera takes snapshot at alarm |
-| `health_check_failed` | `offline_count` | Sensors are offline at arming |
+All trigger cards support **built-in filtering directly in the WHEN clause** — no extra AND conditions needed. Select the filter value (zone, mode, sensor type) when building the flow and Homey will only fire the flow for matching events. Wildcard `*` / `Any` values match all events.
+
+| Card | WHEN args (filter) | Tokens | When |
+|---|---|---|---|
+| `alarm_triggered` | `zone` (autocomplete), `sensor_type` (Any / Motion / Contact) | `zone`, `sensor`, `sensor_type`, `mode`, `timestamp`, `snapshot`* | Sensor trips alarm in **Away** (`armed`) mode — after entry delay |
+| `alarm_perimeter_triggered` | `zone` (autocomplete) | `zone`, `sensor`, `sensor_type`, `mode`, `timestamp`, `snapshot`* | Perimeter sensor triggered in **Perimeter** mode — mode becomes `perimeter_alarm`, no siren |
+| `alarm_stopped` | — | `zone`, `sensor`, `reason` | Away alarm stopped (by user, disarm or auto) |
+| `alarm_perimeter_stopped` | — | `zone`, `sensor`, `reason` | Perimeter alarm stopped |
+| `mode_changed` | `mode_new` dropdown (Any / Off / Home / Away / Perimeter / Perimeter alarm / Deterrence / Alarm) | `mode_new`, `mode_previous` | System mode changes — including `deterrence` and `alarm` transitions |
+| `snapshot_taken` | `zone` (autocomplete) | `zone`, `sensor`, `sensor_type`, `mode`, `timestamp`, `snapshot` (image) | Camera captures a snapshot at alarm |
+| `open_sensors_at_arming` | `mode` dropdown (Any / Away / Perimeter) | `count`, `names`, `mode` | Armed while one or more door/window sensors are open |
+| `kevin_zone_on` | `zone` (autocomplete) | `zone`, `light_names` | Kevin simulation turns **on** lights in a zone (Away mode) |
+| `kevin_zone_off` | `zone` (autocomplete) | `zone`, `light_names` | Kevin simulation turns **off** lights in a zone (Away mode) |
+| `health_check_failed` | — | `offline_count` | Sensors offline at arming |
+
+*`snapshot` image token is included only when a camera is configured in the zone.
 
 ### Conditions
 
@@ -351,37 +380,64 @@ All bundled media files are registered as **permanent global flow tokens** when 
 > The flows below are for additional reactions (sound, lights, Pushover with image, neighbour alerts, etc.)
 
 ```
-WHEN  Perimeter breach detected (alarm_perimeter_triggered)
-      — you are home, low-noise notification
+WHEN  Perimeter breach detected in zone [Hallway]  ← zone filter directly in WHEN
 THEN  Play soft chime on hallway speaker
       Slowly raise hallway light (10% brightness)
       Pushover: Send push with image [[snapshot]] to you alone
 
-WHEN  Alarm triggered (alarm_triggered — Away mode)
-      — nobody home, full response
+WHEN  Perimeter breach detected in zone [Front door]  ← separate flow for each zone
+THEN  Play soft chime
+      Push: "Front door opened"
+
+WHEN  Alarm triggered in zone [Any zone] by [Any sensor type]  ← away mode, nobody home
 THEN  Pushover: Send message with image [[snapshot]] to ALL household members
       Start siren + blink throughout house
       Call emergency contact via IFTTT/SMS
 
-WHEN  Mode changed (mode_changed, mode_new = alarm)
+WHEN  Mode changed to [Alarm]  ← filter in WHEN, no AND condition needed
 THEN  Send SMS to police / emergency contact
 ```
 
 ### Recommended flows — per-zone deterrence
 
-Use the `alarm_triggered_in_zone` condition to run different reactions depending on which zone triggered the alarm. Use the **global media token pills** directly in the URL field of any Chromecast or speaker action:
+Zone filtering is built directly into the WHEN clause of `alarm_triggered` and `alarm_perimeter_triggered` — no AND conditions needed. Create one flow per zone:
 
 ```
-WHEN  Alarm triggered (alarm_triggered)
-
-IF    Alarm was triggered in zone [Living room]
+WHEN  Alarm triggered in zone [Living room] by [Any sensor type]
 THEN  Chromecast (living room TV): Cast video [Media: Blue lights (video)]
 
-IF    Alarm was triggered in zone [Hallway]
+WHEN  Alarm triggered in zone [Hallway] by [Any sensor type]
 THEN  Sonos (hallway): Play URL [Media: Guard dog (audio)]
+
+WHEN  Alarm triggered in zone [Garage] by [Motion]   ← filter by sensor type too
+THEN  Chromecast (garage): Cast video [Media: Large dog (video)]
 ```
 
 The `[Media: Blue lights (video)]` and `[Media: Guard dog (audio)]` items are global token pills — select them from the pill picker (tag icon) in the action's URL field under **McCallister Guard**.
+
+> **Tip:** The `alarm_triggered_in_zone` condition card is still available if you prefer a single flow with multiple IF branches. The zone-filter-in-WHEN approach (above) is simpler and more readable for most setups.
+
+### Recommended flows — Kevin mode (presence simulation)
+
+Kevin mode automatically turns lights on/off in configured zones to simulate occupancy. The `kevin_zone_on` and `kevin_zone_off` triggers fire per zone — use zone filtering in WHEN to also control TV, radio or other devices in the same room:
+
+```
+WHEN  Kevin mode activated in zone [Living room]
+THEN  Turn on TV (living room)
+      Turn on radio at low volume
+
+WHEN  Kevin mode deactivated in zone [Living room]
+THEN  Turn off TV (living room)
+      Turn off radio
+
+WHEN  Kevin mode activated in zone [Bedroom]
+THEN  Turn on bedside lamp (dim to 20%)
+
+WHEN  Kevin mode deactivated in zone [Bedroom]
+THEN  Turn off bedside lamp
+```
+
+The `[[zone]]` token contains the zone name and `[[light_names]]` lists the lights Kevin turned on/off in that cycle.
 
 ### Recommended flows — disarming and arming
 
@@ -645,19 +701,27 @@ The flow can run on all door openings without cluttering the log — only actual
 > a third-party app to call another app's action card (e.g. "Take snapshot") from code — this
 > is only possible from the Flow editor. You must therefore create **one flow per camera** you want to trigger.
 
-The app sends the `zone` token with `alarm_triggered` and `alarm_perimeter_triggered`. Use this
-as a condition to select the correct camera:
+Zone filtering is built directly into `alarm_triggered`, `alarm_perimeter_triggered` and `snapshot_taken` — no AND conditions or Homey Logic text matching needed:
 
 ```
-WHEN  Alarm triggered (alarm_triggered)
-AND   [[zone]] contains "Entrance"          ← Homey Logic: text condition
+WHEN  Alarm triggered in zone [Entrance] by [Any sensor type]
 THEN  [Camera app]: Take snapshot from [entrance camera]
       Telegram: Send message with image [[snapshot]]
 
-WHEN  Alarm triggered (alarm_triggered)
-AND   [[zone]] contains "Garage"
+WHEN  Alarm triggered in zone [Garage] by [Any sensor type]
 THEN  [Camera app]: Take snapshot from [garage camera]
       Telegram: Send message with image [[snapshot]]
+```
+
+Alternatively, use `snapshot_taken` with zone filtering to route snapshots that the app takes itself (from cameras configured directly in the zone):
+
+```
+WHEN  Snapshot taken in zone [Entrance]
+THEN  Telegram: Send message with image [[snapshot]]
+      Pushover: Send image to phone
+
+WHEN  Snapshot taken in zone [Garage]
+THEN  Telegram: Send message with image [[snapshot]]
 ```
 
 **Prerequisite:** The camera app (Reolink, Eufy, Unifi Protect, ONVIF etc.) must have a
@@ -688,26 +752,24 @@ The app fires `mode_changed` (mode_new = deterrence) and `alarm_triggered` / `al
 as integration points. Light deterrence (blink in reaction zone) always runs automatically —
 sound and video must be set up as user flows.
 
-Insert the bundled media files as **global token pills** (tag icon → McCallister Guard) directly into any URL field:
+Insert the bundled media files as **global token pills** (tag icon → McCallister Guard) directly into any URL field. With WHEN-based filtering, no AND conditions are needed:
 
 ```
-WHEN  Mode changed (mode_changed)
-AND   mode_new = deterrence
+WHEN  Mode changed to [Deterrence]          ← filter directly in WHEN
 THEN  Sonos / speaker: Play URL [Media: Guard dog (audio)] at volume 80%
       Chromecast: Cast video [Media: Blue lights (video)] to living room TV
 
-WHEN  Alarm triggered (alarm_perimeter_triggered)
+WHEN  Perimeter breach detected in zone [Hallway]   ← zone filter in WHEN
 THEN  [Hallway speaker]: Play URL [Media: Police siren]
       Push to YOU: "Someone at [[sensor]]"
 
-WHEN  Mode changed (mode_changed)
-AND   mode_new = disarmed
+WHEN  Mode changed to [Home (disarmed)]     ← fires only on disarm
 THEN  Sonos: Stop playback
       Chromecast: Stop playback
 ```
 
 **Tips:**
-- Use the `alarm_triggered_in_zone` condition to play different sounds depending on which room triggered the alarm.
+- Use `alarm_triggered in zone [X]` directly in the WHEN clause to play different sounds per room — no IF/AND conditions needed.
 - Your own flows can safely control lights in the reaction zone in parallel with built-in blinking.
 - Volume control on third-party speakers must be done in the same flow — the app does not have access to this from code.
 
@@ -720,15 +782,15 @@ The system has six modes: `disarmed` (Home), `armed` (Away), `armed_perimeter` (
 
 In the Flow editor (Homey app → Flows → New flow):
 
-1. **WHEN** — `McCallister Guard → Mode changed`
-2. **AND** *(optional)* — filter on `[mode_new]` or `[mode_previous]` to react to specific transitions.
-3. **THEN** — run desired action (push, SMS, turn on lights, activate scene, etc.)
+1. **WHEN** — `McCallister Guard → Mode changed to [mode]` — select the target mode from the dropdown directly in the WHEN card. No AND condition needed.
+2. **THEN** — run the desired action (push, SMS, turn on lights, activate scene, etc.)
+
+Use `[Any mode]` in the WHEN dropdown if you want the flow to fire on all mode changes (e.g. for logging). The `mode_new` and `mode_previous` tokens are always available in THEN.
 
 ### Example 1 — push when deterrence starts
 
 ```text
-WHEN  McCallister Guard → Mode changed
-AND   mode_new = deterrence
+WHEN  McCallister Guard → Mode changed to [Deterrence]
 THEN  Homey → Send a push notification
         Title:  Deterrence active
         Text:   Lights blinking. Check camera in the Homey app.
@@ -737,22 +799,21 @@ THEN  Homey → Send a push notification
 ### Example 2 — call emergency contact at full alarm
 
 ```text
-WHEN  McCallister Guard → Mode changed
-AND   mode_new = alarm
+WHEN  McCallister Guard → Mode changed to [Alarm]
 THEN  Call emergency contact via IFTTT/SMS
       Send push with highest priority to all
 ```
 
-### Example 3 — log mode history
+### Example 3 — log mode history (all changes)
 
 ```text
-WHEN  McCallister Guard → Mode changed
-THEN  Google Sheet → Add row: [mode_new], [mode_previous], [timestamp]
+WHEN  McCallister Guard → Mode changed to [Any mode]
+THEN  Google Sheet → Add row: [mode_new], [mode_previous]
 ```
 
 ### Testing and troubleshooting
 
-- The **"Test deterrence"** button in the Zone overview sets the system to `deterrence` mode directly — use it to verify that flows listening on `mode_changed` (mode_new = deterrence) work.
+- The **"Test deterrence"** button in the Zone overview sets the system to `deterrence` mode directly — use it to verify that flows listening on `Mode changed to [Deterrence]` work.
 - The **"Test alarm"** button in the Zone overview sets the system to `alarm` mode and stops after 15 seconds.
 - In the **Event Log** you always see the current mode line at each mode change.
 - Use the `get_mode` condition to check the active mode in flows without listening to `mode_changed`.
