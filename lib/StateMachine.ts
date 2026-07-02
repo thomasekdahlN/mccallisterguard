@@ -118,7 +118,9 @@ export default class StateMachine {
     this.homey.settings.set(SETTINGS_KEYS.MODE_CHANGED_AT, this.modeChangedAt);
     // Skip logging for disarmed — the set_mode flow handler always logs "Deaktivert av [who]"
     // (with optional comment) at the same instant, making a separate "Modus: disarmed" redundant.
-    if (next !== 'disarmed') {
+    // Skip logging for armed_perimeter — app.ts composes a single "Skallsikring aktivert" entry
+    // that optionally includes open-sensor detail, so we never emit the raw mode key here.
+    if (next !== 'disarmed' && next !== 'armed_perimeter') {
       this.log.add('info', `Modus: ${next}.`);
     }
     for (const listener of this.listeners) {

@@ -194,11 +194,30 @@ class McCallisterGuardApp extends Homey.App {
 
     // Snapshot open contact sensors before armed_perimeter activates so they can be ignored.
     // Skip re-snapshot when returning from perimeter_alarm — the snapshot is still valid.
+    let openPerimeterNames: string[] = [];
     if (mode === 'armed_perimeter' && current !== 'perimeter_alarm') {
-      await this.snapshotOpenPerimeterSensors();
+      openPerimeterNames = await this.snapshotOpenPerimeterSensors();
     }
 
     await this.stateMachine.setMode(mode, mode === 'armed' ? settings.exit_delay : 0);
+
+    // One combined log entry for armed_perimeter activation (StateMachine skips logging for this mode).
+    if (mode === 'armed_perimeter' && current !== 'perimeter_alarm') {
+      if (openPerimeterNames.length > 0) {
+        const msg = `Skallsikring aktivert — ${openPerimeterNames.length} sensor(er) åpen og ignoreres: ${openPerimeterNames.join(', ')}`;
+        this.eventLog.add('info', msg);
+        this.homey.notifications.createNotification({ excerpt: `ℹ️ ${msg}` }).catch(() => { /* best-effort */ });
+        try {
+          await this.homey.flow.getTriggerCard('open_sensors_at_arming').trigger({
+            count: openPerimeterNames.length,
+            names: openPerimeterNames.join(', '),
+            mode: 'armed_perimeter',
+          });
+        } catch { /* best-effort */ }
+      } else {
+        this.eventLog.add('info', 'Skallsikring aktivert.');
+      }
+    }
 
     // Warn about open door/window sensors when arming in away mode.
     if (mode === 'armed') {
@@ -589,7 +608,6 @@ class McCallisterGuardApp extends Homey.App {
       if (recentAlarm) {
         this.eventLog.add('info', 'Skallsikring-autostart utsatt — alarm nylig stoppet.');
       } else {
-        this.eventLog.add('info', 'Skallsikring aktivert.');
         this.setMode('armed_perimeter').catch(() => { /* best-effort */ });
       }
     } else if (!inWindow && mode === 'armed_perimeter') {
@@ -814,12 +832,17 @@ class McCallisterGuardApp extends Homey.App {
    * for the lifetime of the armed_perimeter session. A window left open when you arm
    * for the night should not trigger an alarm.
    */
-  private async snapshotOpenPerimeterSensors(): Promise<void> {
+  /**
+   * Snapshot which perimeter contact sensors are currently open.
+   * Returns the list of open sensor names — logging and notification are handled by the caller
+   * so the activation produces exactly one combined log entry.
+   */
+  private async snapshotOpenPerimeterSensors(): Promise<string[]> {
     // Use strict matching: only snapshot sensors explicitly listed in perimeter_sensors.
     // If no sensors are configured we snapshot nothing — falling back to "all sensors"
     // would cause the guard to silently ignore sensors the user actually wants monitored.
     const perimeterList = this.getSettings().perimeter_sensors ?? [];
-    if (perimeterList.length === 0) return;
+    if (perimeterList.length === 0) return [];
 
     try {
       const devices = await this.homeyApi.devices.getDevices();
@@ -835,20 +858,10 @@ class McCallisterGuardApp extends Homey.App {
           openNames.push(device.name || device.id);
         }
       }
-      if (openNames.length > 0) {
-        const msg = `Skallsikring aktivert: ${openNames.length} sensor(er) åpen ved aktivering — ignoreres: ${openNames.join(', ')}`;
-        this.eventLog.add('info', msg);
-        await this.homey.notifications.createNotification({ excerpt: `ℹ️ ${msg}` });
-        try {
-          await this.homey.flow.getTriggerCard('open_sensors_at_arming').trigger({
-            count: openNames.length,
-            names: openNames.join(', '),
-            mode: 'armed_perimeter',
-          });
-        } catch { /* best-effort */ }
-      }
+      return openNames;
     } catch (err) {
       this.eventLog.add('warning', `Snapshot av åpne sensorer feilet: ${(err as Error).message}`);
+      return [];
     }
   }
 

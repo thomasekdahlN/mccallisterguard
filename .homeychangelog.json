@@ -13,5 +13,8 @@
   },
   "0.8.0": {
     "en": "Name change"
+  },
+  "0.9.0": {
+    "en": "Cleaner logging"
   }
 }
