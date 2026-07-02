@@ -483,7 +483,17 @@ refactor(state): rydd opp i modus-logikk
 
 ---
 
-## 18. Sjekkliste før App Store-innsending
+## 18. README.txt — Homey App Store-krav
+
+- **Kun ren tekst** — ingen Markdown, ingen URL-er, ingen overskrifter
+- **Maks 1–2 avsnitt**, enkel linjeavstand, ingen unødvendig innrykk
+- **Ingen punktlister med funksjoner** — beskriv alt i løpende tekst
+- **Engasjerende og brukerfokusert** — forklar nytten i hverdagen, ikke tekniske detaljer
+- Oversatte versjoner lagres som `README.no.txt`, `README.nl.txt` osv.
+
+---
+
+## 19. Sjekkliste før App Store-innsending
 
 - [ ] `icon.svg` finnes i `assets/`
 - [ ] `small.png`, `large.png`, `xlarge.png` finnes i `assets/images/`
