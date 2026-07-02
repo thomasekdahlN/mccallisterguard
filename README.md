@@ -6,7 +6,7 @@
 
 McCallister Guard is not yet another passive alarm system. Instead of just beeping when someone breaks in, **it tells the intruder that the house is occupied and that someone is watching** — through sounds (barking dogs, sirens), video (blue lights, large dogs, silhouettes in the window) and light patterns that mimic a fully active home. Inspired by Kevin McCallister from *Home Alone* (1990): win by making the burglar turn around at the door.
 
-> ☕ **Free and open source.** If the app protects your home, consider a small donation via [PayPal](https://paypal.me/ekdahlthomas) — even $10 / €10 motivates further development. See [Support the project](#-support-the-project) for details.
+> ☕ **Free and open source.** If the app protects your home, consider a small donation via [PayPal](https://paypal.me/ekdahlthomas) — even $10 / €10 motivates further development and AI credits. See [Support the project](#-support-the-project) for details.
 
 ## Features
 
