@@ -750,38 +750,67 @@ class McCallisterGuardApp extends Homey.App {
     };
 
     // Kevin mode — zone-filtered triggers.
-    const kevinOnCard = this.homey.flow.getTriggerCard('kevin_zone_on');
-    kevinOnCard.registerRunListener(async (args: { zone: { id: string } }, state: { zoneId: string }) => args.zone.id === state.zoneId);
-    kevinOnCard.registerArgumentAutocompleteListener('zone', zoneAutocomplete);
-    const kevinOffCard = this.homey.flow.getTriggerCard('kevin_zone_off');
-    kevinOffCard.registerRunListener(async (args: { zone: { id: string } }, state: { zoneId: string }) => args.zone.id === state.zoneId);
-    kevinOffCard.registerArgumentAutocompleteListener('zone', zoneAutocomplete);
+    // Null-safe: if args.zone is absent (old flow without arg), treat as wildcard and fire.
+    try {
+      const kevinOnCard = this.homey.flow.getTriggerCard('kevin_zone_on');
+      kevinOnCard.registerRunListener(async (args: { zone?: { id: string } }, state: { zoneId: string }) => !args.zone || args.zone.id === state.zoneId);
+      kevinOnCard.registerArgumentAutocompleteListener('zone', zoneAutocomplete);
+      const kevinOffCard = this.homey.flow.getTriggerCard('kevin_zone_off');
+      kevinOffCard.registerRunListener(async (args: { zone?: { id: string } }, state: { zoneId: string }) => !args.zone || args.zone.id === state.zoneId);
+      kevinOffCard.registerArgumentAutocompleteListener('zone', zoneAutocomplete);
+    } catch (err) {
+      this.log(`[warn] kevin_zone trigger registration failed: ${(err as Error).message}`);
+    }
 
-    // mode_changed — filter on mode_new; '*' means any mode.
-    const modeChangedCard = this.homey.flow.getTriggerCard('mode_changed');
-    modeChangedCard.registerRunListener(async (args: { mode_new: string }, state: { mode_new: string }) => args.mode_new === '*' || args.mode_new === state.mode_new);
+    // mode_changed — filter on mode_new; '*' or absent means any mode.
+    try {
+      const modeChangedCard = this.homey.flow.getTriggerCard('mode_changed');
+      modeChangedCard.registerRunListener(async (args: { mode_new?: string }, state: { mode_new: string }) => !args.mode_new || args.mode_new === '*' || args.mode_new === state.mode_new);
+    } catch (err) {
+      this.log(`[warn] mode_changed trigger registration failed: ${(err as Error).message}`);
+    }
 
-    // alarm_triggered — filter on zone + sensor_type; '*' means any.
-    const alarmTriggeredCard = this.homey.flow.getTriggerCard('alarm_triggered');
-    alarmTriggeredCard.registerRunListener(async (
-      args: { zone: { id: string }; sensor_type: string },
-      state: { zoneId: string; sensorType: string },
-    ) => args.zone.id === state.zoneId && (args.sensor_type === '*' || args.sensor_type === state.sensorType));
-    alarmTriggeredCard.registerArgumentAutocompleteListener('zone', zoneAutocomplete);
+    // alarm_triggered — filter on zone + sensor_type; absent or '*' means any.
+    try {
+      const alarmTriggeredCard = this.homey.flow.getTriggerCard('alarm_triggered');
+      alarmTriggeredCard.registerRunListener(async (
+        args: { zone?: { id: string }; sensor_type?: string },
+        state: { zoneId: string; sensorType: string },
+      ) => {
+        const zoneMatch = !args.zone || args.zone.id === state.zoneId;
+        const typeMatch = !args.sensor_type || args.sensor_type === '*' || args.sensor_type === state.sensorType;
+        return zoneMatch && typeMatch;
+      });
+      alarmTriggeredCard.registerArgumentAutocompleteListener('zone', zoneAutocomplete);
+    } catch (err) {
+      this.log(`[warn] alarm_triggered trigger registration failed: ${(err as Error).message}`);
+    }
 
-    // alarm_perimeter_triggered — filter on zone.
-    const alarmPerimTriggeredCard = this.homey.flow.getTriggerCard('alarm_perimeter_triggered');
-    alarmPerimTriggeredCard.registerRunListener(async (args: { zone: { id: string } }, state: { zoneId: string }) => args.zone.id === state.zoneId);
-    alarmPerimTriggeredCard.registerArgumentAutocompleteListener('zone', zoneAutocomplete);
+    // alarm_perimeter_triggered — filter on zone; absent means any.
+    try {
+      const alarmPerimTriggeredCard = this.homey.flow.getTriggerCard('alarm_perimeter_triggered');
+      alarmPerimTriggeredCard.registerRunListener(async (args: { zone?: { id: string } }, state: { zoneId: string }) => !args.zone || args.zone.id === state.zoneId);
+      alarmPerimTriggeredCard.registerArgumentAutocompleteListener('zone', zoneAutocomplete);
+    } catch (err) {
+      this.log(`[warn] alarm_perimeter_triggered trigger registration failed: ${(err as Error).message}`);
+    }
 
-    // snapshot_taken — filter on zone.
-    const snapshotCard = this.homey.flow.getTriggerCard('snapshot_taken');
-    snapshotCard.registerRunListener(async (args: { zone: { id: string } }, state: { zoneId: string }) => args.zone.id === state.zoneId);
-    snapshotCard.registerArgumentAutocompleteListener('zone', zoneAutocomplete);
+    // snapshot_taken — filter on zone; absent means any.
+    try {
+      const snapshotCard = this.homey.flow.getTriggerCard('snapshot_taken');
+      snapshotCard.registerRunListener(async (args: { zone?: { id: string } }, state: { zoneId: string }) => !args.zone || args.zone.id === state.zoneId);
+      snapshotCard.registerArgumentAutocompleteListener('zone', zoneAutocomplete);
+    } catch (err) {
+      this.log(`[warn] snapshot_taken trigger registration failed: ${(err as Error).message}`);
+    }
 
-    // open_sensors_at_arming — filter on mode; '*' means any.
-    const openSensorsCard = this.homey.flow.getTriggerCard('open_sensors_at_arming');
-    openSensorsCard.registerRunListener(async (args: { mode: string }, state: { mode: string }) => args.mode === '*' || args.mode === state.mode);
+    // open_sensors_at_arming — filter on mode; absent or '*' means any.
+    try {
+      const openSensorsCard = this.homey.flow.getTriggerCard('open_sensors_at_arming');
+      openSensorsCard.registerRunListener(async (args: { mode?: string }, state: { mode: string }) => !args.mode || args.mode === '*' || args.mode === state.mode);
+    } catch (err) {
+      this.log(`[warn] open_sensors_at_arming trigger registration failed: ${(err as Error).message}`);
+    }
 
     this.homey.flow.getConditionCard('alarm_active')
       .registerRunListener(async () => this.stateMachine.getMode() === 'alarm');
