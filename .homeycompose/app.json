@@ -1,6 +1,6 @@
 {
   "id": "com.ekdahl.mccallister-guard",
-  "version": "0.9.2",
+  "version": "0.9.3",
   "compatibility": ">=12.4.0",
   "sdk": 3,
   "runtime": "nodejs",
