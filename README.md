@@ -296,7 +296,7 @@ All trigger cards support **built-in filtering directly in the WHEN clause** —
 
 | Card | WHEN args (filter) | Tokens | When |
 |---|---|---|---|
-| `alarm_triggered` | `zone` (autocomplete), `sensor_type` (Any / Motion / Contact) | `zone`, `sensor`, `sensor_type`, `mode`, `timestamp`, `snapshot`* | Sensor trips alarm in **Away** (`armed`) mode — after entry delay |
+| `alarm_triggered` | `zone_filter` (in zone / NOT in zone), `zone` (autocomplete), `sensor_type` (Any / Motion / Contact) | `zone`, `sensor`, `sensor_type`, `mode`, `timestamp`, `snapshot`* | Sensor trips alarm in **Away** (`armed`) mode — after entry delay |
 | `alarm_perimeter_triggered` | `zone` (autocomplete) | `zone`, `sensor`, `sensor_type`, `mode`, `timestamp`, `snapshot`* | Perimeter sensor triggered in **Perimeter** mode — mode becomes `perimeter_alarm`, no siren |
 | `alarm_stopped` | — | `zone`, `sensor`, `reason` | Away alarm stopped (by user, disarm or auto) |
 | `alarm_perimeter_stopped` | — | `zone`, `sensor`, `reason` | Perimeter alarm stopped |
@@ -308,6 +308,17 @@ All trigger cards support **built-in filtering directly in the WHEN clause** —
 | `health_check_failed` | — | `offline_count` | Sensors offline at arming |
 
 *`snapshot` image token is included only when a camera is configured in the zone.
+
+> **Zone filter patterns for `alarm_triggered` — choosing the right approach:**
+>
+> | Goal | Pattern |
+> |---|---|
+> | Fire **only** for zone X | `WHEN Alarm triggered [in zone] [X] by [Any]` |
+> | Fire for **all zones except** X | `WHEN Alarm triggered [NOT in zone] [X] by [Any]` |
+> | Fire for **all zones** | Leave zone arg unselected — fires for every zone |
+> | Single flow, multiple zone branches | `WHEN Alarm triggered [Any zone]` + `AND Alarm was NOT triggered in zone [X]` |
+>
+> The `alarm_triggered_in_zone` **condition** card (AND clause) supports Homey's built-in negation toggle (`was` / `was not`) — no extra code needed. Use the AND approach when you need to combine zone exclusion with other conditions in the same flow.
 
 ### Conditions
 
@@ -415,7 +426,7 @@ THEN  Chromecast (garage): Cast video [Media: Large dog (video)]
 
 The `[Media: Blue lights (video)]` and `[Media: Guard dog (audio)]` items are global token pills — select them from the pill picker (tag icon) in the action's URL field under **McCallister Guard**.
 
-> **Tip:** The `alarm_triggered_in_zone` condition card is still available if you prefer a single flow with multiple IF branches. The zone-filter-in-WHEN approach (above) is simpler and more readable for most setups.
+> **Tip:** Use `[NOT in zone]` in the WHEN card to cover all zones except one — e.g., "global response everywhere except bedroom". For a single flow that branches across multiple zones, combine `WHEN Alarm triggered [Any zone]` with `AND Alarm was NOT triggered in zone [X]` using the `alarm_triggered_in_zone` condition card (toggle its built-in "was not" switch).
 
 ### Recommended flows — Kevin mode (presence simulation)
 
