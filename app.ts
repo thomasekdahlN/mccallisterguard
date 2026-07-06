@@ -665,12 +665,8 @@ class McCallisterGuardApp extends Homey.App {
         const currentMode = this.stateMachine.getMode();
 
         if (args.mode === 'disarmed') {
-          // Only log, push timeline and fire alarm_disarmed when actually disarming from armed mode.
-          // In disarmed or armed_perimeter mode the set_mode=disarmed call is either a no-op or
-          // silently blocked — logging it creates noisy entries every time a door-open flow fires
-          // (e.g. a presence or door-sensor flow that sends disarm regardless of current mode).
-          // In armed mode a disarm is always significant and must always be logged, regardless of name.
           if (currentMode === 'armed') {
+            // Disarming from Away (armed) — always log who came home.
             const who = (args.name?.trim() || 'ukjent').replace(/^user:\s*/i, '');
             // Dedup: log and notify at most once per 15 min per source to prevent
             // duplicate entries when presence + door events both disarm simultaneously.
@@ -687,8 +683,25 @@ class McCallisterGuardApp extends Homey.App {
                 });
               } catch { /* best-effort */ }
             }
+          } else if (currentMode === 'armed_perimeter') {
+            // setMode('disarmed') is silently blocked in perimeter mode (guard in setMode).
+            // But if a name was provided (i.e. someone came home), we should still log the arrival
+            // so the event log reflects who is home — perimeter mode stays active intentionally.
+            const who = args.name?.trim().replace(/^user:\s*/i, '');
+            if (who) {
+              const dedupKey = `arrival:${who.toLowerCase()}`;
+              if (this.shouldNotify(dedupKey)) {
+                const msg = comment
+                  ? `Hjemkomst: ${who} — ${comment}. Skallsikring forblir aktiv.`
+                  : `Hjemkomst: ${who} — Skallsikring forblir aktiv.`;
+                this.eventLog.add('info', msg);
+                this.pushTimeline(`Hjemme: ${who}`);
+              }
+            } else if (comment) {
+              this.eventLog.add('info', `Kommentar: ${comment}`);
+            }
           } else if (comment) {
-            // Disarm was a no-op or blocked, but the flow explicitly set a comment — log it.
+            // Disarm was a no-op (already disarmed), but a comment was set — log it.
             this.eventLog.add('info', `Kommentar: ${comment}`);
           }
         }
@@ -983,12 +996,16 @@ class McCallisterGuardApp extends Homey.App {
     if (mode === 'off' || mode === 'disarmed' || mode === 'perimeter_alarm') return;
     if (this.stateMachine.isExitDelayActive()) return;
     if (mode === 'armed_perimeter') {
-      // Perimeter mode: fire alarm_perimeter_triggered after entry delay, same as armed mode.
-      if (!this.isPerimeterSensor(deviceId)) return;
+      // Motion sensors only trigger perimeter alarm if EXPLICITLY listed in perimeter_sensors.
+      // Unlike contact sensors, there is no "empty list = all" fallback for motion — indoor motion
+      // (e.g. going to the bathroom at night) must never fire the perimeter alarm by default.
+      const perimeterList = this.getSettings().perimeter_sensors ?? [];
+      if (!perimeterList.includes(deviceId)) return;
       if (this.isPerimeterBypassed()) return;
       if (!this.stateMachine.isEntryDelayActive()) {
         const settings = this.getSettings();
-        this.eventLog.add('info', `Bevegelse i perimeter-sone ${zoneId} — inngangsforsinkelse startet (${settings.entry_delay}s).`, zoneId, deviceId);
+        const { zoneName, deviceName } = await this.resolveNames(zoneId, deviceId);
+        this.eventLog.add('info', `Bevegelse: ${deviceName} i ${zoneName} — inngangsforsinkelse startet (${settings.entry_delay}s).`, zoneId, deviceId);
         this.stateMachine.startEntryDelay(settings.entry_delay, () => {
           if (this.stateMachine.getMode() === 'disarmed' || this.stateMachine.getMode() === 'off') return;
           this.enterPerimeterAlarm(zoneId, deviceId, 'motion').catch(() => { /* best-effort */ });
@@ -1064,7 +1081,8 @@ class McCallisterGuardApp extends Homey.App {
       // This gives the resident time to disarm (same pattern as armed mode).
       if (!this.stateMachine.isEntryDelayActive()) {
         const settings = this.getSettings();
-        this.eventLog.add('info', `Perimeter-sensor åpnet i sone ${zoneId} — inngangsforsinkelse startet (${settings.entry_delay}s).`, zoneId, deviceId);
+        const { zoneName, deviceName } = await this.resolveNames(zoneId, deviceId);
+        this.eventLog.add('info', `Perimeter-sensor åpnet: ${deviceName} i ${zoneName} — inngangsforsinkelse startet (${settings.entry_delay}s).`, zoneId, deviceId);
         this.stateMachine.startEntryDelay(settings.entry_delay, () => {
           if (this.stateMachine.getMode() === 'disarmed' || this.stateMachine.getMode() === 'off') return;
           this.enterPerimeterAlarm(zoneId, deviceId, 'contact').catch(() => { /* best-effort */ });
