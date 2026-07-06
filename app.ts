@@ -883,17 +883,24 @@ class McCallisterGuardApp extends Homey.App {
     const devices = await this.homeyApi.devices.getDevices();
     for (const device of Object.values(devices) as any[]) {
       if (!Array.isArray(device.capabilities)) continue;
-      if (device.capabilities.includes('alarm_motion')) {
+      const hasContact = device.capabilities.includes('alarm_contact');
+      const hasMotion = device.capabilities.includes('alarm_motion');
+
+      if (hasContact) {
+        // Devices with alarm_contact are treated as contact (door/window) sensors.
+        // If the device also has alarm_motion (dual-capability), only register the
+        // contact listener — consistent with sensorType() which prioritises alarm_contact.
+        // Registering both would cause onMotion to fire for the same physical event,
+        // triggering perimeter alarm immediately while the contact handler's entry delay runs.
+        device.makeCapabilityInstance('alarm_contact', (value: unknown) => {
+          if (value === true) this.onContact(device.zone, device.id).catch(() => { /* best-effort */ });
+        });
+      } else if (hasMotion) {
+        // Pure motion sensor (no contact capability) — register motion listener only.
         device.makeCapabilityInstance('alarm_motion', (value: unknown) => {
           if (value === true) this.onMotion(device.zone, device.id).catch(() => { /* best-effort */ });
         });
       }
-      if (device.capabilities.includes('alarm_contact')) {
-        device.makeCapabilityInstance('alarm_contact', (value: unknown) => {
-          if (value === true) this.onContact(device.zone, device.id).catch(() => { /* best-effort */ });
-        });
-      }
-
     }
   }
 
@@ -1010,10 +1017,9 @@ class McCallisterGuardApp extends Homey.App {
           if (this.stateMachine.getMode() === 'disarmed' || this.stateMachine.getMode() === 'off') return;
           this.enterPerimeterAlarm(zoneId, deviceId, 'motion').catch(() => { /* best-effort */ });
         });
-      } else {
-        // Entry delay already running — second sensor confirms intrusion, alarm immediately.
-        await this.enterPerimeterAlarm(zoneId, deviceId, 'motion');
       }
+      // Entry delay already running from a previous contact or motion event — do NOT bypass it.
+      // In perimeter mode the resident is home and must always get the full entry delay window.
       return;
     }
 
