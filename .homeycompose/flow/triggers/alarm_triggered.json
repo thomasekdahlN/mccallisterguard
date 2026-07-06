@@ -4,14 +4,22 @@
     "no": "Alarm utløst i sone"
   },
   "titleFormatted": {
-    "en": "Alarm triggered in zone [[zone]] by [[sensor_type]]",
-    "no": "Alarm utløst i sone [[zone]] av [[sensor_type]]"
+    "en": "Alarm triggered [[zone_filter]] [[zone]] by [[sensor_type]]",
+    "no": "Alarm utløst [[zone_filter]] [[zone]] av [[sensor_type]]"
   },
   "hint": {
-    "en": "Fires when a sensor trips the alarm while in Away (armed) mode. Filter by zone and/or sensor type. Use alarm_perimeter_triggered for Perimeter breaches.",
-    "no": "Utløses når en sensor aktiverer alarmen i Borte-modus. Filtrer på sone og/eller sensortype. Bruk alarm_perimeter_triggered for skallsikringsbrudd."
+    "en": "Fires when a sensor trips the alarm while in Away (armed) mode. Filter by zone and/or sensor type — choose 'NOT in zone' to exclude one zone and fire for all others. Use alarm_perimeter_triggered for Perimeter breaches.",
+    "no": "Utløses når en sensor aktiverer alarmen i Borte-modus. Filtrer på sone og/eller sensortype — velg 'IKKE i sone' for å ekskludere én sone og utløse for alle andre. Bruk alarm_perimeter_triggered for skallsikringsbrudd."
   },
   "args": [
+    {
+      "name": "zone_filter",
+      "type": "dropdown",
+      "values": [
+        { "id": "include", "label": { "en": "in zone",     "no": "i sone" } },
+        { "id": "exclude", "label": { "en": "NOT in zone", "no": "IKKE i sone" } }
+      ]
+    },
     {
       "name": "zone",
       "type": "autocomplete",
@@ -21,8 +29,8 @@
       "name": "sensor_type",
       "type": "dropdown",
       "values": [
-        { "id": "*",       "label": { "en": "Any sensor type",   "no": "Alle sensortyper" } },
-        { "id": "motion",  "label": { "en": "Motion",            "no": "Bevegelse" } },
+        { "id": "*",       "label": { "en": "Any sensor type",       "no": "Alle sensortyper" } },
+        { "id": "motion",  "label": { "en": "Motion",                "no": "Bevegelse" } },
         { "id": "contact", "label": { "en": "Contact (door/window)", "no": "Kontakt (dør/vindu)" } }
       ]
     }

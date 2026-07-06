@@ -770,14 +770,19 @@ class McCallisterGuardApp extends Homey.App {
       this.log(`[warn] mode_changed trigger registration failed: ${(err as Error).message}`);
     }
 
-    // alarm_triggered — filter on zone + sensor_type; absent or '*' means any.
+    // alarm_triggered — filter on zone (include/exclude) + sensor_type; absent or '*' means any.
     try {
       const alarmTriggeredCard = this.homey.flow.getTriggerCard('alarm_triggered');
       alarmTriggeredCard.registerRunListener(async (
-        args: { zone?: { id: string }; sensor_type?: string },
+        args: { zone_filter?: string; zone?: { id: string }; sensor_type?: string },
         state: { zoneId: string; sensorType: string },
       ) => {
-        const zoneMatch = !args.zone || args.zone.id === state.zoneId;
+        const exclude = args.zone_filter === 'exclude';
+        const zoneMatch = !args.zone
+          ? true
+          : exclude
+            ? args.zone.id !== state.zoneId
+            : args.zone.id === state.zoneId;
         const typeMatch = !args.sensor_type || args.sensor_type === '*' || args.sensor_type === state.sensorType;
         return zoneMatch && typeMatch;
       });
