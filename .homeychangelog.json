@@ -25,5 +25,8 @@
   },
   "0.9.3": {
     "en": "Bug fixes"
+  },
+  "0.9.4": {
+    "en": "More parameters supported on flows"
   }
 }
