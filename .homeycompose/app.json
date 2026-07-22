@@ -1,6 +1,6 @@
 {
   "id": "com.ekdahl.mccallister-guard",
-  "version": "0.9.4",
+  "version": "0.10.0",
   "compatibility": ">=12.4.0",
   "sdk": 3,
   "runtime": "nodejs",
@@ -9,10 +9,12 @@
   ],
   "name": {
     "en": "McCallister Guard",
+    "nl": "McCallister Guard",
     "no": "McCallister Guard"
   },
   "description": {
     "en": "Home Alone inspired smart security: psychological deterrence for intruders.",
+    "nl": "Op 'Home Alone' geïnspireerde slimme beveiliging: psychologische afschrikking van inbrekers.",
     "no": "Alene Hjemme-inspirert smart sikkerhet: psykologisk avskrekking av tyver."
   },
   "category": [
@@ -40,12 +42,20 @@
     }
   },
   "api": {
+    "getLanguage": {
+      "method": "GET",
+      "path": "/language"
+    },
     "getStatus": {
       "method": "GET",
       "path": "/status"
     },
     "getEventLog": {
       "method": "GET",
+      "path": "/events"
+    },
+    "clearEventLog": {
+      "method": "DELETE",
       "path": "/events"
     },
     "getZones": {
@@ -68,9 +78,33 @@
       "method": "POST",
       "path": "/test-deterrence"
     },
+    "testAlarm": {
+      "method": "POST",
+      "path": "/test-alarm"
+    },
     "stopAlarm": {
       "method": "POST",
       "path": "/stop-alarm"
+    },
+    "setCameraMotion": {
+      "method": "POST",
+      "path": "/set-camera-motion"
+    },
+    "bypassPerimeter": {
+      "method": "POST",
+      "path": "/bypass-perimeter"
+    },
+    "getSnapshotList": {
+      "method": "GET",
+      "path": "/snapshot-list"
+    },
+    "getSnapshotImage": {
+      "method": "GET",
+      "path": "/snapshot-image"
+    },
+    "deleteSnapshots": {
+      "method": "DELETE",
+      "path": "/snapshots"
     }
   }
 }

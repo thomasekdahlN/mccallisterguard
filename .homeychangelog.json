@@ -28,5 +28,8 @@
   },
   "0.9.4": {
     "en": "More parameters supported on flows"
+  },
+  "0.10.0": {
+    "en": "Support for Norwegian, English and Dutch language"
   }
 }

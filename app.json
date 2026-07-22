@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.ekdahl.mccallister-guard",
-  "version": "0.9.4",
+  "version": "0.10.0",
   "compatibility": ">=12.4.0",
   "sdk": 3,
   "runtime": "nodejs",
@@ -10,10 +10,12 @@
   ],
   "name": {
     "en": "McCallister Guard",
+    "nl": "McCallister Guard",
     "no": "McCallister Guard"
   },
   "description": {
     "en": "Home Alone inspired smart security: psychological deterrence for intruders.",
+    "nl": "Op 'Home Alone' geïnspireerde slimme beveiliging: psychologische afschrikking van inbrekers.",
     "no": "Alene Hjemme-inspirert smart sikkerhet: psykologisk avskrekking av tyver."
   },
   "category": [
@@ -41,12 +43,20 @@
     }
   },
   "api": {
+    "getLanguage": {
+      "method": "GET",
+      "path": "/language"
+    },
     "getStatus": {
       "method": "GET",
       "path": "/status"
     },
     "getEventLog": {
       "method": "GET",
+      "path": "/events"
+    },
+    "clearEventLog": {
+      "method": "DELETE",
       "path": "/events"
     },
     "getZones": {
@@ -69,9 +79,33 @@
       "method": "POST",
       "path": "/test-deterrence"
     },
+    "testAlarm": {
+      "method": "POST",
+      "path": "/test-alarm"
+    },
     "stopAlarm": {
       "method": "POST",
       "path": "/stop-alarm"
+    },
+    "setCameraMotion": {
+      "method": "POST",
+      "path": "/set-camera-motion"
+    },
+    "bypassPerimeter": {
+      "method": "POST",
+      "path": "/bypass-perimeter"
+    },
+    "getSnapshotList": {
+      "method": "GET",
+      "path": "/snapshot-list"
+    },
+    "getSnapshotImage": {
+      "method": "GET",
+      "path": "/snapshot-image"
+    },
+    "deleteSnapshots": {
+      "method": "DELETE",
+      "path": "/snapshots"
     }
   },
   "flow": {
@@ -79,10 +113,12 @@
       {
         "title": {
           "en": "Alarm disarmed",
+          "nl": "Alarm uitgeschakeld",
           "no": "Alarm deaktivert"
         },
         "hint": {
           "en": "Fires when the system is disarmed. Deduplicated: at most once per 15 minutes per source to avoid duplicate notifications from simultaneous presence and door events.",
+          "nl": "Wordt geactiveerd wanneer het systeem wordt uitgeschakeld. Gedupliceerd voorkomen: maximaal één keer per 15 minuten per bron, om dubbele meldingen door gelijktijdige aanwezigheids- en deurgebeurtenissen te voorkomen.",
           "no": "Utløses når systemet deaktiveres. Deduplisert: maks én gang per 15 min per kilde for å unngå duplikate varsler fra tilstedeværelse og dørsenso."
         },
         "tokens": [
@@ -91,10 +127,12 @@
             "type": "string",
             "title": {
               "en": "Source",
+              "nl": "Bron",
               "no": "Kilde"
             },
             "example": {
               "en": "user",
+              "nl": "user",
               "no": "user"
             }
           },
@@ -103,10 +141,12 @@
             "type": "string",
             "title": {
               "en": "Name",
+              "nl": "Naam",
               "no": "Navn"
             },
             "example": {
               "en": "Thomas",
+              "nl": "Thomas",
               "no": "Thomas"
             }
           },
@@ -115,10 +155,12 @@
             "type": "string",
             "title": {
               "en": "Previous mode",
+              "nl": "Vorige modus",
               "no": "Forrige modus"
             },
             "example": {
               "en": "armed",
+              "nl": "armed",
               "no": "armed"
             }
           }
@@ -128,10 +170,12 @@
       {
         "title": {
           "en": "Perimeter breach alarm stopped",
+          "nl": "Perimeteralarm gestopt",
           "no": "Skallsikring-alarm avsluttet"
         },
         "hint": {
           "en": "Fires when a perimeter (armed_perimeter) breach alarm is stopped — by the user, by disarming, or automatically. Use alarm_stopped for Away (armed) mode alarms.",
+          "nl": "Wordt geactiveerd wanneer een perimeteralarm (armed_perimeter) wordt gestopt — door de gebruiker, door uitschakelen, of automatisch. Gebruik alarm_stopped voor alarmen in Afwezig-modus (armed).",
           "no": "Utløses når en skallsikringsalarm (armed_perimeter) stoppes — av bruker, ved deaktivering eller automatisk. Bruk alarm_stopped for Borte-modusalarmer."
         },
         "tokens": [
@@ -140,10 +184,12 @@
             "type": "string",
             "title": {
               "en": "Zone (that triggered)",
+              "nl": "Zone (die activeerde)",
               "no": "Sone (som utløste)"
             },
             "example": {
               "en": "Hallway",
+              "nl": "Hal",
               "no": "Gang"
             }
           },
@@ -152,10 +198,12 @@
             "type": "string",
             "title": {
               "en": "Sensor (that triggered)",
+              "nl": "Sensor (die activeerde)",
               "no": "Sensor (som utløste)"
             },
             "example": {
               "en": "Front door",
+              "nl": "Voordeur",
               "no": "Hoveddør"
             }
           },
@@ -164,10 +212,12 @@
             "type": "string",
             "title": {
               "en": "Reason",
+              "nl": "Reden",
               "no": "Årsak"
             },
             "example": {
               "en": "User stopped alarm",
+              "nl": "Gebruiker heeft alarm gestopt",
               "no": "Bruker stoppet alarm"
             }
           }
@@ -177,14 +227,17 @@
       {
         "title": {
           "en": "Perimeter breach detected in zone",
+          "nl": "Perimeterinbreuk gedetecteerd in zone",
           "no": "Skallsikringsbrudd oppdaget i sone"
         },
         "titleFormatted": {
           "en": "Perimeter breach detected in zone [[zone]]",
+          "nl": "Perimeterinbreuk gedetecteerd in zone [[zone]]",
           "no": "Skallsikringsbrudd oppdaget i sone [[zone]]"
         },
         "hint": {
           "en": "Fires when a sensor trips the alarm while in Perimeter (armed_perimeter) mode. Filter by zone. Use alarm_triggered for Away (armed) mode breaches.",
+          "nl": "Wordt geactiveerd wanneer een sensor het alarm activeert in Perimeter-modus (armed_perimeter). Filter op zone. Gebruik alarm_triggered voor inbreuken in Afwezig-modus (armed).",
           "no": "Utløses når en sensor aktiverer alarmen i Skallsikringsmodus. Filtrer på sone. Bruk alarm_triggered for Borte-modusbrudd."
         },
         "args": [
@@ -193,6 +246,7 @@
             "type": "autocomplete",
             "placeholder": {
               "en": "Select zone…",
+              "nl": "Selecteer zone…",
               "no": "Velg sone…"
             }
           }
@@ -203,10 +257,12 @@
             "type": "string",
             "title": {
               "en": "Zone",
+              "nl": "Zone",
               "no": "Sone"
             },
             "example": {
               "en": "Hallway",
+              "nl": "Hal",
               "no": "Gang"
             }
           },
@@ -215,10 +271,12 @@
             "type": "string",
             "title": {
               "en": "Sensor",
+              "nl": "Sensor",
               "no": "Sensor"
             },
             "example": {
               "en": "Front door",
+              "nl": "Voordeur",
               "no": "Hoveddør"
             }
           },
@@ -227,10 +285,12 @@
             "type": "string",
             "title": {
               "en": "Sensor type",
+              "nl": "Sensortype",
               "no": "Sensortype"
             },
             "example": {
               "en": "contact",
+              "nl": "contact",
               "no": "kontakt"
             }
           },
@@ -239,10 +299,12 @@
             "type": "string",
             "title": {
               "en": "Current mode",
+              "nl": "Huidige modus",
               "no": "Aktiv modus"
             },
             "example": {
               "en": "armed_perimeter",
+              "nl": "armed_perimeter",
               "no": "armed_perimeter"
             }
           },
@@ -251,10 +313,12 @@
             "type": "string",
             "title": {
               "en": "Timestamp (ISO 8601)",
+              "nl": "Tijdstempel (ISO 8601)",
               "no": "Tidsstempel (ISO 8601)"
             },
             "example": {
               "en": "2026-05-25T19:05:42.123Z",
+              "nl": "2026-05-25T19:05:42.123Z",
               "no": "2026-05-25T19:05:42.123Z"
             }
           }
@@ -264,10 +328,12 @@
       {
         "title": {
           "en": "Alarm stopped",
+          "nl": "Alarm gestopt",
           "no": "Alarm avsluttet"
         },
         "hint": {
           "en": "Fires when the Away (armed) alarm is stopped — by the user, by disarming, or automatically. Use alarm_perimeter_stopped for perimeter (Skallsikring) alarms.",
+          "nl": "Wordt geactiveerd wanneer het Afwezig-alarm (armed) wordt gestopt — door de gebruiker, door uitschakelen, of automatisch. Gebruik alarm_perimeter_stopped voor perimeteralarmen.",
           "no": "Utløses når Borte-alarmen (armed) stoppes — av bruker, ved deaktivering eller automatisk. Bruk alarm_perimeter_stopped for skallsikringsalarmer."
         },
         "tokens": [
@@ -276,10 +342,12 @@
             "type": "string",
             "title": {
               "en": "Zone (that triggered)",
+              "nl": "Zone (die activeerde)",
               "no": "Sone (som utløste)"
             },
             "example": {
               "en": "Living room",
+              "nl": "Woonkamer",
               "no": "Stua"
             }
           },
@@ -288,10 +356,12 @@
             "type": "string",
             "title": {
               "en": "Sensor (that triggered)",
+              "nl": "Sensor (die activeerde)",
               "no": "Sensor (som utløste)"
             },
             "example": {
               "en": "Motion sensor (hallway)",
+              "nl": "Bewegingssensor (hal)",
               "no": "Bevegelsessensor (gang)"
             }
           },
@@ -300,10 +370,12 @@
             "type": "string",
             "title": {
               "en": "Reason",
+              "nl": "Reden",
               "no": "Årsak"
             },
             "example": {
               "en": "User stopped alarm",
+              "nl": "Gebruiker heeft alarm gestopt",
               "no": "Bruker stoppet alarm"
             }
           }
@@ -313,14 +385,17 @@
       {
         "title": {
           "en": "Alarm triggered in zone",
+          "nl": "Alarm geactiveerd in zone",
           "no": "Alarm utløst i sone"
         },
         "titleFormatted": {
           "en": "Alarm triggered [[zone_filter]] [[zone]] by [[sensor_type]]",
+          "nl": "Alarm geactiveerd [[zone_filter]] [[zone]] door [[sensor_type]]",
           "no": "Alarm utløst [[zone_filter]] [[zone]] av [[sensor_type]]"
         },
         "hint": {
           "en": "Fires when a sensor trips the alarm while in Away (armed) mode. Filter by zone and/or sensor type — choose 'NOT in zone' to exclude one zone and fire for all others. Use alarm_perimeter_triggered for Perimeter breaches.",
+          "nl": "Wordt geactiveerd wanneer een sensor het alarm activeert in Afwezig-modus (armed). Filter op zone en/of sensortype — kies 'NIET in zone' om één zone uit te sluiten en voor alle andere te activeren. Gebruik alarm_perimeter_triggered voor perimeterinbreuken.",
           "no": "Utløses når en sensor aktiverer alarmen i Borte-modus. Filtrer på sone og/eller sensortype — velg 'IKKE i sone' for å ekskludere én sone og utløse for alle andre. Bruk alarm_perimeter_triggered for skallsikringsbrudd."
         },
         "args": [
@@ -332,6 +407,7 @@
                 "id": "include",
                 "label": {
                   "en": "in zone",
+                  "nl": "in zone",
                   "no": "i sone"
                 }
               },
@@ -339,6 +415,7 @@
                 "id": "exclude",
                 "label": {
                   "en": "NOT in zone",
+                  "nl": "NIET in zone",
                   "no": "IKKE i sone"
                 }
               }
@@ -349,6 +426,7 @@
             "type": "autocomplete",
             "placeholder": {
               "en": "Select zone…",
+              "nl": "Selecteer zone…",
               "no": "Velg sone…"
             }
           },
@@ -360,6 +438,7 @@
                 "id": "*",
                 "label": {
                   "en": "Any sensor type",
+                  "nl": "Elk sensortype",
                   "no": "Alle sensortyper"
                 }
               },
@@ -367,6 +446,7 @@
                 "id": "motion",
                 "label": {
                   "en": "Motion",
+                  "nl": "Beweging",
                   "no": "Bevegelse"
                 }
               },
@@ -374,6 +454,7 @@
                 "id": "contact",
                 "label": {
                   "en": "Contact (door/window)",
+                  "nl": "Contact (deur/raam)",
                   "no": "Kontakt (dør/vindu)"
                 }
               }
@@ -386,10 +467,12 @@
             "type": "string",
             "title": {
               "en": "Zone",
+              "nl": "Zone",
               "no": "Sone"
             },
             "example": {
               "en": "Living room",
+              "nl": "Woonkamer",
               "no": "Stua"
             }
           },
@@ -398,10 +481,12 @@
             "type": "string",
             "title": {
               "en": "Sensor",
+              "nl": "Sensor",
               "no": "Sensor"
             },
             "example": {
               "en": "Motion sensor (hallway)",
+              "nl": "Bewegingssensor (hal)",
               "no": "Bevegelsessensor (gang)"
             }
           },
@@ -410,10 +495,12 @@
             "type": "string",
             "title": {
               "en": "Sensor type",
+              "nl": "Sensortype",
               "no": "Sensortype"
             },
             "example": {
               "en": "motion",
+              "nl": "motion",
               "no": "bevegelse"
             }
           },
@@ -422,10 +509,12 @@
             "type": "string",
             "title": {
               "en": "Current mode",
+              "nl": "Huidige modus",
               "no": "Aktiv modus"
             },
             "example": {
               "en": "armed",
+              "nl": "armed",
               "no": "armed"
             }
           },
@@ -434,10 +523,12 @@
             "type": "string",
             "title": {
               "en": "Timestamp (ISO 8601)",
+              "nl": "Tijdstempel (ISO 8601)",
               "no": "Tidsstempel (ISO 8601)"
             },
             "example": {
               "en": "2026-05-25T19:05:42.123Z",
+              "nl": "2026-05-25T19:05:42.123Z",
               "no": "2026-05-25T19:05:42.123Z"
             }
           }
@@ -447,6 +538,7 @@
       {
         "title": {
           "en": "Health check failed (offline devices)",
+          "nl": "Gezondheidscontrole mislukt (apparaten offline)",
           "no": "Helsesjekk feilet (offline enheter)"
         },
         "tokens": [
@@ -455,6 +547,7 @@
             "type": "number",
             "title": {
               "en": "Offline count",
+              "nl": "Aantal offline",
               "no": "Antall offline"
             },
             "example": 1
@@ -465,14 +558,17 @@
       {
         "title": {
           "en": "Kevin mode deactivated in zone",
+          "nl": "Kevin-modus gedeactiveerd in zone",
           "no": "Kevin-modus deaktivert i sone"
         },
         "titleFormatted": {
           "en": "Kevin mode deactivated in zone [[zone]]",
+          "nl": "Kevin-modus gedeactiveerd in zone [[zone]]",
           "no": "Kevin-modus deaktivert i sone [[zone]]"
         },
         "hint": {
           "en": "Fires when Kevin presence-simulation turns off lights in the selected zone. Use this to also turn off TV, radio, etc. in that room.",
+          "nl": "Wordt geactiveerd wanneer de Kevin-aanwezigheidssimulatie de lichten in de geselecteerde zone uitschakelt. Gebruik dit om ook tv, radio enz. in die ruimte uit te schakelen.",
           "no": "Utløses når Kevin-modus skrur av lys i den valgte sonen. Bruk dette til å slå av TV, radio osv. i samme rom."
         },
         "args": [
@@ -481,6 +577,7 @@
             "type": "autocomplete",
             "placeholder": {
               "en": "Select zone…",
+              "nl": "Selecteer zone…",
               "no": "Velg sone…"
             }
           }
@@ -491,10 +588,12 @@
             "type": "string",
             "title": {
               "en": "Zone",
+              "nl": "Zone",
               "no": "Sone"
             },
             "example": {
               "en": "Living room",
+              "nl": "Woonkamer",
               "no": "Stua"
             }
           },
@@ -503,10 +602,12 @@
             "type": "string",
             "title": {
               "en": "Light names",
+              "nl": "Lampnamen",
               "no": "Lysnavn"
             },
             "example": {
               "en": "Floor lamp, Ceiling light",
+              "nl": "Vloerlamp, Plafondlamp",
               "no": "Gulvlampe, Taklampe"
             }
           }
@@ -516,14 +617,17 @@
       {
         "title": {
           "en": "Kevin mode activated in zone",
+          "nl": "Kevin-modus geactiveerd in zone",
           "no": "Kevin-modus aktivert i sone"
         },
         "titleFormatted": {
           "en": "Kevin mode activated in zone [[zone]]",
+          "nl": "Kevin-modus geactiveerd in zone [[zone]]",
           "no": "Kevin-modus aktivert i sone [[zone]]"
         },
         "hint": {
           "en": "Fires when Kevin presence-simulation turns on lights in the selected zone. Use this to also turn on TV, radio, etc. in that room.",
+          "nl": "Wordt geactiveerd wanneer de Kevin-aanwezigheidssimulatie de lichten in de geselecteerde zone inschakelt. Gebruik dit om ook tv, radio enz. in die ruimte in te schakelen.",
           "no": "Utløses når Kevin-modus skrur på lys i den valgte sonen. Bruk dette til å slå på TV, radio osv. i samme rom."
         },
         "args": [
@@ -532,6 +636,7 @@
             "type": "autocomplete",
             "placeholder": {
               "en": "Select zone…",
+              "nl": "Selecteer zone…",
               "no": "Velg sone…"
             }
           }
@@ -542,10 +647,12 @@
             "type": "string",
             "title": {
               "en": "Zone",
+              "nl": "Zone",
               "no": "Sone"
             },
             "example": {
               "en": "Living room",
+              "nl": "Woonkamer",
               "no": "Stua"
             }
           },
@@ -554,10 +661,12 @@
             "type": "string",
             "title": {
               "en": "Light names",
+              "nl": "Lampnamen",
               "no": "Lysnavn"
             },
             "example": {
               "en": "Floor lamp, Ceiling light",
+              "nl": "Vloerlamp, Plafondlamp",
               "no": "Gulvlampe, Taklampe"
             }
           }
@@ -567,14 +676,17 @@
       {
         "title": {
           "en": "Mode changed to",
+          "nl": "Modus gewijzigd naar",
           "no": "Modus endret til"
         },
         "titleFormatted": {
           "en": "Mode changed to [[mode_new]]",
+          "nl": "Modus gewijzigd naar [[mode_new]]",
           "no": "Modus endret til [[mode_new]]"
         },
         "hint": {
           "en": "Fires whenever the system mode changes. Select the new mode to filter — leave on 'Any' to fire on all mode changes.",
+          "nl": "Wordt geactiveerd telkens wanneer de systeemmodus verandert. Selecteer de nieuwe modus om te filteren — laat op 'Alle' staan om bij elke moduswijziging te activeren.",
           "no": "Utløses hver gang systemmodus endres. Velg ny modus for å filtrere — la stå på 'Alle' for å utløse ved alle modusendringer."
         },
         "args": [
@@ -586,6 +698,7 @@
                 "id": "*",
                 "label": {
                   "en": "Any mode",
+                  "nl": "Elke modus",
                   "no": "Alle modi"
                 }
               },
@@ -593,6 +706,7 @@
                 "id": "off",
                 "label": {
                   "en": "Off (app disabled)",
+                  "nl": "Uit (app uitgeschakeld)",
                   "no": "Av (app deaktivert)"
                 }
               },
@@ -600,6 +714,7 @@
                 "id": "disarmed",
                 "label": {
                   "en": "Home (disarmed)",
+                  "nl": "Thuis (uitgeschakeld)",
                   "no": "Hjemme (deaktivert)"
                 }
               },
@@ -607,6 +722,7 @@
                 "id": "armed",
                 "label": {
                   "en": "Away (armed)",
+                  "nl": "Afwezig (ingeschakeld)",
                   "no": "Borte (armed)"
                 }
               },
@@ -614,6 +730,7 @@
                 "id": "armed_perimeter",
                 "label": {
                   "en": "Perimeter",
+                  "nl": "Perimeter",
                   "no": "Skallsikring"
                 }
               },
@@ -621,6 +738,7 @@
                 "id": "perimeter_alarm",
                 "label": {
                   "en": "Perimeter alarm",
+                  "nl": "Perimeteralarm",
                   "no": "Skallsikring alarm"
                 }
               },
@@ -628,6 +746,7 @@
                 "id": "deterrence",
                 "label": {
                   "en": "Deterrence",
+                  "nl": "Afschrikking",
                   "no": "Avskrekking"
                 }
               },
@@ -635,6 +754,7 @@
                 "id": "alarm",
                 "label": {
                   "en": "Alarm",
+                  "nl": "Alarm",
                   "no": "Alarm"
                 }
               }
@@ -647,10 +767,12 @@
             "type": "string",
             "title": {
               "en": "New mode",
+              "nl": "Nieuwe modus",
               "no": "Ny modus"
             },
             "example": {
               "en": "armed",
+              "nl": "armed",
               "no": "armed"
             }
           },
@@ -659,10 +781,12 @@
             "type": "string",
             "title": {
               "en": "Previous mode",
+              "nl": "Vorige modus",
               "no": "Forrige modus"
             },
             "example": {
               "en": "disarmed",
+              "nl": "disarmed",
               "no": "disarmed"
             }
           }
@@ -672,14 +796,17 @@
       {
         "title": {
           "en": "Open sensors at arming in mode",
+          "nl": "Open sensoren bij inschakelen in modus",
           "no": "Åpne sensorer ved aktivering i modus"
         },
         "titleFormatted": {
           "en": "Open sensors at arming in [[mode]] mode",
+          "nl": "Open sensoren bij inschakelen in modus [[mode]]",
           "no": "Åpne sensorer ved aktivering i [[mode]] modus"
         },
         "hint": {
           "en": "Fires when the system is armed and one or more door/window sensors are open. Filter by mode to react differently to Away vs. Perimeter arming.",
+          "nl": "Wordt geactiveerd wanneer het systeem wordt ingeschakeld terwijl één of meer deur-/raamsensoren open staan. Filter op modus om anders te reageren op inschakelen in Afwezig- versus Perimeter-modus.",
           "no": "Utløses når systemet aktiveres og én eller flere dør/vindu-sensorer er åpne. Filtrer på modus for ulik respons ved Borte vs. Skallsikring."
         },
         "args": [
@@ -691,6 +818,7 @@
                 "id": "*",
                 "label": {
                   "en": "Any mode",
+                  "nl": "Elke modus",
                   "no": "Alle modi"
                 }
               },
@@ -698,6 +826,7 @@
                 "id": "armed",
                 "label": {
                   "en": "Away",
+                  "nl": "Afwezig",
                   "no": "Borte"
                 }
               },
@@ -705,6 +834,7 @@
                 "id": "armed_perimeter",
                 "label": {
                   "en": "Perimeter",
+                  "nl": "Perimeter",
                   "no": "Skallsikring"
                 }
               }
@@ -717,6 +847,7 @@
             "type": "number",
             "title": {
               "en": "Open sensor count",
+              "nl": "Aantal open sensoren",
               "no": "Antall åpne sensorer"
             },
             "example": 2
@@ -726,10 +857,12 @@
             "type": "string",
             "title": {
               "en": "Sensor names",
+              "nl": "Sensornamen",
               "no": "Sensornavn"
             },
             "example": {
               "en": "Front door, Garage door",
+              "nl": "Voordeur, Garagedeur",
               "no": "Inngangsdør, Garasjeport"
             }
           },
@@ -738,10 +871,12 @@
             "type": "string",
             "title": {
               "en": "Active mode",
+              "nl": "Actieve modus",
               "no": "Aktiv modus"
             },
             "example": {
               "en": "armed",
+              "nl": "armed",
               "no": "armed"
             }
           }
@@ -751,14 +886,17 @@
       {
         "title": {
           "en": "Snapshot taken in zone",
+          "nl": "Snapshot gemaakt in zone",
           "no": "Snapshot tatt i sone"
         },
         "titleFormatted": {
           "en": "Snapshot taken in zone [[zone]]",
+          "nl": "Snapshot gemaakt in zone [[zone]]",
           "no": "Snapshot tatt i sone [[zone]]"
         },
         "hint": {
           "en": "Fires when a camera captures a snapshot. Filter by zone to route images from specific cameras to different services (Telegram, Pushover, etc.).",
+          "nl": "Wordt geactiveerd wanneer een camera een snapshot maakt. Filter op zone om beelden van specifieke camera's naar verschillende diensten te sturen (Telegram, Pushover, enz.).",
           "no": "Utløses når et kamera tar et snapshot. Filtrer på sone for å rute bilder fra bestemte kameraer til ulike tjenester (Telegram, Pushover osv.)."
         },
         "args": [
@@ -767,6 +905,7 @@
             "type": "autocomplete",
             "placeholder": {
               "en": "Select zone…",
+              "nl": "Selecteer zone…",
               "no": "Velg sone…"
             }
           }
@@ -777,10 +916,12 @@
             "type": "string",
             "title": {
               "en": "Zone",
+              "nl": "Zone",
               "no": "Sone"
             },
             "example": {
               "en": "Living room",
+              "nl": "Woonkamer",
               "no": "Stua"
             }
           },
@@ -789,10 +930,12 @@
             "type": "string",
             "title": {
               "en": "Camera",
+              "nl": "Camera",
               "no": "Kamera"
             },
             "example": {
               "en": "Front door camera",
+              "nl": "Camera voordeur",
               "no": "Kamera hoveddør"
             }
           },
@@ -801,10 +944,12 @@
             "type": "string",
             "title": {
               "en": "Sensor type",
+              "nl": "Sensortype",
               "no": "Sensortype"
             },
             "example": {
               "en": "camera",
+              "nl": "camera",
               "no": "camera"
             }
           },
@@ -813,10 +958,12 @@
             "type": "string",
             "title": {
               "en": "Arm mode",
+              "nl": "Ingeschakelde modus",
               "no": "Armert modus"
             },
             "example": {
               "en": "armed",
+              "nl": "armed",
               "no": "armed"
             }
           },
@@ -825,10 +972,12 @@
             "type": "string",
             "title": {
               "en": "Timestamp (ISO 8601)",
+              "nl": "Tijdstempel (ISO 8601)",
               "no": "Tidsstempel (ISO 8601)"
             },
             "example": {
               "en": "2026-05-26T08:00:00.000Z",
+              "nl": "2026-05-26T08:00:00.000Z",
               "no": "2026-05-26T08:00:00.000Z"
             }
           },
@@ -837,6 +986,7 @@
             "type": "image",
             "title": {
               "en": "Snapshot image",
+              "nl": "Snapshot-afbeelding",
               "no": "Snapshot-bilde"
             }
           }
@@ -848,10 +998,12 @@
       {
         "title": {
           "en": "Alarm !{{is|is not}} active",
+          "nl": "Alarm !{{is|is niet}} actief",
           "no": "Alarm !{{er|er ikke}} aktiv"
         },
         "hint": {
           "en": "True when an alarm is currently triggered (independent of mode).",
+          "nl": "Waar wanneer er op dit moment een alarm actief is (onafhankelijk van de modus).",
           "no": "Sann når en alarm er utløst akkurat nå (uavhengig av modus)."
         },
         "id": "alarm_active"
@@ -859,10 +1011,12 @@
       {
         "title": {
           "en": "Perimeter !{{is|is not}} active",
+          "nl": "Perimeter !{{is|is niet}} actief",
           "no": "Skallsikring !{{er|er ikke}} aktiv"
         },
         "hint": {
           "en": "True when the system is in Perimeter (armed_perimeter) mode.",
+          "nl": "Waar wanneer het systeem in Perimeter-modus (armed_perimeter) staat.",
           "no": "Sann når systemet er i Skallsikringsmodus (armed_perimeter)."
         },
         "id": "alarm_perimeter_active"
@@ -870,14 +1024,17 @@
       {
         "title": {
           "en": "Alarm !{{was|was not}} triggered in zone [[zone]]",
+          "nl": "Alarm !{{werd|werd niet}} geactiveerd in zone [[zone]]",
           "no": "Alarm !{{ble|ble ikke}} utløst i sone [[zone]]"
         },
         "titleFormatted": {
           "en": "Alarm !{{was|was not}} triggered in zone [[zone]]",
+          "nl": "Alarm !{{werd|werd niet}} geactiveerd in zone [[zone]]",
           "no": "Alarm !{{ble|ble ikke}} utløst i sone [[zone]]"
         },
         "hint": {
           "en": "True when the active alarm or perimeter alert was triggered by a sensor in the selected zone. Use this to run different deterrence reactions per zone.",
+          "nl": "Waar wanneer het actieve alarm of de perimeterwaarschuwing werd geactiveerd door een sensor in de geselecteerde zone. Gebruik dit om per zone een andere afschrikkingsreactie uit te voeren.",
           "no": "Sann når aktiv alarm eller skallsikringsvarsel ble utløst av en sensor i valgt sone. Bruk dette for å kjøre ulik avskrekking per sone."
         },
         "args": [
@@ -886,6 +1043,7 @@
             "type": "autocomplete",
             "placeholder": {
               "en": "Select zone…",
+              "nl": "Selecteer zone…",
               "no": "Velg sone…"
             }
           }
@@ -895,14 +1053,17 @@
       {
         "title": {
           "en": "Mode !{{is|is not}} [[mode]]",
+          "nl": "Modus !{{is|is niet}} [[mode]]",
           "no": "Modus !{{er|er ikke}} [[mode]]"
         },
         "titleFormatted": {
           "en": "Mode !{{is|is not}} [[mode]]",
+          "nl": "Modus !{{is|is niet}} [[mode]]",
           "no": "Modus !{{er|er ikke}} [[mode]]"
         },
         "hint": {
           "en": "Check the current guard mode. Replaces the deprecated is_armed condition.",
+          "nl": "Controleer de huidige bewakingsmodus. Vervangt de verouderde is_armed-voorwaarde.",
           "no": "Sjekk aktiv vaktstatus. Erstatter den utdaterte is_armed betingelsen."
         },
         "args": [
@@ -914,6 +1075,7 @@
                 "id": "off",
                 "label": {
                   "en": "Off (app disabled)",
+                  "nl": "Uit (app uitgeschakeld)",
                   "no": "Av (app deaktivert)"
                 }
               },
@@ -921,6 +1083,7 @@
                 "id": "disarmed",
                 "label": {
                   "en": "Home (disarmed)",
+                  "nl": "Thuis (uitgeschakeld)",
                   "no": "Hjemme (deaktivert)"
                 }
               },
@@ -928,6 +1091,7 @@
                 "id": "armed",
                 "label": {
                   "en": "Away (armed)",
+                  "nl": "Afwezig (ingeschakeld)",
                   "no": "Borte (armed)"
                 }
               },
@@ -935,6 +1099,7 @@
                 "id": "armed_perimeter",
                 "label": {
                   "en": "Perimeter armed",
+                  "nl": "Perimeter ingeschakeld",
                   "no": "Skallsikring"
                 }
               },
@@ -942,6 +1107,7 @@
                 "id": "perimeter_alarm",
                 "label": {
                   "en": "Perimeter alarm triggered",
+                  "nl": "Perimeteralarm geactiveerd",
                   "no": "Skallsikring alarm utløst"
                 }
               },
@@ -949,6 +1115,7 @@
                 "id": "deterrence",
                 "label": {
                   "en": "Deterrence active",
+                  "nl": "Afschrikking actief",
                   "no": "Avskrekking aktiv"
                 }
               },
@@ -956,6 +1123,7 @@
                 "id": "alarm",
                 "label": {
                   "en": "Alarm triggered",
+                  "nl": "Alarm geactiveerd",
                   "no": "Alarm utløst"
                 }
               }
@@ -969,10 +1137,12 @@
       {
         "title": {
           "en": "Bypass perimeter sensors",
+          "nl": "Perimetersensoren omzeilen",
           "no": "Forbigå perimetersensorer"
         },
         "titleFormatted": {
           "en": "Bypass perimeter sensors for [[duration]] seconds",
+          "nl": "Perimetersensoren omzeilen voor [[duration]] seconden",
           "no": "Forbigå perimetersensorer i [[duration]] sekunder"
         },
         "args": [
@@ -984,10 +1154,12 @@
             "step": 5,
             "label": {
               "en": "Duration (seconds)",
+              "nl": "Duur (seconden)",
               "no": "Varighet (sekunder)"
             },
             "placeholder": {
               "en": "60",
+              "nl": "60",
               "no": "60"
             }
           }
@@ -997,10 +1169,12 @@
       {
         "title": {
           "en": "Get bundled media URL",
+          "nl": "Meegeleverde media-URL ophalen",
           "no": "Hent innebygd media-URL"
         },
         "titleFormatted": {
           "en": "Get URL for [[file]]",
+          "nl": "URL ophalen voor [[file]]",
           "no": "Hent URL for [[file]]"
         },
         "args": [
@@ -1012,6 +1186,7 @@
                 "id": "alarm-beep.ogg",
                 "label": {
                   "en": "🔔 Alarm beep",
+                  "nl": "🔔 Alarmpiep",
                   "no": "🔔 Alarm-pip"
                 }
               },
@@ -1019,6 +1194,7 @@
                 "id": "fire-alarm.ogg",
                 "label": {
                   "en": "🔥 Fire alarm",
+                  "nl": "🔥 Brandalarm",
                   "no": "🔥 Brannalarm"
                 }
               },
@@ -1026,6 +1202,7 @@
                 "id": "guard-dog.ogg",
                 "label": {
                   "en": "🐕 Guard dog (audio)",
+                  "nl": "🐕 Waakhond (audio)",
                   "no": "🐕 Vaktbikkje (lyd)"
                 }
               },
@@ -1033,6 +1210,7 @@
                 "id": "intruder-voice.m4a",
                 "label": {
                   "en": "🔊 Intruder warning (voice)",
+                  "nl": "🔊 Waarschuwing voor inbreker (stem)",
                   "no": "🔊 Innbruddsadvarsel (stemme)"
                 }
               },
@@ -1040,6 +1218,7 @@
                 "id": "police-siren.ogg",
                 "label": {
                   "en": "🚨 Police siren",
+                  "nl": "🚨 Politiesirene",
                   "no": "🚨 Politisirene"
                 }
               },
@@ -1047,6 +1226,7 @@
                 "id": "blue-lights.mp4",
                 "label": {
                   "en": "🚔 Blue lights (video)",
+                  "nl": "🚔 Zwaailicht (video)",
                   "no": "🚔 Blålys (video)"
                 }
               },
@@ -1054,6 +1234,7 @@
                 "id": "cop-silhouette.mp4",
                 "label": {
                   "en": "👮 Cop silhouette (video)",
+                  "nl": "👮 Silhouet van agent (video)",
                   "no": "👮 Politisilhuett (video)"
                 }
               },
@@ -1061,6 +1242,7 @@
                 "id": "large-dog.mp4",
                 "label": {
                   "en": "🐩 Large dog (video)",
+                  "nl": "🐩 Grote hond (video)",
                   "no": "🐩 Stor hund (video)"
                 }
               }
@@ -1073,10 +1255,12 @@
             "type": "string",
             "title": {
               "en": "Media URL",
+              "nl": "Media-URL",
               "no": "Media-URL"
             },
             "example": {
               "en": "http://192.168.1.100/app/com.ekdahl.mccallister-guard/assets/media/police-siren.ogg",
+              "nl": "http://192.168.1.100/app/com.ekdahl.mccallister-guard/assets/media/police-siren.ogg",
               "no": "http://192.168.1.100/app/com.ekdahl.mccallister-guard/assets/media/police-siren.ogg"
             }
           }
@@ -1086,10 +1270,12 @@
       {
         "title": {
           "en": "Set motion snapshot",
+          "nl": "Bewegingssnapshot instellen",
           "no": "Sett bevegelsesbilder"
         },
         "titleFormatted": {
           "en": "Set motion snapshots to [[enabled]]",
+          "nl": "Bewegingssnapshots instellen op [[enabled]]",
           "no": "Sett bevegelsesbilder til [[enabled]]"
         },
         "args": [
@@ -1101,6 +1287,7 @@
                 "id": "enable",
                 "label": {
                   "en": "Enabled",
+                  "nl": "Ingeschakeld",
                   "no": "Aktivert"
                 }
               },
@@ -1108,6 +1295,7 @@
                 "id": "disable",
                 "label": {
                   "en": "Disabled",
+                  "nl": "Uitgeschakeld",
                   "no": "Deaktivert"
                 }
               }
@@ -1119,10 +1307,12 @@
       {
         "title": {
           "en": "Set mode",
+          "nl": "Modus instellen",
           "no": "Sett modus"
         },
         "titleFormatted": {
           "en": "Set mode to [[mode]] by [[name]] — [[comment]]",
+          "nl": "Modus instellen op [[mode]] door [[name]] — [[comment]]",
           "no": "Sett modus til [[mode]] av [[name]] — [[comment]]"
         },
         "args": [
@@ -1131,16 +1321,10 @@
             "type": "dropdown",
             "values": [
               {
-                "id": "off",
-                "label": {
-                  "en": "Off (app disabled)",
-                  "no": "Av (app deaktivert)"
-                }
-              },
-              {
                 "id": "disarmed",
                 "label": {
                   "en": "Home",
+                  "nl": "Thuis",
                   "no": "Hjemme"
                 }
               },
@@ -1148,6 +1332,7 @@
                 "id": "armed",
                 "label": {
                   "en": "Away",
+                  "nl": "Afwezig",
                   "no": "Borte"
                 }
               },
@@ -1155,6 +1340,7 @@
                 "id": "armed_perimeter",
                 "label": {
                   "en": "Perimeter",
+                  "nl": "Perimeter",
                   "no": "Skallsikring"
                 }
               }
@@ -1165,6 +1351,7 @@
             "type": "text",
             "placeholder": {
               "en": "Name (optional)",
+              "nl": "Naam (optioneel)",
               "no": "Navn (valgfritt)"
             }
           },
@@ -1173,6 +1360,7 @@
             "type": "text",
             "placeholder": {
               "en": "Comment (optional, logged)",
+              "nl": "Opmerking (optioneel, gelogd)",
               "no": "Kommentar (valgfritt, logges)"
             }
           }
@@ -1182,6 +1370,7 @@
       {
         "title": {
           "en": "Test full alarm (escalation)",
+          "nl": "Test volledig alarm (escalatie)",
           "no": "Test full alarm (eskalering)"
         },
         "id": "trigger_alarm"
@@ -1189,10 +1378,12 @@
       {
         "title": {
           "en": "Test deterrence in zone",
+          "nl": "Test afschrikking in zone",
           "no": "Test avskrekking i sone"
         },
         "titleFormatted": {
           "en": "Test deterrence in [[zone]]",
+          "nl": "Test afschrikking in [[zone]]",
           "no": "Test avskrekking i [[zone]]"
         },
         "args": [
@@ -1201,6 +1392,7 @@
             "type": "autocomplete",
             "placeholder": {
               "en": "Select zone…",
+              "nl": "Selecteer zone…",
               "no": "Velg sone…"
             }
           }
